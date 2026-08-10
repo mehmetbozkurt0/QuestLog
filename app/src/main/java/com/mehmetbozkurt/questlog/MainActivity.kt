@@ -1,6 +1,9 @@
 package com.mehmetbozkurt.questlog
 
 import android.os.Bundle
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,6 +35,13 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        Log.d("QuestLog", "Auth hazir: ${FirebaseAuth.getInstance().app.name}")
+        FirebaseFirestore.getInstance()
+            .collection("connectionTest")
+            .document("ping")
+            .set(mapOf("at" to System.currentTimeMillis()))
+            .addOnSuccessListener { Log.d("QuestLog", "Firestore yazma BASARILI") }
+            .addOnFailureListener { Log.e("QuestLog", "Firestore HATA: ${it.message}") }
     }
 }
 
