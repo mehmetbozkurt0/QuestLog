@@ -1,7 +1,7 @@
 package com.mehmetbozkurt.questlog.core.di
 
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
-import com.mehmetbozkurt.questlog.domain.repository.AuthRepositoryImpl
+import com.mehmetbozkurt.questlog.data.repository.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

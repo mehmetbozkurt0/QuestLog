@@ -1,6 +1,5 @@
-package com.mehmetbozkurt.questlog.domain.repository
+package com.mehmetbozkurt.questlog.data.repository
 
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -9,6 +8,7 @@ import com.mehmetbozkurt.questlog.core.common.DataResult
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.common.runCatchingResult
 import com.mehmetbozkurt.questlog.domain.model.AppUser
+import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +26,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val io: CoroutineDispatcher,
 ): AuthRepository {
     override val currentUser: Flow<AppUser?> = callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener {firebaseAuth ->
+        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             trySend(firebaseAuth.currentUser?.toAppUser())
         }
         auth.addAuthStateListener(listener)
@@ -35,12 +35,13 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun currentUserSync(): AppUser? = auth.currentUser?.toAppUser()
 
-    override suspend fun signIn(email: String, password: String): DataResult<AppUser> = withContext(io) {
-        runCatchingResult {
-            val result = auth.signInWithEmailAndPassword(email.trim(), password).await()
-            result.user?.toAppUser() ?: error("Kullanıcı bilgisi alınamadı.")
+    override suspend fun signIn(email: String, password: String): DataResult<AppUser> =
+        withContext(io) {
+            runCatchingResult {
+                val result = auth.signInWithEmailAndPassword(email.trim(), password).await()
+                result.user?.toAppUser() ?: error("Kullanıcı bilgisi alınamadı.")
+            }
         }
-    }
 
     override suspend fun signUp(
         email: String,
