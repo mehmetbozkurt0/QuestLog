@@ -18,7 +18,7 @@ class AuthViewModel @Inject constructor(
             is AuthEvent.EmailChanged ->
                 setState { copy(email = event.value, errorMessage = null) }
             is AuthEvent.PasswordChanged ->
-                setState { copy(email = event.value, errorMessage = null) }
+                setState { copy(password = event.value, errorMessage = null) }
             is AuthEvent.DisplayNameChanged ->
                 setState {copy(displayName = event.value, errorMessage = null)}
 
