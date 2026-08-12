@@ -14,7 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
-import com.mehmetbozkurt.questlog.feature.auth.AuthViewModel
+import com.mehmetbozkurt.questlog.feature.home.SignOutViewModel
 
 @Composable
 fun QuestLogNavHost(startLoggedIn: Boolean) {
@@ -49,7 +49,7 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
 @Composable
 private fun HomePlaceholder(
     onSignOut: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel(),
+    viewModel: SignOutViewModel = hiltViewModel()
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -57,6 +57,11 @@ private fun HomePlaceholder(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("Giriş başarılı", style = MaterialTheme.typography.headlineMedium)
-        TextButton(onClick = onSignOut) { Text("Çıkış Yap") }
+        TextButton(
+            onClick = {
+                viewModel.signOut()
+                onSignOut()
+            }
+        ) { Text("Çıkış Yap") }
     }
 }
