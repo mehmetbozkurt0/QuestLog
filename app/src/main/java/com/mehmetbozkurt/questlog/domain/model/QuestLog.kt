@@ -9,7 +9,7 @@ enum class Priority {LOW, MEDIUM, HIGH}
 data class QuestLog (
     val id: String,
     val ownerId: String,
-    val campaignId: String,
+    val campaignId: String?,
     val type: LogType,
     val title: String,
     val description: String,
@@ -17,7 +17,7 @@ data class QuestLog (
     val priority: Priority?,
     val dueAt: Instant?,
     val remindAt: Instant?,
-    val isCompledet: Boolean,
+    val isCompleted: Boolean,
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {

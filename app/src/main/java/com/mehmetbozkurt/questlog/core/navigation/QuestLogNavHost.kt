@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.home.SignOutViewModel
+import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 
 @Composable
 fun QuestLogNavHost(startLoggedIn: Boolean) {
@@ -35,12 +36,9 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
         }
 
         composable<HomeRouteKey> {
-            HomePlaceholder(
-                onSignOut = {
-                    navController.navigate(AuthRouteKey) {
-                        popUpTo(HomeRouteKey) { inclusive = true }
-                    }
-                }
+            QuestLogListRoute(
+                onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
+                onNavigateToCreate = { navController.navigate(CreateLogRouteKey) },
             )
         }
     }
