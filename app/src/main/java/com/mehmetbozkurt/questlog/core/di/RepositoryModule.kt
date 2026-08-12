@@ -2,6 +2,8 @@ package com.mehmetbozkurt.questlog.core.di
 
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.data.repository.AuthRepositoryImpl
+import com.mehmetbozkurt.questlog.data.repository.QuestLogRepositoryImpl
+import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,4 +16,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindQuestLogRepository(impl: QuestLogRepositoryImpl): QuestLogRepository
 }
