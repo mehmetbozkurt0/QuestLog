@@ -13,3 +13,12 @@ data class LogDetailRouteKey(val id: String)
 
 @Serializable
 data class LogEditRouteKey(val logId: String?)
+
+@Serializable
+data object ProfileRouteKey
+
+@Serializable
+data object CrewRouteKey
+
+@Serializable
+data object CampaignsRouteKey

@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.data.repository
 
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
+import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.mapper.toDomain
 import com.mehmetbozkurt.questlog.data.mapper.toEntity
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
@@ -21,6 +22,7 @@ import javax.inject.Singleton
 class QuestLogRepositoryImpl @Inject constructor(
     private val dao: QuestLogDao,
     private val authRepository: AuthRepository,
+    private val syncScheduler: SyncScheduler,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : QuestLogRepository {
 
@@ -35,14 +37,17 @@ class QuestLogRepositoryImpl @Inject constructor(
 
     override suspend fun upsert(log: QuestLog) = withContext(io) {
         dao.upsert(log.toEntity())
+        syncScheduler.requestSync()
     }
 
     override suspend fun setCompleted(id: String, completed: Boolean) = withContext(io) {
         dao.setCompleted(id, completed, System.currentTimeMillis())
+        syncScheduler.requestSync()
     }
 
     override suspend fun delete(id: String) = withContext(io) {
         dao.softDelete(id, System.currentTimeMillis())
+        syncScheduler.requestSync()
     }
 
     override fun newId(): String = UUID.randomUUID().toString()
