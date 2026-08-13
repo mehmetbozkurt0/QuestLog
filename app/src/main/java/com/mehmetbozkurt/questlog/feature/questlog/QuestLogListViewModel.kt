@@ -19,27 +19,6 @@ class QuestLogListViewModel @Inject constructor(
         repository.observeAll().onEach { logs -> setState { copy(logs = logs, isLoading = false) } }
             .launchIn(viewModelScope)
 
-        //geçici test verileri ---- silinecek
-        viewModelScope.launch {
-            val uid = "test-user"
-            repository.upsert(
-                com.mehmetbozkurt.questlog.domain.model.QuestLog(
-                    id = repository.newId(),
-                    ownerId = uid,
-                    campaignId = null,
-                    type = com.mehmetbozkurt.questlog.domain.model.LogType.QUEST,
-                    title = "Barovia'ya giriş",
-                    description = "Sisler dağıldığında köyün kapıları önündeydik.",
-                    categoryId = null,
-                    priority = com.mehmetbozkurt.questlog.domain.model.Priority.HIGH,
-                    dueAt = java.time.Instant.now().plusSeconds(86400 * 3),
-                    remindAt = null,
-                    isCompleted = false,
-                    createdAt = java.time.Instant.now(),
-                    updatedAt = java.time.Instant.now(),
-                )
-            )
-        }
     }
 
     override fun onEvent(event: QuestLogListEvent) {

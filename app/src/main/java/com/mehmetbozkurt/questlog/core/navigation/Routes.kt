@@ -9,10 +9,7 @@ data object AuthRouteKey
 data object HomeRouteKey
 
 @Serializable
-data object QuestLogListRouteKey
-
-@Serializable
-data object CreateLogRouteKey
-
-@Serializable
 data class LogDetailRouteKey(val id: String)
+
+@Serializable
+data class LogEditRouteKey(val logId: String?)

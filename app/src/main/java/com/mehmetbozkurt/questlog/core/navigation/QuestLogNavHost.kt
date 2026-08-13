@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.core.navigation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -13,8 +14,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.home.SignOutViewModel
+import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
 import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 
 @Composable
@@ -38,8 +41,19 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
         composable<HomeRouteKey> {
             QuestLogListRoute(
                 onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
-                onNavigateToCreate = { navController.navigate(CreateLogRouteKey) },
+                onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
             )
+        }
+
+        composable<LogEditRouteKey> {
+            LogEditRoute(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable<LogDetailRouteKey> { backStackEntry ->
+            val route = backStackEntry.toRoute<LogDetailRouteKey>()
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Detay: ${route.id}")
+            }
         }
     }
 }
