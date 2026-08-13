@@ -16,19 +16,47 @@ class QuestLogListViewModel @Inject constructor(
     QuestLogListState()
 ) {
     init {
-        repository.observeAll().onEach { logs -> setState { copy(logs = logs, isLoading = false) } }
+        repository.observeAll().onEach { logs -> setState { copy(allLogs = logs, isLoading = false) } }
             .launchIn(viewModelScope)
 
     }
 
     override fun onEvent(event: QuestLogListEvent) {
-        when(event) {
-            is QuestLogListEvent.LogClicked -> sendEffect(QuestLogListEffect.NavigateToDetail(event.id))
+        when (event) {
+            is QuestLogListEvent.LogClicked ->
+                sendEffect(QuestLogListEffect.NavigateToDetail(event.id))
 
-            QuestLogListEvent.CreateClicked -> sendEffect(QuestLogListEffect.NavigateToCreate)
+            QuestLogListEvent.CreateClicked ->
+                sendEffect(QuestLogListEffect.NavigateToCreate)
 
             is QuestLogListEvent.CompletionToggled -> viewModelScope.launch {
                 repository.setCompleted(event.id, event.completed)
+            }
+
+            is QuestLogListEvent.SearchChanged ->
+                setState { copy(searchQuery = event.value) }
+
+            is QuestLogListEvent.CompletionFilterChanged ->
+                setState { copy(completionFilter = event.value) }
+
+            is QuestLogListEvent.TypeFilterChanged ->
+                setState { copy(typeFilter = event.value) }
+
+            is QuestLogListEvent.PriorityFilterChanged ->
+                setState { copy(priorityFilter = event.value) }
+
+            is QuestLogListEvent.SortChanged ->
+                setState { copy(sortOption = event.value) }
+
+            is QuestLogListEvent.FilterSheetToggled ->
+                setState { copy(showFilterSheet = event.show) }
+
+            QuestLogListEvent.FiltersCleared -> setState {
+                copy(
+                    completionFilter = CompletionFilter.ALL,
+                    typeFilter = null,
+                    priorityFilter = null,
+                )
             }
         }
     }

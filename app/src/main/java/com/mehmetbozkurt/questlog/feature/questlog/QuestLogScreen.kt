@@ -16,8 +16,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Search
+import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 
 @Composable
 fun QuestLogListRoute(
@@ -47,18 +53,57 @@ fun QuestLogListScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Seyir Defteri",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
+            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "Seyir Defteri",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    },
+                    actions = {
+                        BadgedBox(
+                            badge = {
+                                if (state.activeFilterCount > 0) {
+                                    Badge { Text("${state.activeFilterCount}") }
+                                }
+                            }
+                        ) {
+                            IconButton(onClick = {
+                                onEvent(QuestLogListEvent.FilterSheetToggled(true))
+                            }) {
+                                Icon(Icons.Default.FilterList, contentDescription = "Filtrele")
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                )
+
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
+                    placeholder = { Text("Ara...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (state.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = {
+                                onEvent(QuestLogListEvent.SearchChanged(""))
+                            }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Temizle")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.lg, vertical = Spacing.sm),
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -85,13 +130,16 @@ fun QuestLogListScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "Defter henüz boş",
+                        if (state.isEmptyBecauseOfFilters) "Eşleşen kayıt yok"
+                        else "Defter henüz boş",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(Spacing.sm))
                     Text(
-                        "İlk kaydını oluşturmak için + düğmesine dokun.",
+                        if (state.isEmptyBecauseOfFilters)
+                            "Arama veya filtreleri değiştirmeyi dene."
+                        else "İlk kaydını oluşturmak için + düğmesine dokun.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -120,5 +168,20 @@ fun QuestLogListScreen(
                 }
             }
         }
+    }
+
+    if (state.showFilterSheet) {
+        FilterSheet(
+            completionFilter = state.completionFilter,
+            typeFilter = state.typeFilter,
+            priorityFilter = state.priorityFilter,
+            sortOption = state.sortOption,
+            onCompletionChange = { onEvent(QuestLogListEvent.CompletionFilterChanged(it)) },
+            onTypeChange = { onEvent(QuestLogListEvent.TypeFilterChanged(it)) },
+            onPriorityChange = { onEvent(QuestLogListEvent.PriorityFilterChanged(it)) },
+            onSortChange = { onEvent(QuestLogListEvent.SortChanged(it)) },
+            onClear = { onEvent(QuestLogListEvent.FiltersCleared) },
+            onDismiss = { onEvent(QuestLogListEvent.FilterSheetToggled(false)) },
+        )
     }
 }
