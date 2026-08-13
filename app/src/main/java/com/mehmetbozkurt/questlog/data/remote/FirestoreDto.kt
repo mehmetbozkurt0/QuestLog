@@ -1,6 +1,8 @@
 package com.mehmetbozkurt.questlog.data.remote
 
+import com.google.firebase.firestore.DocumentSnapshot
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
+import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 
 fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "id" to id,
@@ -20,3 +22,28 @@ fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "readerIds" to listOf(ownerId),
     "editorIds" to listOf(ownerId),
 )
+
+fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
+    val id = getString("id") ?: return null
+    val ownerId = getString("ownerId") ?: return null
+    val type = getString("type") ?: return null
+    val title = getString("title") ?: return null
+
+    return QuestLogEntity(
+        id = id,
+        ownerId = ownerId,
+        campaignId = getString("campaignId"),
+        type = type,
+        title = title,
+        description = getString("description").orEmpty(),
+        categoryId = getString("categoryId"),
+        priority = getString("priority"),
+        dueAtMillis = getLong("dueAtMillis"),
+        remindAtMillis = getLong("remindAtMillis"),
+        isCompleted = getBoolean("isCompleted") ?: false,
+        createdAtMillis = getLong("createdAtMillis") ?: 0L,
+        updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
+        isDeleted = getBoolean("isDeleted") ?: false,
+        syncState = SyncState.SYNCED.name,
+    )
+}

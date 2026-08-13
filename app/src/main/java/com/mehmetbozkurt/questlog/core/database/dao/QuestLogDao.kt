@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import kotlinx.coroutines.flow.Flow
@@ -49,4 +50,69 @@ interface QuestLogDao {
 
     @Query("UPDATE quest_logs SET syncState = :state WHERE id = :id")
     suspend fun updateSyncState(id: String, state: String)
+
+    @Query("""
+    UPDATE quest_logs SET
+        ownerId = :ownerId,
+        campaignId = :campaignId,
+        type = :type,
+        title = :title,
+        description = :description,
+        categoryId = :categoryId,
+        priority = :priority,
+        dueAtMillis = :dueAtMillis,
+        remindAtMillis = :remindAtMillis,
+        isCompleted = :isCompleted,
+        createdAtMillis = :createdAtMillis,
+        updatedAtMillis = :updatedAtMillis,
+        isDeleted = :isDeleted,
+        syncState = 'SYNCED'
+    WHERE id = :id
+      AND syncState = 'SYNCED'
+      AND updatedAtMillis < :updatedAtMillis
+""")
+    suspend fun updateFromRemoteIfNewer(
+        id: String,
+        ownerId: String,
+        campaignId: String?,
+        type: String,
+        title: String,
+        description: String,
+        categoryId: String?,
+        priority: String?,
+        dueAtMillis: Long?,
+        remindAtMillis: Long?,
+        isCompleted: Boolean,
+        createdAtMillis: Long,
+        updatedAtMillis: Long,
+        isDeleted: Boolean,
+    )
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIfAbsent(entity: QuestLogEntity): Long
+
+    @Transaction
+    suspend fun mergeFromRemote(entities: List<QuestLogEntity>) {
+        entities.forEach { e ->
+            val inserted = insertIfAbsent(e)
+            if (inserted == -1L) {
+                updateFromRemoteIfNewer(
+                    id = e.id,
+                    ownerId = e.ownerId,
+                    campaignId = e.campaignId,
+                    type = e.type,
+                    title = e.title,
+                    description = e.description,
+                    categoryId = e.categoryId,
+                    priority = e.priority,
+                    dueAtMillis = e.dueAtMillis,
+                    remindAtMillis = e.remindAtMillis,
+                    isCompleted = e.isCompleted,
+                    createdAtMillis = e.createdAtMillis,
+                    updatedAtMillis = e.updatedAtMillis,
+                    isDeleted = e.isDeleted,
+                )
+            }
+        }
+    }
 }
