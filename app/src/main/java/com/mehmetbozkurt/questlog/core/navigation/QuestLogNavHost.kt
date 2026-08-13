@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.home.SignOutViewModel
+import com.mehmetbozkurt.questlog.feature.logdetail.LogDetailRoute
 import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
 import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 
@@ -49,11 +50,11 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
             LogEditRoute(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable<LogDetailRouteKey> { backStackEntry ->
-            val route = backStackEntry.toRoute<LogDetailRouteKey>()
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Detay: ${route.id}")
-            }
+        composable<LogDetailRouteKey> {
+            LogDetailRoute(
+                onNavigateToEdit = { id -> navController.navigate(LogEditRouteKey(id)) },
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

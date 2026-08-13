@@ -23,6 +23,8 @@ class LogEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): MviViewModel<LogEditState, LogEditEvent, LogEditEffect>(LogEditState()) {
     private val route = savedStateHandle.toRoute<LogEditRouteKey>()
+    private var originalCreatedAt: Instant? = null
+    private var originalCompleted: Boolean = false
 
     init {
         val existingId = route.logId
@@ -30,6 +32,8 @@ class LogEditViewModel @Inject constructor(
             viewModelScope.launch {
                 val log = repository.observeById(existingId).first()
                 if (log != null) {
+                    originalCreatedAt = log.createdAt
+                    originalCompleted = log.isCompleted
                     setState {
                         copy(
                             id = log.id,
@@ -88,8 +92,8 @@ class LogEditViewModel @Inject constructor(
                 priority = if (isQuest) state.priority else null,
                 dueAt = if (isQuest) state.dueAt else null,
                 remindAt = if (isQuest) state.remindAt else null,
-                isCompleted = false,
-                createdAt = now,
+                isCompleted = originalCompleted,
+                createdAt = originalCreatedAt ?: now,
                 updatedAt = now,
             )
 
