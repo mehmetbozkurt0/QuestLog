@@ -3,6 +3,7 @@ package com.mehmetbozkurt.questlog.feature.logedit
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
+import com.mehmetbozkurt.questlog.domain.model.Category
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import java.time.Instant
@@ -18,6 +19,8 @@ data class LogEditState(
     val isSaving: Boolean = false,
     val showDuePicker: Boolean = false,
     val showRemindPicker: Boolean = false,
+    val categories: List<Category> = emptyList(),
+    val categoryId: String? = null
 ): UiState{
     val isEditMode: Boolean get() = id != null
     val canSave: Boolean get() = !isSaving && title.isNotEmpty()
@@ -34,6 +37,7 @@ sealed interface LogEditEvent: UiEvent {
     data class DuePickerToggled(val show: Boolean) : LogEditEvent
     data class RemindPickerToggled(val show: Boolean) : LogEditEvent
     data object SaveClicked : LogEditEvent
+    data class CategoryChanged(val id: String?): LogEditEvent
 }
 
 sealed interface LogEditEffect: UiEffect {

@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.logedit
 
+import android.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -46,7 +47,7 @@ fun LogEditRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun LogEditScreen(
     state: LogEditState,
@@ -125,6 +126,33 @@ fun LogEditScreen(
                 minLines = 4,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (state.categories.isNotEmpty()) {
+                Spacer(Modifier.height(Spacing.lg))
+
+                Text(
+                    text = "KAtegori",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(Modifier.height(Spacing.sm))
+
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    FilterChip(
+                        selected = state.categoryId == null,
+                        onClick = { onEvent(LogEditEvent.CategoryChanged(null)) },
+                        label = { Text("Yok") },
+                    )
+                    state.categories.forEach { cat ->
+                        FilterChip(
+                            selected = state.categoryId == cat.id,
+                            onClick = { onEvent(LogEditEvent.CategoryChanged(cat.id)) },
+                            label = { Text(cat.name) },
+                        )
+                    }
+                }
+            }
 
             if (state.showQuestFields) {
                 Spacer(Modifier.height(Spacing.lg))

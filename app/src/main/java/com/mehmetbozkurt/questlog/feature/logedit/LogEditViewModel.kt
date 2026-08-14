@@ -9,9 +9,12 @@ import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.CategoryRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class LogEditViewModel @Inject constructor(
     private val repository: QuestLogRepository,
     private val authRepository: AuthRepository,
+    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ): MviViewModel<LogEditState, LogEditEvent, LogEditEffect>(LogEditState()) {
     private val route = savedStateHandle.toRoute<LogEditRouteKey>()
@@ -27,6 +31,7 @@ class LogEditViewModel @Inject constructor(
     private var originalCompleted: Boolean = false
 
     init {
+        categoryRepository.observeAll().onEach { list -> setState { copy(categories = list) } }.launchIn(viewModelScope)
         val existingId = route.logId
         if (existingId != null) {
             viewModelScope.launch {
@@ -40,6 +45,7 @@ class LogEditViewModel @Inject constructor(
                             type = log.type,
                             title = log.title,
                             description = log.description,
+                            categoryId = log.categoryId,
                             priority = log.priority ?: Priority.MEDIUM,
                             dueAt = log.dueAt,
                             remindAt = log.remindAt,
@@ -60,6 +66,7 @@ class LogEditViewModel @Inject constructor(
             is LogEditEvent.RemindAtChanged -> setState { copy(remindAt = event.value, showRemindPicker = false) }
             is LogEditEvent.DuePickerToggled -> setState { copy(showDuePicker = event.show) }
             is LogEditEvent.RemindPickerToggled -> setState { copy(showRemindPicker = event.show) }
+            is LogEditEvent.CategoryChanged -> setState { copy(categoryId = event.id) }
             LogEditEvent.SaveClicked -> save()
         }
     }
@@ -88,7 +95,7 @@ class LogEditViewModel @Inject constructor(
                 type = state.type,
                 title = state.title.trim(),
                 description = state.description.trim(),
-                categoryId = null,
+                categoryId = state.categoryId,
                 priority = if (isQuest) state.priority else null,
                 dueAt = if (isQuest) state.dueAt else null,
                 remindAt = if (isQuest) state.remindAt else null,

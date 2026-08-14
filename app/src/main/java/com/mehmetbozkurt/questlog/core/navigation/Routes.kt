@@ -22,3 +22,6 @@ data object CrewRouteKey
 
 @Serializable
 data object CampaignsRouteKey
+
+@Serializable
+data object CategoryRouteKey

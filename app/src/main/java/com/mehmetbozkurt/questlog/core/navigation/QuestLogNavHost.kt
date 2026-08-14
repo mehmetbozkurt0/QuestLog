@@ -25,6 +25,7 @@ import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
 import com.mehmetbozkurt.questlog.feature.profile.ProfileRoute
 import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.mehmetbozkurt.questlog.feature.category.CategoryRoute
 
 @Composable
 fun QuestLogNavHost(startLoggedIn: Boolean) {
@@ -117,8 +118,13 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                         navController.navigate(AuthRouteKey) {
                             popUpTo(0) { inclusive = true }
                         }
-                    }
+                    },
+                    onNavigateToCategories = {navController.navigate(CategoryRouteKey)}
                 )
+            }
+
+            composable<CategoryRouteKey> {
+                CategoryRoute(onNavigateBack = {navController.popBackStack()})
             }
 
             composable<LogEditRouteKey> {
