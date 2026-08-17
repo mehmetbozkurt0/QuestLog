@@ -1,7 +1,9 @@
 package com.mehmetbozkurt.questlog.feature.logedit
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,8 +16,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.domain.model.description
+import com.mehmetbozkurt.questlog.domain.model.displayName
+import com.mehmetbozkurt.questlog.domain.model.hint
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
 import com.mehmetbozkurt.questlog.feature.questlog.component.label
 import kotlinx.coroutines.flow.collectLatest
@@ -113,6 +122,71 @@ fun LogEditScreen(
                 singleLine = true,
                 enabled = !state.isSaving,
                 modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            Text(
+                "Hangi yeteneği geliştiriyor?",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(Spacing.sm))
+
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                StatType.entries.forEach { stat ->
+                    FilterChip(
+                        selected = state.statType == stat,
+                        onClick = { onEvent(LogEditEvent.StatTypeChanged(stat)) },
+                        enabled = !state.isSaving,
+                        label = { Text(stat.displayName()) },
+                        leadingIcon = {
+                            Box(
+                                Modifier
+                                    .size(10.dp)
+                                    .background(stat.colorHex().toComposeColor(), CircleShape)
+                            )
+                        },
+                    )
+                }
+            }
+
+            if (state.statType != null) {
+                Spacer(Modifier.height(Spacing.xs))
+                Text(
+                    state.statType.description(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            Text(
+                "Zorluk",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(Spacing.sm))
+
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                Difficulty.entries.forEachIndexed { index, diff ->
+                    SegmentedButton(
+                        selected = state.difficulty == diff,
+                        onClick = { onEvent(LogEditEvent.DifficultyChanged(diff)) },
+                        shape = SegmentedButtonDefaults.itemShape(index, Difficulty.entries.size),
+                        enabled = !state.isSaving,
+                    ) {
+                        Text(diff.displayName(), style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.xs))
+            Text(
+                state.difficulty.hint(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(Modifier.height(Spacing.md))

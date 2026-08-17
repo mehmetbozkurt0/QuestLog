@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.navigation.LogEditRouteKey
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
@@ -50,6 +51,8 @@ class LogEditViewModel @Inject constructor(
                             priority = log.priority ?: Priority.MEDIUM,
                             dueAt = log.dueAt,
                             remindAt = log.remindAt,
+                            statType = log.statType,
+                            difficulty = log.difficulty ?: Difficulty.MEDIUM
                         )
                     }
                 }
@@ -67,6 +70,8 @@ class LogEditViewModel @Inject constructor(
             is LogEditEvent.RemindAtChanged -> setState { copy(remindAt = event.value, showRemindPicker = false) }
             is LogEditEvent.DuePickerToggled -> setState { copy(showDuePicker = event.show) }
             is LogEditEvent.RemindPickerToggled -> setState { copy(showRemindPicker = event.show) }
+            is LogEditEvent.StatTypeChanged -> setState { copy(statType = event.value) }
+            is LogEditEvent.DifficultyChanged -> setState { copy(difficulty = event.value) }
             is LogEditEvent.CategoryChanged -> setState { copy(categoryId = event.id) }
             LogEditEvent.SaveClicked -> save()
         }
@@ -103,8 +108,8 @@ class LogEditViewModel @Inject constructor(
                 isCompleted = originalCompleted,
                 createdAt = originalCreatedAt ?: now,
                 updatedAt = now,
-                statType = null,
-                difficulty = null,
+                statType = state.statType,
+                difficulty = state.difficulty,
                 proofLevel = ProofLevel.NONE,
                 proofNote = null,
                 completedAt = null,

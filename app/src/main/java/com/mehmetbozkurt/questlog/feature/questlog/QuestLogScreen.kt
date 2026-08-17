@@ -173,11 +173,11 @@ fun QuestLogListScreen(
     if (state.showFilterSheet) {
         FilterSheet(
             completionFilter = state.completionFilter,
-            typeFilter = state.typeFilter,
+            statFilter = state.statFilter,
             priorityFilter = state.priorityFilter,
             sortOption = state.sortOption,
             onCompletionChange = { onEvent(QuestLogListEvent.CompletionFilterChanged(it)) },
-            onTypeChange = { onEvent(QuestLogListEvent.TypeFilterChanged(it)) },
+            onStatChange = { onEvent(QuestLogListEvent.StatFilterChanged(it)) },
             onPriorityChange = { onEvent(QuestLogListEvent.PriorityFilterChanged(it)) },
             onSortChange = { onEvent(QuestLogListEvent.SortChanged(it)) },
             onClear = { onEvent(QuestLogListEvent.FiltersCleared) },

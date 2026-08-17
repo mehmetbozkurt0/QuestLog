@@ -13,6 +13,15 @@ fun StatType.displayName(): String = when (this) {
     StatType.CHA -> "Karizma"
 }
 
+fun StatType.shortLabel(): String = when (this) {
+    StatType.STR -> "GÜÇ"
+    StatType.DEX -> "ÇEV"
+    StatType.CON -> "DAY"
+    StatType.INT -> "ZEK"
+    StatType.WIS -> "BİL"
+    StatType.CHA -> "KAR"
+}
+
 fun StatType.shortName(): String = name
 
 fun StatType.description(): String = when (this) {

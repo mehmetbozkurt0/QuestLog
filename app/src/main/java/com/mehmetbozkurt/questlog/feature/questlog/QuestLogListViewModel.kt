@@ -40,8 +40,8 @@ class QuestLogListViewModel @Inject constructor(
             is QuestLogListEvent.CompletionFilterChanged ->
                 setState { copy(completionFilter = event.value) }
 
-            is QuestLogListEvent.TypeFilterChanged ->
-                setState { copy(typeFilter = event.value) }
+            is QuestLogListEvent.StatFilterChanged ->
+                setState { copy(statFilter = event.value) }
 
             is QuestLogListEvent.PriorityFilterChanged ->
                 setState { copy(priorityFilter = event.value) }
@@ -55,7 +55,7 @@ class QuestLogListViewModel @Inject constructor(
             QuestLogListEvent.FiltersCleared -> setState {
                 copy(
                     completionFilter = CompletionFilter.ALL,
-                    typeFilter = null,
+                    statFilter = null,
                     priorityFilter = null,
                 )
             }

@@ -6,6 +6,7 @@ import com.mehmetbozkurt.questlog.core.common.mvi.UiState
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
+import com.mehmetbozkurt.questlog.domain.model.StatType
 
 enum class CompletionFilter { ALL, COMPLETED, ACTIVE }
 
@@ -29,7 +30,7 @@ data class QuestLogListState(
     val isLoading: Boolean = true,
     val searchQuery: String = "",
     val completionFilter: CompletionFilter = CompletionFilter.ALL,
-    val typeFilter: LogType? = null,
+    val statFilter: StatType? = null,
     val priorityFilter: Priority? = null,
     val sortOption: SortOption = SortOption.RECENT,
     val showFilterSheet: Boolean = false,
@@ -50,7 +51,7 @@ data class QuestLogListState(
                     CompletionFilter.ACTIVE -> !log.isCompleted
                 }
             }
-            .filter { log -> typeFilter == null || log.type == typeFilter }
+            .filter { log -> statFilter == null || log.statType == statFilter }
             .filter { log -> priorityFilter == null || log.priority == priorityFilter }
             .sortedWith(sortComparator())
 
@@ -72,7 +73,7 @@ data class QuestLogListState(
     val activeFilterCount: Int
         get() = listOfNotNull(
             completionFilter.takeIf { it != CompletionFilter.ALL },
-            typeFilter,
+            statFilter,
             priorityFilter,
         ).size
 
@@ -86,7 +87,7 @@ sealed interface QuestLogListEvent : UiEvent {
     data object CreateClicked : QuestLogListEvent
     data class SearchChanged(val value: String) : QuestLogListEvent
     data class CompletionFilterChanged(val value: CompletionFilter) : QuestLogListEvent
-    data class TypeFilterChanged(val value: LogType?) : QuestLogListEvent
+    data class StatFilterChanged(val value: StatType?): QuestLogListEvent
     data class PriorityFilterChanged(val value: Priority?) : QuestLogListEvent
     data class SortChanged(val value: SortOption) : QuestLogListEvent
     data class FilterSheetToggled(val show: Boolean) : QuestLogListEvent

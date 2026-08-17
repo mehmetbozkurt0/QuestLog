@@ -5,8 +5,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.feature.questlog.CompletionFilter
 import com.mehmetbozkurt.questlog.feature.questlog.SortOption
 import com.mehmetbozkurt.questlog.feature.questlog.label
@@ -15,11 +16,11 @@ import com.mehmetbozkurt.questlog.feature.questlog.label
 @Composable
 fun FilterSheet(
     completionFilter: CompletionFilter,
-    typeFilter: LogType?,
+    statFilter: StatType?,
     priorityFilter: Priority?,
     sortOption: SortOption,
     onCompletionChange: (CompletionFilter) -> Unit,
-    onTypeChange: (LogType?) -> Unit,
+    onStatChange: (StatType?) -> Unit,
     onPriorityChange: (Priority?) -> Unit,
     onSortChange: (SortOption) -> Unit,
     onClear: () -> Unit,
@@ -62,18 +63,18 @@ fun FilterSheet(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionLabel("Tür")
+            SectionLabel("Yetenek")
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 FilterChip(
-                    selected = typeFilter == null,
-                    onClick = { onTypeChange(null) },
+                    selected = statFilter == null,
+                    onClick = { onStatChange(null) },
                     label = { Text("Tümü") },
                 )
-                LogType.entries.forEach { type ->
+                StatType.entries.forEach { stat ->
                     FilterChip(
-                        selected = typeFilter == type,
-                        onClick = { onTypeChange(type) },
-                        label = { Text(type.label()) },
+                        selected = statFilter == stat,
+                        onClick = { onStatChange(stat) },
+                        label = { Text(stat.displayName()) },
                     )
                 }
             }

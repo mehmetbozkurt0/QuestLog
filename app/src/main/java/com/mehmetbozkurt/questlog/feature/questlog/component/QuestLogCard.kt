@@ -13,9 +13,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
+import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
+import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.domain.model.displayName
+import com.mehmetbozkurt.questlog.domain.model.shortLabel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -27,7 +31,7 @@ fun QuestLogCard(
     onToggleCompleted: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val typeColor = log.type.color()
+    val statColor = log.statType?.colorHex()?.toComposeColor()
     val priorityColor = log.priority?.color()
 
     Card(
@@ -40,13 +44,23 @@ fun QuestLogCard(
         Column(Modifier.padding(Spacing.md)) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(typeColor, CircleShape))
-                Spacer(Modifier.width(Spacing.sm))
-                Text(
-                    text = log.type.label(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = typeColor,
-                )
+                if (log.statType != null && statColor != null) {
+                    Box(Modifier.size(8.dp).background(statColor, CircleShape))
+                    Spacer(Modifier.width(Spacing.sm))
+                    Text(
+                        text = log.statType.shortLabel(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = statColor,
+                    )
+                    if (log.difficulty != null) {
+                        Spacer(Modifier.width(Spacing.sm))
+                        Text(
+                            text = "· ${log.difficulty.displayName()}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 Spacer(Modifier.weight(1f))
                 if (priorityColor != null) {
                     Text(

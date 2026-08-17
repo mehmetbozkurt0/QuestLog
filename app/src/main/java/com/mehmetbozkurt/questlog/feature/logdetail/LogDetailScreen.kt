@@ -21,8 +21,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
+import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
 import com.mehmetbozkurt.questlog.feature.questlog.component.label
 import kotlinx.coroutines.flow.collectLatest
@@ -116,24 +119,20 @@ fun LogDetailScreen(
                     .padding(horizontal = Spacing.lg)
                     .verticalScroll(rememberScrollState()),
             ) {
-                val typeColor = when (log.type) {
-                    LogType.QUEST -> MaterialTheme.extendedColors.typeQuest
-                    LogType.NPC -> MaterialTheme.extendedColors.typeNpc
-                    LogType.LORE -> MaterialTheme.extendedColors.typeLore
-                    LogType.SESSION_NOTE -> MaterialTheme.extendedColors.typeSession
-                }
+                if (log.statType != null) {
+                    val statColor = log.statType.colorHex().toComposeColor()
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(10.dp).background(statColor, CircleShape))
+                        Spacer(Modifier.width(Spacing.sm))
+                        Text(
+                            log.statType.displayName(),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = statColor,
+                        )
+                    }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(10.dp).background(typeColor, CircleShape))
-                    Spacer(Modifier.width(Spacing.sm))
-                    Text(
-                        log.type.label(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = typeColor,
-                    )
+                    Spacer(Modifier.height(Spacing.md))
                 }
-
-                Spacer(Modifier.height(Spacing.md))
 
                 Text(
                     text = log.title,
@@ -154,6 +153,10 @@ fun LogDetailScreen(
                 Spacer(Modifier.height(Spacing.xl))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.height(Spacing.lg))
+
+                if (log.difficulty != null) {
+                    DetailRow("Zorluk", log.difficulty.displayName())
+                }
 
                 if (log.priority != null) {
                     val priorityColor = when (log.priority) {
