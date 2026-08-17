@@ -12,7 +12,8 @@ enum class SyncState {SYNCED, PENDING, FAILED}
         Index("ownerId"),
         Index("campaignId"),
         Index("categoryId"),
-        Index("isDeleted")
+        Index("isDeleted"),
+        Index("statType")
     ]
 )
 data class QuestLogEntity(
@@ -30,5 +31,10 @@ data class QuestLogEntity(
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
     val isDeleted: Boolean = false,
-    val syncState: String = SyncState.PENDING.name
+    val syncState: String = SyncState.PENDING.name,
+    val statType: String? = null,
+    val difficulty: String? = null,
+    val proofLevel:String = "NONE",
+    val proofNote: String? = null,
+    val completedAtMillis: Long? = null
 )

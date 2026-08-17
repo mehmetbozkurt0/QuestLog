@@ -4,9 +4,12 @@ import com.mehmetbozkurt.questlog.core.database.entity.CategoryEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.domain.model.Category
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
+import com.mehmetbozkurt.questlog.domain.model.StatType
 import java.time.Instant
 
 fun QuestLogEntity.toDomain(): QuestLog = QuestLog(
@@ -23,6 +26,11 @@ fun QuestLogEntity.toDomain(): QuestLog = QuestLog(
     isCompleted = isCompleted,
     createdAt = Instant.ofEpochMilli(createdAtMillis),
     updatedAt = Instant.ofEpochMilli(updatedAtMillis),
+    statType = statType?.let { runCatching { StatType.valueOf(it) }.getOrNull() },
+    difficulty = difficulty?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() },
+    proofLevel = runCatching { ProofLevel.valueOf(proofLevel) }.getOrDefault(ProofLevel.NONE),
+    proofNote = proofNote,
+    completedAt = completedAtMillis?.let(Instant::ofEpochMilli),
 )
 
 fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity =
@@ -40,6 +48,11 @@ fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity 
         isCompleted = isCompleted,
         createdAtMillis = createdAt.toEpochMilli(),
         updatedAtMillis = updatedAt.toEpochMilli(),
+        statType = statType?.name,
+        difficulty = difficulty?.name,
+        proofLevel = proofLevel.name,
+        proofNote = proofNote,
+        completedAtMillis = completedAt?.toEpochMilli(),
         syncState = syncState.name,
     )
 

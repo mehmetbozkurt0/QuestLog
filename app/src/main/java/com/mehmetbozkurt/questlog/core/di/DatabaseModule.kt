@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.core.di
 
 import android.content.Context
 import androidx.room.Room
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_1_2
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
@@ -21,7 +22,7 @@ object DatabaseModule {
         context,
         QuestLogDatabase::class.java,
         "questlog.db"
-    ).build()
+    ).addMigrations(MIGRATION_1_2).build()
 
     @Provides
     fun provideQuestLogDao(db: QuestLogDatabase): QuestLogDao = db.questLogDao()

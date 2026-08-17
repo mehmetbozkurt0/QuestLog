@@ -7,6 +7,7 @@ import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.navigation.LogEditRouteKey
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CategoryRepository
@@ -102,6 +103,11 @@ class LogEditViewModel @Inject constructor(
                 isCompleted = originalCompleted,
                 createdAt = originalCreatedAt ?: now,
                 updatedAt = now,
+                statType = null,
+                difficulty = null,
+                proofLevel = ProofLevel.NONE,
+                proofNote = null,
+                completedAt = null,
             )
 
             repository.upsert(log)

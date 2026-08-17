@@ -20,7 +20,15 @@ data class QuestLog (
     val isCompleted: Boolean,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val statType: StatType?,
+    val difficulty: Difficulty?,
+    val proofLevel: ProofLevel,
+    val proofNote: String?,
+    val completedAt: Instant?,
 ) {
     val descriptionFirstLine: String
         get() = description.lineSequence().firstOrNull()?.trim().orEmpty()
+
+    val isXpEligible: Boolean
+        get() = type == LogType.QUEST && statType != null && difficulty != null
 }
