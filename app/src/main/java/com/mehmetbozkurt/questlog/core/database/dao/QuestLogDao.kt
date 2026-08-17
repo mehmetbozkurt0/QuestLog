@@ -45,6 +45,9 @@ interface QuestLogDao {
     """)
     suspend fun setCompleted(id: String, completed: Boolean, nowMillis: Long)
 
+    @Query("UPDATE quest_logs SET completedAtMillis = :millis WHERE id = :id")
+    suspend fun setCompletedAt(id: String, millis: Long?)
+
     @Query("SELECT * FROM quest_logs WHERE syncState != 'SYNCED'")
     suspend fun getPendingSync(): List<QuestLogEntity>
 

@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_1_2
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
+import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import dagger.Module
 import dagger.Provides
@@ -29,4 +30,7 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(db: QuestLogDatabase): CategoryDao = db.categoryDao()
+
+    @Provides
+    fun provideCharacterDao(db: QuestLogDatabase): CharacterDao = db.characterDao()
 }

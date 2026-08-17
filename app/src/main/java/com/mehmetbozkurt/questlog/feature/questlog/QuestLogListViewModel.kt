@@ -30,7 +30,8 @@ class QuestLogListViewModel @Inject constructor(
                 sendEffect(QuestLogListEffect.NavigateToCreate)
 
             is QuestLogListEvent.CompletionToggled -> viewModelScope.launch {
-                repository.setCompleted(event.id, event.completed)
+                val award = repository.setCompleted(event.id, event.completed)
+                android.util.Log.d("QuestLog", "XP: $award")
             }
 
             is QuestLogListEvent.SearchChanged ->

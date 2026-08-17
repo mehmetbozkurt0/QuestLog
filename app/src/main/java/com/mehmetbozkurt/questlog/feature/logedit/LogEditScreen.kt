@@ -1,6 +1,5 @@
 package com.mehmetbozkurt.questlog.feature.logedit
 
-import android.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 interface CharacterRepository {
     fun observeCharacter(): Flow<CharacterSheet?>
     fun observeFeats(): Flow<List<AcquiredFeat>>
-    fun observeWeeklyXp(): Flow<Int>
 
     suspend fun ensureCharacter()
     suspend fun awardXpFor(log: QuestLog): XpAward?
@@ -19,11 +18,23 @@ interface CharacterRepository {
     suspend fun chooseFeat(featId: FeatId, chosenStat: StatType?)
 }
 
-data class XpAward(
-    val result: XpResult,
-    val statIncreased: Boolean,
-    val newStatValue: Int,
-    val leveledUp: Boolean,
-    val newLevel: Int,
-    val featChoicesGained: Int,
-)
+sealed interface XpAward {
+    data class Granted(
+        val result: XpResult,
+        val statType: StatType,
+        val statIncreased: Boolean,
+        val newStatValue: Int,
+        val leveledUp: Boolean,
+        val newLevel: Int,
+        val featChoicesGained: Int,
+    ) : XpAward
+
+    data class Rejected(val reason: RejectReason) : XpAward
+
+    enum class RejectReason {
+        ALREADY_AWARDED_TODAY,
+        DAILY_DIFFICULTY_LIMIT,
+        DAILY_STAT_CAP,
+        NOT_ELIGIBLE,
+    }
+}

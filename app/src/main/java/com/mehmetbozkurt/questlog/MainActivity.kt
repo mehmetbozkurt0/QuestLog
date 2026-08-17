@@ -1,7 +1,6 @@
 package com.mehmetbozkurt.questlog
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,13 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.firebase.auth.FirebaseAuth
 import com.mehmetbozkurt.questlog.core.designsystem.theme.QuestLogTheme
 import com.mehmetbozkurt.questlog.core.navigation.QuestLogNavHost
 import com.mehmetbozkurt.questlog.feature.splash.SplashViewModel
 import com.mehmetbozkurt.questlog.feature.splash.StartDestination
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

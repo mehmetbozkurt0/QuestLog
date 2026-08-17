@@ -115,6 +115,26 @@ object XpEngine {
         val remainingXp: Int,
         val increases: Int,
     )
+
+    fun removeStatXp(
+        currentValue: Int,
+        currentXp: Int,
+        removedXp: Int,
+    ): StatUpdate {
+        var value = currentValue
+        var xp = currentXp - removedXp
+
+        while (xp < 0 && value > XpCurve.MIN_STAT) {
+            value--
+            xp += XpCurve.xpForStatIncrease(value)
+        }
+
+        return StatUpdate(
+            newValue = value,
+            remainingXp = xp.coerceAtLeast(0),
+            increases = value - currentValue,
+        )
+    }
 }
 
 

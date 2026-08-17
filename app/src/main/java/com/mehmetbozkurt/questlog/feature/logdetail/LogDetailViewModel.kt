@@ -33,7 +33,8 @@ class LogDetailViewModel @Inject constructor(
             LogDetailEvent.CompletionToggled -> {
                 val current = currentState.log ?: return
                 viewModelScope.launch {
-                    repository.setCompleted(logId, !current.isCompleted)
+                    val award = repository.setCompleted(logId, !current.isCompleted)
+                    android.util.Log.d("QuestLog", "XP: $award")
                 }
             }
 

@@ -7,6 +7,7 @@ import com.mehmetbozkurt.questlog.data.mapper.toDomain
 import com.mehmetbozkurt.questlog.data.mapper.toEntity
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,7 @@ class QuestLogRepositoryImpl @Inject constructor(
     private val dao: QuestLogDao,
     private val authRepository: AuthRepository,
     private val syncScheduler: SyncScheduler,
+    private val characterRepository: CharacterRepository,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : QuestLogRepository {
 
@@ -41,8 +43,21 @@ class QuestLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setCompleted(id: String, completed: Boolean) = withContext(io) {
-        dao.setCompleted(id, completed, System.currentTimeMillis())
-        syncScheduler.requestSync()
+        withContext(io) {
+            val now = System.currentTimeMillis()
+            dao.setCompleted(id, completed, now)
+            dao.setCompletedAt(id, if (completed) now else null)
+            syncScheduler.requestSync()
+
+            val log = dao.getById(id)?.toDomain() ?: return@withContext null
+
+            if (completed) {
+                characterRepository.awardXpFor(log)
+            } else {
+                characterRepository.revokeXpFor(id)
+                null
+            }
+        }
     }
 
     override suspend fun delete(id: String) = withContext(io) {

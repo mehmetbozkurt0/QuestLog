@@ -2,7 +2,6 @@ package com.mehmetbozkurt.questlog.core.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Upsert
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
@@ -79,6 +78,33 @@ interface CharacterDao {
 
     @Query("SELECT * FROM feats WHERE syncState != 'SYNCED'")
     suspend fun getPendingFeats(): List<FeatEntity>
+
+    @Query("""
+        SELECT COUNT(*) FROM xp_ledger
+        WHERE userId = :userId AND logId = :logId
+        AND earnedAtMillis >= :sinceMillis
+    """)
+    suspend fun ledgerCountForLogSince(
+        userId: String,
+        logId: String,
+        sinceMillis: Long,
+    ): Int
+
+    @Query("""
+        SELECT COUNT(*) FROM xp_ledger l
+        INNER JOIN quest_logs q ON q.id = l.logId
+        WHERE l.userId = :userId AND q.difficulty = :difficulty
+        AND l.earnedAtMillis >= :sinceMillis
+    """)
+    suspend fun ledgerCountForDifficultySince(
+        userId: String,
+        difficulty: String,
+        sinceMillis: Long,
+    ): Int
+
+    @Query("SELECT * FROM xp_ledger WHERE userId = :userId AND logId = :logId")
+    suspend fun ledgerEntriesForLog(userId: String, logId: String): List<XpLedgerEntity>
+
 }
 
 

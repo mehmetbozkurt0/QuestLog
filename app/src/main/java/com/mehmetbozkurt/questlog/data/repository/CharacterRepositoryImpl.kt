@@ -1,0 +1,285 @@
+package com.mehmetbozkurt.questlog.data.repository
+
+import com.mehmetbozkurt.questlog.core.common.IoDispatcher
+import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
+import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
+import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.SyncState
+import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
+import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
+import com.mehmetbozkurt.questlog.data.mapper.buildCharacterSheet
+import com.mehmetbozkurt.questlog.data.mapper.toDomain
+import com.mehmetbozkurt.questlog.domain.model.AcquiredFeat
+import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.model.FeatId
+import com.mehmetbozkurt.questlog.domain.model.QuestLog
+import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.progression.XpContext
+import com.mehmetbozkurt.questlog.domain.progression.XpCurve
+import com.mehmetbozkurt.questlog.domain.progression.XpEngine
+import com.mehmetbozkurt.questlog.domain.progression.XpLimits
+import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
+import com.mehmetbozkurt.questlog.domain.repository.XpAward
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class CharacterRepositoryImpl @Inject constructor(
+    private val dao: CharacterDao,
+    private val authRepository: AuthRepository,
+    private val syncScheduler: SyncScheduler,
+    @IoDispatcher private val io: CoroutineDispatcher,
+) : CharacterRepository {
+
+    override fun observeCharacter(): Flow<CharacterSheet?> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) {
+                flowOf(null)
+            } else {
+                combine(
+                    dao.observeCharacter(user.uid),
+                    dao.observeStats(user.uid),
+                ) { character, stats ->
+                    character?.let { buildCharacterSheet(it, stats) }
+                }
+            }
+        }
+
+    override fun observeFeats(): Flow<List<AcquiredFeat>> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) flowOf(emptyList())
+            else dao.observeFeats(user.uid).map { list -> list.map { it.toDomain() } }
+        }
+
+    override suspend fun ensureCharacter() = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext
+        if (dao.getCharacter(user.uid) != null) return@withContext
+
+        val now = System.currentTimeMillis()
+
+        dao.upsertCharacter(
+            CharacterEntity(
+                userId = user.uid,
+                totalXp = 0,
+                pendingFeatChoices = 0,
+                createdAtMillis = now,
+                updatedAtMillis = now,
+            )
+        )
+
+        dao.upsertStats(
+            StatType.entries.map { type ->
+                StatEntity(
+                    userId = user.uid,
+                    statType = type.name,
+                    value = XpCurve.MIN_STAT,
+                    currentXp = 0,
+                    updatedAtMillis = now,
+                )
+            }
+        )
+
+        syncScheduler.requestSync()
+    }
+
+    override suspend fun awardXpFor(log: QuestLog): XpAward? = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext null
+        val statType = log.statType ?: return@withContext XpAward.Rejected(
+            XpAward.RejectReason.NOT_ELIGIBLE
+        )
+        val difficulty = log.difficulty ?: return@withContext XpAward.Rejected(
+            XpAward.RejectReason.NOT_ELIGIBLE
+        )
+
+        ensureCharacter()
+
+        val todayStart = startOfTodayMillis()
+
+        if (XpLimits.ONE_AWARD_PER_LOG_PER_DAY &&
+            dao.ledgerCountForLogSince(user.uid, log.id, todayStart) > 0
+        ) {
+            return@withContext XpAward.Rejected(XpAward.RejectReason.ALREADY_AWARDED_TODAY)
+        }
+
+        XpLimits.dailyLimitFor(difficulty)?.let { limit ->
+            val used = dao.ledgerCountForDifficultySince(user.uid, difficulty.name, todayStart)
+            if (used >= limit) {
+                return@withContext XpAward.Rejected(XpAward.RejectReason.DAILY_DIFFICULTY_LIMIT)
+            }
+        }
+
+        val feats = dao.getFeats(user.uid).map { it.toDomain() }
+        val distinctToday = dao.distinctStatsSince(user.uid, todayStart)
+            .mapNotNull { runCatching { StatType.valueOf(it) }.getOrNull() }
+            .toSet()
+        val earnedTodayForStat = dao.xpEarnedForStatSince(user.uid, statType.name, todayStart)
+
+        val completedAt = log.completedAt ?: Instant.now()
+
+        val result = XpEngine.calculate(
+            XpContext(
+                difficulty = difficulty,
+                statType = statType,
+                proofLevel = log.proofLevel,
+                completedAt = completedAt,
+                feats = feats,
+                distinctStatsToday = distinctToday,
+                xpAlreadyEarnedTodayForStat = earnedTodayForStat,
+            )
+        )
+
+        if (result.finalXp <= 0) {
+            return@withContext XpAward.Rejected(XpAward.RejectReason.DAILY_STAT_CAP)
+        }
+
+        val now = System.currentTimeMillis()
+
+        val statEntity = dao.getStat(user.uid, statType.name)
+            ?: StatEntity(
+                userId = user.uid,
+                statType = statType.name,
+                value = XpCurve.MIN_STAT,
+                currentXp = 0,
+                updatedAtMillis = now,
+            )
+
+        val statUpdate = XpEngine.applyStatXp(
+            currentValue = statEntity.value,
+            currentXp = statEntity.currentXp,
+            gainedXp = result.finalXp,
+        )
+
+        dao.upsertStat(
+            statEntity.copy(
+                value = statUpdate.newValue,
+                currentXp = statUpdate.remainingXp,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        val character = dao.getCharacter(user.uid)!!
+        val oldLevel = XpCurve.levelFromTotalXp(character.totalXp).level
+        val newTotalXp = character.totalXp + result.finalXp
+        val newLevel = XpCurve.levelFromTotalXp(newTotalXp).level
+        val featGain = XpCurve.featChoicesBetween(oldLevel, newLevel)
+
+        dao.upsertCharacter(
+            character.copy(
+                totalXp = newTotalXp,
+                pendingFeatChoices = character.pendingFeatChoices + featGain,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        dao.insertLedger(
+            XpLedgerEntity(
+                id = UUID.randomUUID().toString(),
+                userId = user.uid,
+                logId = log.id,
+                statType = statType.name,
+                baseXp = result.baseXp,
+                finalXp = result.finalXp,
+                earnedAtMillis = now,
+            )
+        )
+
+        syncScheduler.requestSync()
+
+        XpAward.Granted(
+            result = result,
+            statType = statType,
+            statIncreased = statUpdate.increases > 0,
+            newStatValue = statUpdate.newValue,
+            leveledUp = newLevel > oldLevel,
+            newLevel = newLevel,
+            featChoicesGained = featGain,
+        )
+    }
+
+    override suspend fun revokeXpFor(logId: String) = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext
+        val entries = dao.ledgerEntriesForLog(user.uid, logId)
+        if (entries.isEmpty()) return@withContext
+
+        val now = System.currentTimeMillis()
+
+        entries.forEach { entry ->
+            val statType = runCatching { StatType.valueOf(entry.statType) }.getOrNull()
+                ?: return@forEach
+
+            val statEntity = dao.getStat(user.uid, statType.name) ?: return@forEach
+            val rollback = XpEngine.removeStatXp(
+                currentValue = statEntity.value,
+                currentXp = statEntity.currentXp,
+                removedXp = entry.finalXp,
+            )
+
+            dao.upsertStat(
+                statEntity.copy(
+                    value = rollback.newValue,
+                    currentXp = rollback.remainingXp,
+                    updatedAtMillis = now,
+                    syncState = SyncState.PENDING.name,
+                )
+            )
+        }
+
+        val totalRemoved = entries.sumOf { it.finalXp }
+        val character = dao.getCharacter(user.uid) ?: return@withContext
+
+        dao.upsertCharacter(
+            character.copy(
+                totalXp = (character.totalXp - totalRemoved).coerceAtLeast(0),
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        dao.deleteLedgerForLog(logId)
+        syncScheduler.requestSync()
+    }
+
+    override suspend fun chooseFeat(featId: FeatId, chosenStat: StatType?) = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext
+        val character = dao.getCharacter(user.uid) ?: return@withContext
+        if (character.pendingFeatChoices <= 0) return@withContext
+
+        val now = System.currentTimeMillis()
+        val level = XpCurve.levelFromTotalXp(character.totalXp).level
+
+        dao.upsertFeat(
+            FeatEntity(
+                id = UUID.randomUUID().toString(),
+                userId = user.uid,
+                featId = featId.name,
+                chosenStat = chosenStat?.name,
+                acquiredAtLevel = level,
+                acquiredAtMillis = now,
+            )
+        )
+
+        dao.upsertCharacter(
+            character.copy(
+                pendingFeatChoices = character.pendingFeatChoices - 1,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        syncScheduler.requestSync()
+    }
+}
