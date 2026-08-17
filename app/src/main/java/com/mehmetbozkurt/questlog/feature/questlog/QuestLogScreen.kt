@@ -21,6 +21,7 @@ import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 fun QuestLogListRoute(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToCreate: () -> Unit,
+    onNavigateToCatalog: () -> Unit,
     viewModel: QuestLogListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,6 +42,7 @@ fun QuestLogListRoute(
             when (effect) {
                 is QuestLogListEffect.NavigateToDetail -> onNavigateToDetail(effect.id)
                 QuestLogListEffect.NavigateToCreate -> onNavigateToCreate()
+                QuestLogListEffect.NavigateToCatalog -> onNavigateToCatalog()
                 is QuestLogListEffect.ShowXpMessage ->
                     snackbarHostState.showSnackbar(effect.text)
             }
@@ -72,16 +75,14 @@ fun QuestLogListScreen(
                         )
                     },
                     actions = {
+                        IconButton(onClick = { onEvent(QuestLogListEvent.CatalogClicked) }) {
+                            Icon(Icons.Default.Explore, contentDescription = "Yollar")
+                        }
+
                         BadgedBox(
-                            badge = {
-                                if (state.activeFilterCount > 0) {
-                                    Badge { Text("${state.activeFilterCount}") }
-                                }
-                            }
+                            badge = { if (state.activeFilterCount > 0) Badge { Text("${state.activeFilterCount}") } }
                         ) {
-                            IconButton(onClick = {
-                                onEvent(QuestLogListEvent.FilterSheetToggled(true))
-                            }) {
+                            IconButton(onClick = { onEvent(QuestLogListEvent.FilterSheetToggled(true)) }) {
                                 Icon(Icons.Default.FilterList, contentDescription = "Filtrele")
                             }
                         }
@@ -149,7 +150,8 @@ fun QuestLogListScreen(
                     Text(
                         if (state.isEmptyBecauseOfFilters)
                             "Arama veya filtreleri değiştirmeyi dene."
-                        else "İlk kaydını oluşturmak için + düğmesine dokun.",
+                        else
+                            "Yollar'dan hazır görev seç ya da + ile kendi görevini oluştur.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,

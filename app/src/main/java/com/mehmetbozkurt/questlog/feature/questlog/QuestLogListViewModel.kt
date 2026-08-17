@@ -62,6 +62,9 @@ class QuestLogListViewModel @Inject constructor(
                     priorityFilter = null,
                 )
             }
+
+            QuestLogListEvent.CatalogClicked ->
+                sendEffect(QuestLogListEffect.NavigateToCatalog)
         }
     }
 }
