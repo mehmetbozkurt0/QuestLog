@@ -96,24 +96,24 @@ fun LogEditScreen(
         ) {
             Spacer(Modifier.height(Spacing.sm))
 
-            Text("Kayıt Türü", style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(Spacing.sm))
-
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                LogType.entries.forEachIndexed { index, type ->
-                    SegmentedButton(
-                        selected = state.type == type,
-                        onClick = { onEvent(LogEditEvent.TypeChanged(type)) },
-                        shape = SegmentedButtonDefaults.itemShape(index, LogType.entries.size),
-                        enabled = !state.isSaving,
-                    ) {
-                        Text(type.label(), style = MaterialTheme.typography.labelMedium)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(Spacing.lg))
+//            Text("Kayıt Türü", style = MaterialTheme.typography.labelLarge,
+//                color = MaterialTheme.colorScheme.onSurfaceVariant)
+//            Spacer(Modifier.height(Spacing.sm))
+//
+//            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+//                LogType.entries.forEachIndexed { index, type ->
+//                    SegmentedButton(
+//                        selected = state.type == type,
+//                        onClick = { onEvent(LogEditEvent.TypeChanged(type)) },
+//                        shape = SegmentedButtonDefaults.itemShape(index, LogType.entries.size),
+//                        enabled = !state.isSaving,
+//                    ) {
+//                        Text(type.label(), style = MaterialTheme.typography.labelMedium)
+//                    }
+//                }
+//            }
+//
+//            Spacer(Modifier.height(Spacing.lg))
 
             OutlinedTextField(
                 value = state.title,
@@ -199,33 +199,6 @@ fun LogEditScreen(
                 minLines = 4,
                 modifier = Modifier.fillMaxWidth(),
             )
-
-            if (state.categories.isNotEmpty()) {
-                Spacer(Modifier.height(Spacing.lg))
-
-                Text(
-                    text = "KAtegori",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(Modifier.height(Spacing.sm))
-
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    FilterChip(
-                        selected = state.categoryId == null,
-                        onClick = { onEvent(LogEditEvent.CategoryChanged(null)) },
-                        label = { Text("Yok") },
-                    )
-                    state.categories.forEach { cat ->
-                        FilterChip(
-                            selected = state.categoryId == cat.id,
-                            onClick = { onEvent(LogEditEvent.CategoryChanged(cat.id)) },
-                            label = { Text(cat.name) },
-                        )
-                    }
-                }
-            }
 
             if (state.showQuestFields) {
                 Spacer(Modifier.height(Spacing.lg))

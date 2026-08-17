@@ -32,7 +32,6 @@ data class LogEditState(
 }
 
 sealed interface LogEditEvent: UiEvent {
-    data class TypeChanged(val value: LogType) : LogEditEvent
     data class TitleChanged(val value: String) : LogEditEvent
     data class DescriptionChanged(val value: String) : LogEditEvent
     data class PriorityChanged(val value: Priority) : LogEditEvent
@@ -43,7 +42,6 @@ sealed interface LogEditEvent: UiEvent {
     data class DuePickerToggled(val show: Boolean) : LogEditEvent
     data class RemindPickerToggled(val show: Boolean) : LogEditEvent
     data object SaveClicked : LogEditEvent
-    data class CategoryChanged(val id: String?): LogEditEvent
 }
 
 sealed interface LogEditEffect: UiEffect {

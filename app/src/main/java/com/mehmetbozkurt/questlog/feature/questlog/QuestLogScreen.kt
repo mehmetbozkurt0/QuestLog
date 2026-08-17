@@ -23,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.remember
 import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 
 @Composable
@@ -32,17 +33,24 @@ fun QuestLogListRoute(
     viewModel: QuestLogListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is QuestLogListEffect.NavigateToDetail -> onNavigateToDetail(effect.id)
                 QuestLogListEffect.NavigateToCreate -> onNavigateToCreate()
+                is QuestLogListEffect.ShowXpMessage ->
+                    snackbarHostState.showSnackbar(effect.text)
             }
         }
     }
 
-    QuestLogListScreen(state = state, onEvent = viewModel::onEvent)
+    QuestLogListScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        snackbarHostState = snackbarHostState,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +58,7 @@ fun QuestLogListRoute(
 fun QuestLogListScreen(
     state: QuestLogListState,
     onEvent: (QuestLogListEvent) -> Unit,
+    snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
         topBar = {
@@ -114,6 +123,7 @@ fun QuestLogListScreen(
                 Icon(Icons.Default.Add, contentDescription = "Yeni kayıt")
             }
         },
+        snackbarHost = {SnackbarHost(snackbarHostState)},
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         when {

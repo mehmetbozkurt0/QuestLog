@@ -25,7 +25,6 @@ import javax.inject.Inject
 class LogEditViewModel @Inject constructor(
     private val repository: QuestLogRepository,
     private val authRepository: AuthRepository,
-    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ): MviViewModel<LogEditState, LogEditEvent, LogEditEffect>(LogEditState()) {
     private val route = savedStateHandle.toRoute<LogEditRouteKey>()
@@ -33,7 +32,6 @@ class LogEditViewModel @Inject constructor(
     private var originalCompleted: Boolean = false
 
     init {
-        categoryRepository.observeAll().onEach { list -> setState { copy(categories = list) } }.launchIn(viewModelScope)
         val existingId = route.logId
         if (existingId != null) {
             viewModelScope.launch {
@@ -62,7 +60,6 @@ class LogEditViewModel @Inject constructor(
 
     override fun onEvent(event: LogEditEvent) {
         when (event) {
-            is LogEditEvent.TypeChanged -> setState { copy(type = event.value) }
             is LogEditEvent.TitleChanged -> setState { copy(title = event.value) }
             is LogEditEvent.DescriptionChanged -> setState { copy(description = event.value) }
             is LogEditEvent.PriorityChanged -> setState { copy(priority = event.value) }
@@ -72,7 +69,6 @@ class LogEditViewModel @Inject constructor(
             is LogEditEvent.RemindPickerToggled -> setState { copy(showRemindPicker = event.show) }
             is LogEditEvent.StatTypeChanged -> setState { copy(statType = event.value) }
             is LogEditEvent.DifficultyChanged -> setState { copy(difficulty = event.value) }
-            is LogEditEvent.CategoryChanged -> setState { copy(categoryId = event.id) }
             LogEditEvent.SaveClicked -> save()
         }
     }

@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
@@ -37,12 +38,14 @@ fun LogDetailRoute(
     viewModel: LogDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is LogDetailEffect.NavigateToEdit -> onNavigateToEdit(effect.id)
                 LogDetailEffect.NavigateBack -> onNavigateBack()
+                is LogDetailEffect.ShowXpMessage -> snackbarHostState.showSnackbar(effect.text)
             }
         }
     }
@@ -51,6 +54,7 @@ fun LogDetailRoute(
         state = state,
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -59,6 +63,7 @@ fun LogDetailRoute(
 fun LogDetailScreen(
     state: LogDetailState,
     onEvent: (LogDetailEvent) -> Unit,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
 ) {
     val log = state.log
@@ -91,6 +96,7 @@ fun LogDetailScreen(
                 ),
             )
         },
+        snackbarHost = {SnackbarHost(snackbarHostState)},
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         when {

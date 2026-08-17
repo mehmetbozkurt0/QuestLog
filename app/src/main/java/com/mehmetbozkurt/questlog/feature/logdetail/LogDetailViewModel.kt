@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toUserMessage
 import com.mehmetbozkurt.questlog.core.navigation.LogDetailRouteKey
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +35,9 @@ class LogDetailViewModel @Inject constructor(
                 val current = currentState.log ?: return
                 viewModelScope.launch {
                     val award = repository.setCompleted(logId, !current.isCompleted)
-                    android.util.Log.d("QuestLog", "XP: $award")
+                    award?.toUserMessage()?.let { msg ->
+                        sendEffect(LogDetailEffect.ShowXpMessage(msg))
+                    }
                 }
             }
 

@@ -21,4 +21,5 @@ sealed interface LogDetailEvent: UiEvent {
 sealed interface LogDetailEffect: UiEffect{
     data class NavigateToEdit(val id: String): LogDetailEffect
     data object NavigateBack: LogDetailEffect
+    data class ShowXpMessage(val text: String): LogDetailEffect
 }

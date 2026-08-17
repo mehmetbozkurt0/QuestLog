@@ -25,6 +25,7 @@ import com.mehmetbozkurt.questlog.feature.profile.ProfileRoute
 import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.mehmetbozkurt.questlog.feature.category.CategoryRoute
+import com.mehmetbozkurt.questlog.feature.character.CharacterRoute
 
 @Composable
 fun QuestLogNavHost(startLoggedIn: Boolean) {
@@ -97,11 +98,8 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                 )
             }
 
-            composable<CampaignsRouteKey> {
-                ComingSoonScreen(
-                    title = "Kampanyalar",
-                    description = "Kayıtlarını kampanyalara göre gruplayabileceksin. Yakında.",
-                )
+            composable<CharacterRouteKey> {
+                CharacterRoute()
             }
 
             composable<CrewRouteKey> {
@@ -143,7 +141,7 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
 private fun androidx.navigation.NavDestination.hasRouteOf(item: BottomNavItem): Boolean =
     when (item) {
         BottomNavItem.LOGS -> hasRoute(HomeRouteKey::class)
-        BottomNavItem.CAMPAIGNS -> hasRoute(CampaignsRouteKey::class)
+        BottomNavItem.CHARACTER -> hasRoute(CharacterRouteKey::class)
         BottomNavItem.CREW -> hasRoute(CrewRouteKey::class)
         BottomNavItem.PROFILE -> hasRoute(ProfileRouteKey::class)
     }

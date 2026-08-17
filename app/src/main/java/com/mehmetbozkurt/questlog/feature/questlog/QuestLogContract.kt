@@ -97,4 +97,5 @@ sealed interface QuestLogListEvent : UiEvent {
 sealed interface QuestLogListEffect : UiEffect {
     data class NavigateToDetail(val id: String) : QuestLogListEffect
     data object NavigateToCreate : QuestLogListEffect
+    data class ShowXpMessage(val text: String) : QuestLogListEffect
 }
