@@ -2,9 +2,11 @@ package com.mehmetbozkurt.questlog.core.di
 
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.data.repository.AuthRepositoryImpl
+import com.mehmetbozkurt.questlog.data.repository.CatalogRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.CategoryRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.CharacterRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.QuestLogRepositoryImpl
+import com.mehmetbozkurt.questlog.domain.repository.CatalogRepository
 import com.mehmetbozkurt.questlog.domain.repository.CategoryRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
@@ -32,4 +34,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCharacterRepository(impl: CharacterRepositoryImpl): CharacterRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCatalogRepository(impl: CatalogRepositoryImpl): CatalogRepository
 }

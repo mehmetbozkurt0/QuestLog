@@ -1,8 +1,10 @@
 package com.mehmetbozkurt.questlog.core.sync
 
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
+import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
+import com.mehmetbozkurt.questlog.data.remote.CatalogRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.CategoryRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
@@ -22,6 +24,8 @@ class RemoteSyncManager @Inject constructor(
     private val dao: QuestLogDao,
     private val categoryRemote: CategoryRemoteDataSource,
     private val categoryDao: CategoryDao,
+    private val catalogRemote: CatalogRemoteDataSource,
+    private val catalogDao: CatalogDao,
     @ApplicationScope private val scope: CoroutineScope
 ) {
     fun start(){
@@ -39,5 +43,10 @@ class RemoteSyncManager @Inject constructor(
         }.onEach {entities ->
             categoryDao.mergeFromRemote(entities)
         }.launchIn(scope)
+
+        catalogRemote.observeCatalog()
+            .catch { e -> android.util.Log.e("QuestLog", "Katalog sync", e) }
+            .onEach { entities -> catalogDao.replaceAll(entities) }
+            .launchIn(scope)
     }
 }

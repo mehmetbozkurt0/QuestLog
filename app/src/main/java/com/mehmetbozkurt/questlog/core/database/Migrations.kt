@@ -67,3 +67,19 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("CREATE INDEX IF NOT EXISTS index_xp_ledger_userId_statType_earnedAtMillis ON xp_ledger(userId, statType, earnedAtMillis)")
     }
 }
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS catalog_quests (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                statType TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_catalog_quests_statType ON catalog_quests(statType)")
+    }
+}

@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.mehmetbozkurt.questlog.core.database.entity.CatalogQuestEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CategoryEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
@@ -71,5 +72,20 @@ fun DocumentSnapshot.toCategoryEntityOrNull(): CategoryEntity? {
         createdAtMillis = getLong("createdAtMillis") ?: 0L,
         isDeleted = getBoolean("isDeleted") ?: false,
         syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun DocumentSnapshot.toCatalogEntityOrNull(): CatalogQuestEntity? {
+    val title = getString("title") ?: return null
+    val statType = getString("statType") ?: return null
+    val difficulty = getString("difficulty") ?: return null
+
+    return CatalogQuestEntity(
+        id = id,
+        title = title,
+        description = getString("description").orEmpty(),
+        statType = statType,
+        difficulty = difficulty,
+        sortOrder = (getLong("order") ?: 0L).toInt(),
     )
 }
