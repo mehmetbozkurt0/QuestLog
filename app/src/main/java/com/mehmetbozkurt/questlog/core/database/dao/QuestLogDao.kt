@@ -56,24 +56,24 @@ interface QuestLogDao {
 
     @Query("""
     UPDATE quest_logs SET
-        ownerId = :ownerId,
-        campaignId = :campaignId,
-        type = :type,
-        title = :title,
-        description = :description,
-        categoryId = :categoryId,
-        priority = :priority,
-        dueAtMillis = :dueAtMillis,
-        remindAtMillis = :remindAtMillis,
-        isCompleted = :isCompleted,
-        createdAtMillis = :createdAtMillis,
-        updatedAtMillis = :updatedAtMillis,
-        isDeleted = :isDeleted,
-        syncState = 'SYNCED'
-    WHERE id = :id
-      AND syncState = 'SYNCED'
-      AND updatedAtMillis < :updatedAtMillis
-""")
+            ownerId = :ownerId,
+            campaignId = :campaignId,
+            type = :type,
+            title = :title,
+            description = :description,
+            categoryId = :categoryId,
+            priority = :priority,
+            dueAtMillis = :dueAtMillis,
+            remindAtMillis = :remindAtMillis,
+            isCompleted = :isCompleted,
+            createdAtMillis = :createdAtMillis,
+            updatedAtMillis = :updatedAtMillis,
+            isDeleted = :isDeleted,
+            syncState = 'SYNCED'
+        WHERE id = :id
+        AND syncState = 'SYNCED'
+        AND updatedAtMillis < :updatedAtMillis
+    """)
     suspend fun updateFromRemoteIfNewer(
         id: String,
         ownerId: String,

@@ -5,9 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -21,18 +25,33 @@ import com.mehmetbozkurt.questlog.domain.model.StatProgress
 import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
+import com.mehmetbozkurt.questlog.feature.character.component.FeatChoiceDialog
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CharacterRoute(
     viewModel: CharacterViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    CharacterScreen(state = state)
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is CharacterEffect.ShowMessage ->
+                    snackbarHostState.showSnackbar(effect.text)
+            }
+        }
+    }
+    CharacterScreen(state = state, onEvent = viewModel::onEvent, snackbarHostState = snackbarHostState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreen(state: CharacterState) {
+fun CharacterScreen(
+    state: CharacterState,
+    onEvent: (CharacterEvent) -> Unit,
+    snackbarHostState: SnackbarHostState
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -48,6 +67,7 @@ fun CharacterScreen(state: CharacterState) {
                 ),
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState)},
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         val character = state.character
@@ -80,7 +100,6 @@ fun CharacterScreen(state: CharacterState) {
             ) {
                 Spacer(Modifier.height(Spacing.md))
 
-                // --- Seviye kartı ---
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
@@ -135,23 +154,39 @@ fun CharacterScreen(state: CharacterState) {
                 if (character.pendingFeatChoices > 0) {
                     Spacer(Modifier.height(Spacing.md))
                     Card(
+                        onClick = { onEvent(CharacterEvent.FeatDialogToggled(true)) },
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         ),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(
-                            "${character.pendingFeatChoices} yetenek hakkın bekliyor! (Seçim ekranı yakında)",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(Spacing.md),
-                        )
+                        Row(
+                            Modifier.fillMaxWidth().padding(Spacing.md),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "${character.pendingFeatChoices} yetenek hakkın var",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                Text(
+                                    "Seçmek için dokun",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
                     }
                 }
 
                 Spacer(Modifier.height(Spacing.xl))
 
-                // --- Statlar ---
                 Text(
                     "Yetenekler",
                     style = MaterialTheme.typography.titleLarge,
@@ -164,7 +199,6 @@ fun CharacterScreen(state: CharacterState) {
                     Spacer(Modifier.height(Spacing.md))
                 }
 
-                // --- Featler ---
                 if (state.feats.isNotEmpty()) {
                     Spacer(Modifier.height(Spacing.lg))
                     Text(
@@ -193,6 +227,13 @@ fun CharacterScreen(state: CharacterState) {
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (feat.chosenStat != null) {
+                                    Text(
+                                        "Odak: ${feat.chosenStat.displayName()}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
                             }
                         }
                         Spacer(Modifier.height(Spacing.sm))
@@ -202,6 +243,20 @@ fun CharacterScreen(state: CharacterState) {
                 Spacer(Modifier.height(Spacing.xxl))
             }
         }
+    }
+
+    if (state.showFeatDialog) {
+        FeatChoiceDialog(
+            selectedFeatId = state.selectedFeatId,
+            selectedStat = state.selectedStatForFeat,
+            ownedFeatIds = state.ownedFeatIds,
+            canConfirm = state.canConfirmFeat,
+            isSaving = state.isSavingFeat,
+            onFeatSelected = { onEvent(CharacterEvent.FeatSelected(it)) },
+            onStatSelected = { onEvent(CharacterEvent.StatForFeatSelected(it)) },
+            onConfirm = { onEvent(CharacterEvent.FeatConfirmed) },
+            onDismiss = { onEvent(CharacterEvent.FeatDialogToggled(false)) },
+        )
     }
 }
 
