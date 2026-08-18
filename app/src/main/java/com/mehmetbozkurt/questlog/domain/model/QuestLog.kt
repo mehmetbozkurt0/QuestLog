@@ -21,6 +21,7 @@ data class QuestLog (
     val createdAt: Instant,
     val updatedAt: Instant,
     val statType: StatType?,
+    val pathwayQuestId: String?,
     val difficulty: Difficulty?,
     val proofLevel: ProofLevel,
     val proofNote: String?,

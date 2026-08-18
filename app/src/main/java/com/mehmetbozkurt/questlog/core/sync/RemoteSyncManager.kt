@@ -3,17 +3,21 @@ package com.mehmetbozkurt.questlog.core.sync
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
 import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
+import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.data.remote.CatalogRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.CategoryRemoteDataSource
+import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +30,9 @@ class RemoteSyncManager @Inject constructor(
     private val categoryDao: CategoryDao,
     private val catalogRemote: CatalogRemoteDataSource,
     private val catalogDao: CatalogDao,
+    private val pathwayRemote: PathwayRemoteDataSource,
+    private val pathwayDao: PathwayDao,
+    private val pathwayRepository: PathwayRepository,
     @ApplicationScope private val scope: CoroutineScope
 ) {
     fun start(){
@@ -47,6 +54,17 @@ class RemoteSyncManager @Inject constructor(
         catalogRemote.observeCatalog()
             .catch { e -> android.util.Log.e("QuestLog", "Katalog sync", e) }
             .onEach { entities -> catalogDao.replaceAll(entities) }
+            .launchIn(scope)
+
+        scope.launch { pathwayRepository.refreshCatalog() }
+
+        authRepository.currentUser
+            .flatMapLatest { user ->
+                if (user == null) emptyFlow()
+                else pathwayRemote.observeProgressForUser(user.uid)
+            }
+            .catch { e -> android.util.Log.e("QuestLog", "Pathway sync", e) }
+            .onEach { entities -> entities.forEach { pathwayDao.upsertProgress(it) } }
             .launchIn(scope)
     }
 }

@@ -31,3 +31,9 @@ data object CharacterRouteKey
 
 @Serializable
 data object CatalogRouteKey
+
+@Serializable
+data object PathwayListRouteKey
+
+@Serializable
+data class PathwayDetailRouteKey(val pathwayId: String)

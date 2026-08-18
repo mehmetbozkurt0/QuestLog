@@ -83,3 +83,72 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("CREATE INDEX IF NOT EXISTS index_catalog_quests_statType ON catalog_quests(statType)")
     }
 }
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS pathways (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                primaryStat TEXT NOT NULL,
+                secondaryStat TEXT,
+                tier INTEGER NOT NULL,
+                requiredPathwayId TEXT,
+                completionBonusXp INTEGER NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_pathways_primaryStat ON pathways(primaryStat)")
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS pathway_quests (
+                id TEXT NOT NULL PRIMARY KEY,
+                pathwayId TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                statType TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                stage INTEGER NOT NULL,
+                requiredCompletions INTEGER NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_quests_pathwayId ON pathway_quests(pathwayId)")
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS pathway_progress (
+                userId TEXT NOT NULL,
+                pathwayId TEXT NOT NULL,
+                startedAtMillis INTEGER NOT NULL,
+                lastActivityAtMillis INTEGER NOT NULL,
+                escrowedXp INTEGER NOT NULL,
+                completedAtMillis INTEGER,
+                abandonedAtMillis INTEGER,
+                syncState TEXT NOT NULL DEFAULT 'PENDING',
+                PRIMARY KEY(userId, pathwayId)
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_progress_userId ON pathway_progress(userId)")
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS pathway_quest_completions (
+                userId TEXT NOT NULL,
+                questId TEXT NOT NULL,
+                completions INTEGER NOT NULL,
+                lastCompletedAtMillis INTEGER NOT NULL,
+                syncState TEXT NOT NULL DEFAULT 'PENDING',
+                PRIMARY KEY(userId, questId)
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_quest_completions_userId ON pathway_quest_completions(userId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_quest_completions_questId ON pathway_quest_completions(questId)")
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE quest_logs ADD COLUMN pathwayQuestId TEXT")
+    }
+}

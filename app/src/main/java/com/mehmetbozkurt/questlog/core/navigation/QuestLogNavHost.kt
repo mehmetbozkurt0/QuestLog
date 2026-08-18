@@ -27,6 +27,8 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import com.mehmetbozkurt.questlog.feature.catalog.CatalogRoute
 import com.mehmetbozkurt.questlog.feature.category.CategoryRoute
 import com.mehmetbozkurt.questlog.feature.character.CharacterRoute
+import com.mehmetbozkurt.questlog.feature.pathway.PathwayDetailRoute
+import com.mehmetbozkurt.questlog.feature.pathway.PathwayListRoute
 
 @Composable
 fun QuestLogNavHost(startLoggedIn: Boolean) {
@@ -96,7 +98,7 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                 QuestLogListRoute(
                     onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
                     onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
-                    onNavigateToCatalog = { navController.navigate(CatalogRouteKey)}
+                    onNavigateToCatalog = { navController.navigate(PathwayListRouteKey) }
                 )
             }
 
@@ -139,6 +141,17 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                     onNavigateToEdit = { id -> navController.navigate(LogEditRouteKey(id)) },
                     onNavigateBack = { navController.popBackStack() },
                 )
+            }
+
+            composable<PathwayListRouteKey> {
+                PathwayListRoute(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDetail = { id -> navController.navigate(PathwayDetailRouteKey(id)) },
+                )
+            }
+
+            composable<PathwayDetailRouteKey> {
+                PathwayDetailRoute(onNavigateBack = { navController.popBackStack() })
             }
         }
     }

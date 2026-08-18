@@ -5,11 +5,16 @@ import androidx.room.RoomDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.database.entity.CatalogQuestEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CategoryEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
@@ -23,8 +28,12 @@ import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
         FeatEntity::class,
         XpLedgerEntity::class,
         CatalogQuestEntity::class,
+        PathwayEntity::class,
+        PathwayQuestEntity::class,
+        PathwayProgressEntity::class,
+        PathwayQuestCompletionEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class QuestLogDatabase : RoomDatabase() {
@@ -32,4 +41,5 @@ abstract class QuestLogDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun characterDao(): CharacterDao
     abstract fun catalogDao(): CatalogDao
+    abstract fun pathwayDao(): PathwayDao
 }

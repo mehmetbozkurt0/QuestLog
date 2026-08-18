@@ -45,6 +45,7 @@ fun buildCharacterSheet(
         totalXp = entity.totalXp,
         xpIntoLevel = levelInfo.xpIntoLevel,
         xpToNextLevel = levelInfo.xpToNextLevel,
+        epicBoons = levelInfo.epicBoons,
         pendingFeatChoices = entity.pendingFeatChoices,
         stats = stats,
         createdAt = Instant.ofEpochMilli(entity.createdAtMillis),

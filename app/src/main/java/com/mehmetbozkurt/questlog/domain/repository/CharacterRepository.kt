@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.domain.repository
 
 import com.mehmetbozkurt.questlog.domain.model.AcquiredFeat
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
@@ -38,3 +39,19 @@ sealed interface XpAward {
         NOT_ELIGIBLE,
     }
 }
+
+suspend fun awardSplitXp(
+    statType: StatType,
+    difficulty: Difficulty,
+    logId: String,
+    immediateCharacterXp: Int,
+    fullStatXp: Int,
+): XpAward.Granted?
+
+suspend fun awardCharacterOnlyXp(amount: Int): LevelUpInfo
+
+data class LevelUpInfo(
+    val leveledUp: Boolean,
+    val newLevel: Int,
+    val featChoicesGained: Int,
+)

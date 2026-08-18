@@ -16,6 +16,7 @@ data class CharacterSheet(
     val pendingFeatChoices: Int,
     val stats: List<StatProgress>,
     val createdAt: java.time.Instant,
+    val epicBoons: Int = 0
 ) {
     fun stat(type: StatType): StatProgress =
         stats.first { it.statType == type }

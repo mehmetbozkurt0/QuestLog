@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_1_2
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_2_3
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_3_4
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_4_5
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import dagger.Module
 import dagger.Provides
@@ -25,7 +28,7 @@ object DatabaseModule {
         context,
         QuestLogDatabase::class.java,
         "questlog.db"
-    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
 
     @Provides
     fun provideQuestLogDao(db: QuestLogDatabase): QuestLogDao = db.questLogDao()
@@ -38,4 +41,7 @@ object DatabaseModule {
 
     @Provides
     fun provideCatalogDao(db: QuestLogDatabase): CatalogDao = db.catalogDao()
+
+    @Provides
+    fun providesPathwayDao(db: QuestLogDatabase): PathwayDao = db.pathwayDao()
 }

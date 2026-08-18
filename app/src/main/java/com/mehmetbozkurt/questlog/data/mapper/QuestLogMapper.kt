@@ -31,6 +31,7 @@ fun QuestLogEntity.toDomain(): QuestLog = QuestLog(
     proofLevel = runCatching { ProofLevel.valueOf(proofLevel) }.getOrDefault(ProofLevel.NONE),
     proofNote = proofNote,
     completedAt = completedAtMillis?.let(Instant::ofEpochMilli),
+    pathwayQuestId = pathwayQuestId,
 )
 
 fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity =
@@ -54,6 +55,7 @@ fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity 
         proofNote = proofNote,
         completedAtMillis = completedAt?.toEpochMilli(),
         syncState = syncState.name,
+        pathwayQuestId = pathwayQuestId,
     )
 
 fun CategoryEntity.toDomain(): Category = Category(
