@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.pathway
 
+import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -26,4 +27,5 @@ sealed interface PathwayDetailEvent : UiEvent {
 
 sealed interface PathwayDetailEffect : UiEffect {
     data class ShowMessage(val text: String) : PathwayDetailEffect
+    data class ShowCelebration(val celebration: Celebration) : PathwayDetailEffect
 }

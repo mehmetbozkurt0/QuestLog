@@ -4,10 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
-import com.mehmetbozkurt.questlog.core.common.toUserMessage
+import com.mehmetbozkurt.questlog.core.common.toCelebration
 import com.mehmetbozkurt.questlog.core.navigation.PathwayDetailRouteKey
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
+import com.mehmetbozkurt.questlog.domain.repository.QuestCompletionResult
 import com.mehmetbozkurt.questlog.domain.repository.StartResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -92,7 +93,12 @@ class PathwayDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.completeQuest(questId)
             setState { copy(isWorking = false) }
-            sendEffect(PathwayDetailEffect.ShowMessage(result.toUserMessage()))
+            when (result) {
+                is QuestCompletionResult.Success ->
+                    sendEffect(PathwayDetailEffect.ShowCelebration(result.toCelebration()))
+                is QuestCompletionResult.Rejected ->
+                    sendEffect(PathwayDetailEffect.ShowMessage(result.reason))
+            }
         }
     }
 }

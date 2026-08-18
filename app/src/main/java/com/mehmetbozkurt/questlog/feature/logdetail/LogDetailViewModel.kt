@@ -4,9 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toCelebration
 import com.mehmetbozkurt.questlog.core.common.toUserMessage
 import com.mehmetbozkurt.questlog.core.navigation.LogDetailRouteKey
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
+import com.mehmetbozkurt.questlog.domain.repository.XpAward
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -34,9 +36,13 @@ class LogDetailViewModel @Inject constructor(
             LogDetailEvent.CompletionToggled -> {
                 val current = currentState.log ?: return
                 viewModelScope.launch {
-                    val award = repository.setCompleted(logId, !current.isCompleted)
-                    award?.toUserMessage()?.let { msg ->
-                        sendEffect(LogDetailEffect.ShowXpMessage(msg))
+                    when (val award = repository.setCompleted(logId, !current.isCompleted)) {
+                        is XpAward.Granted ->
+                            sendEffect(LogDetailEffect.ShowCelebration(award.toCelebration()))
+                        is XpAward.Rejected -> award.toUserMessage()?.let {
+                            sendEffect(LogDetailEffect.ShowXpMessage(it))
+                        }
+                        null -> Unit
                     }
                 }
             }

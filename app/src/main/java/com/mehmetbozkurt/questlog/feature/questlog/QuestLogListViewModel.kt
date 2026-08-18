@@ -2,10 +2,12 @@ package com.mehmetbozkurt.questlog.feature.questlog
 
 import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toCelebration
 import com.mehmetbozkurt.questlog.core.common.toUserMessage
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
+import com.mehmetbozkurt.questlog.domain.repository.XpAward
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -72,9 +74,12 @@ class QuestLogListViewModel @Inject constructor(
                 sendEffect(QuestLogListEffect.NavigateToCreate)
 
             is QuestLogListEvent.CompletionToggled -> viewModelScope.launch {
-                val award = repository.setCompleted(event.id, event.completed)
-                award?.toUserMessage()?.let { msg ->
-                    sendEffect(QuestLogListEffect.ShowXpMessage(msg))
+                when (val award = repository.setCompleted(event.id, event.completed)) {
+                    is XpAward.Granted -> sendEffect(QuestLogListEffect.ShowCelebration(award.toCelebration()))
+                    is XpAward.Rejected -> award.toUserMessage()?.let {
+                        sendEffect(QuestLogListEffect.ShowXpMessage(it))
+                    }
+                    null -> Unit
                 }
             }
 

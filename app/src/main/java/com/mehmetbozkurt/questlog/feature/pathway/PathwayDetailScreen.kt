@@ -13,13 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.core.common.Celebration
+import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
@@ -34,22 +38,31 @@ fun PathwayDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var celebration by remember { mutableStateOf<Celebration?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is PathwayDetailEffect.ShowMessage ->
                     snackbarHostState.showSnackbar(effect.text)
+                is PathwayDetailEffect.ShowCelebration ->
+                    celebration = effect.celebration
             }
         }
     }
 
-    PathwayDetailScreen(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onNavigateBack = onNavigateBack,
-        snackbarHostState = snackbarHostState,
-    )
+    Box(Modifier.fillMaxSize()) {
+        PathwayDetailScreen(
+            state = state,
+            onEvent = viewModel::onEvent,
+            onNavigateBack = onNavigateBack,
+            snackbarHostState = snackbarHostState,
+        )
+        CelebrationHost(
+            celebration = celebration,
+            onDismiss = { celebration = null },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

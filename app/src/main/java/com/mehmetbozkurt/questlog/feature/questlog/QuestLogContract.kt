@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.questlog
 
+import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -136,4 +137,5 @@ sealed interface QuestLogListEffect : UiEffect {
     data object NavigateToPathways : QuestLogListEffect
     data class NavigateToPathwayDetail(val pathwayId: String) : QuestLogListEffect
     data object NavigateToCharacter : QuestLogListEffect
+    data class ShowCelebration(val celebration: Celebration): QuestLogListEffect
 }
