@@ -3,7 +3,9 @@ package com.mehmetbozkurt.questlog.feature.questlog
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
-import com.mehmetbozkurt.questlog.domain.model.LogType
+import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.model.Pathway
+import com.mehmetbozkurt.questlog.domain.model.PathwayProgress
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
@@ -25,8 +27,21 @@ fun CompletionFilter.label(): String = when (this) {
     CompletionFilter.ACTIVE -> "Tamamlanmayanlar"
 }
 
+data class ActivePathwaySummary(
+    val pathway: Pathway,
+    val progress: PathwayProgress,
+    val completedQuests: Int,
+    val totalQuests: Int,
+) {
+    val fraction: Float
+        get() = if (totalQuests == 0) 0f
+        else completedQuests.toFloat() / totalQuests
+}
+
 data class QuestLogListState(
     val allLogs: List<QuestLog> = emptyList(),
+    val character: CharacterSheet? = null,
+    val activePathways: List<ActivePathwaySummary> = emptyList(),
     val isLoading: Boolean = true,
     val searchQuery: String = "",
     val completionFilter: CompletionFilter = CompletionFilter.ALL,
@@ -77,8 +92,25 @@ data class QuestLogListState(
             priorityFilter,
         ).size
 
+    val isSearching: Boolean
+        get() = searchQuery.isNotBlank() || activeFilterCount > 0
+
+    val showHeaderSections: Boolean get() = !isSearching && !isLoading
+
+    val levelProgress: Float
+        get() {
+            val c = character ?: return 0f
+            if (c.xpToNextLevel <= 0) return 1f
+            return (c.xpIntoLevel.toFloat() / c.xpToNextLevel).coerceIn(0f, 1f)
+        }
+
+    val activeLogs: List<QuestLog> get() = logs.filter { !it.isCompleted }
+    val completedLogs: List<QuestLog> get() = logs.filter { it.isCompleted }
+
     val isEmpty: Boolean get() = !isLoading && logs.isEmpty()
     val isEmptyBecauseOfFilters: Boolean get() = isEmpty && allLogs.isNotEmpty()
+    val isCompletelyEmpty: Boolean
+        get() = !isLoading && allLogs.isEmpty() && activePathways.isEmpty()
 }
 
 sealed interface QuestLogListEvent : UiEvent {
@@ -87,12 +119,14 @@ sealed interface QuestLogListEvent : UiEvent {
     data object CreateClicked : QuestLogListEvent
     data class SearchChanged(val value: String) : QuestLogListEvent
     data class CompletionFilterChanged(val value: CompletionFilter) : QuestLogListEvent
-    data class StatFilterChanged(val value: StatType?): QuestLogListEvent
+    data class StatFilterChanged(val value: StatType?) : QuestLogListEvent
     data class PriorityFilterChanged(val value: Priority?) : QuestLogListEvent
     data class SortChanged(val value: SortOption) : QuestLogListEvent
     data class FilterSheetToggled(val show: Boolean) : QuestLogListEvent
     data object FiltersCleared : QuestLogListEvent
     data object PathwaysClicked : QuestLogListEvent
+    data class PathwayClicked(val pathwayId: String) : QuestLogListEvent
+    data object CharacterClicked : QuestLogListEvent
 }
 
 sealed interface QuestLogListEffect : UiEffect {
@@ -100,4 +134,6 @@ sealed interface QuestLogListEffect : UiEffect {
     data object NavigateToCreate : QuestLogListEffect
     data class ShowXpMessage(val text: String) : QuestLogListEffect
     data object NavigateToPathways : QuestLogListEffect
+    data class NavigateToPathwayDetail(val pathwayId: String) : QuestLogListEffect
+    data object NavigateToCharacter : QuestLogListEffect
 }

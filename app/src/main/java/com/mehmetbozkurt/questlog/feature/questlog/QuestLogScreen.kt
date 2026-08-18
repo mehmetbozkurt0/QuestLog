@@ -1,14 +1,19 @@
 package com.mehmetbozkurt.questlog.feature.questlog
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -16,22 +21,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.feature.questlog.component.ActivePathwayCard
+import com.mehmetbozkurt.questlog.feature.questlog.component.CharacterSummaryCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
-import androidx.compose.foundation.background
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.remember
-import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 
 @Composable
 fun QuestLogListRoute(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToCreate: () -> Unit,
     onNavigateToPathways: () -> Unit,
+    onNavigateToPathwayDetail: (String) -> Unit,
+    onNavigateToCharacter: () -> Unit,
     viewModel: QuestLogListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,6 +45,9 @@ fun QuestLogListRoute(
                 is QuestLogListEffect.NavigateToDetail -> onNavigateToDetail(effect.id)
                 QuestLogListEffect.NavigateToCreate -> onNavigateToCreate()
                 QuestLogListEffect.NavigateToPathways -> onNavigateToPathways()
+                is QuestLogListEffect.NavigateToPathwayDetail ->
+                    onNavigateToPathwayDetail(effect.pathwayId)
+                QuestLogListEffect.NavigateToCharacter -> onNavigateToCharacter()
                 is QuestLogListEffect.ShowXpMessage ->
                     snackbarHostState.showSnackbar(effect.text)
             }
@@ -69,7 +74,7 @@ fun QuestLogListScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Seyir Defteri",
+                            "Yolculuk",
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -78,11 +83,16 @@ fun QuestLogListScreen(
                         IconButton(onClick = { onEvent(QuestLogListEvent.PathwaysClicked) }) {
                             Icon(Icons.Default.Explore, contentDescription = "Yollar")
                         }
-
                         BadgedBox(
-                            badge = { if (state.activeFilterCount > 0) Badge { Text("${state.activeFilterCount}") } }
+                            badge = {
+                                if (state.activeFilterCount > 0) {
+                                    Badge { Text("${state.activeFilterCount}") }
+                                }
+                            }
                         ) {
-                            IconButton(onClick = { onEvent(QuestLogListEvent.FilterSheetToggled(true)) }) {
+                            IconButton(onClick = {
+                                onEvent(QuestLogListEvent.FilterSheetToggled(true))
+                            }) {
                                 Icon(Icons.Default.FilterList, contentDescription = "Filtrele")
                             }
                         }
@@ -95,9 +105,13 @@ fun QuestLogListScreen(
                 OutlinedTextField(
                     value = state.searchQuery,
                     onValueChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
-                    placeholder = { Text("Ara...") },
+                    placeholder = { Text("Görevlerde ara...") },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null)
+                        Icon(
+                            Icons.Default.FilterList,
+                            contentDescription = null,
+                            modifier = Modifier.size(0.dp),
+                        )
                     },
                     trailingIcon = {
                         if (state.searchQuery.isNotEmpty()) {
@@ -121,62 +135,143 @@ fun QuestLogListScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Yeni kayıt")
+                Icon(Icons.Default.Add, contentDescription = "Yeni görev")
             }
         },
-        snackbarHost = {SnackbarHost(snackbarHostState)},
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        when {
-            state.isLoading -> Box(
+
+        if (state.isLoading) {
+            Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
+            return@Scaffold
+        }
 
-            state.isEmpty -> Box(
-                Modifier.fillMaxSize().padding(padding).padding(Spacing.xl),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        if (state.isEmptyBecauseOfFilters) "Eşleşen kayıt yok"
-                        else "Defter henüz boş",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(Spacing.sm))
-                    Text(
-                        if (state.isEmptyBecauseOfFilters)
-                            "Arama veya filtreleri değiştirmeyi dene."
-                        else
-                            "Yollar'dan hazır görev seç ya da + ile kendi görevini oluştur.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = Spacing.lg,
+                end = Spacing.lg,
+                top = padding.calculateTopPadding() + Spacing.sm,
+                bottom = padding.calculateBottomPadding() + 88.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        ) {
+
+
+            if (state.showHeaderSections && state.character != null) {
+                item(key = "character") {
+                    CharacterSummaryCard(
+                        character = state.character,
+                        progress = state.levelProgress,
+                        onClick = { onEvent(QuestLogListEvent.CharacterClicked) },
                     )
                 }
             }
 
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = Spacing.lg,
-                    end = Spacing.lg,
-                    top = padding.calculateTopPadding() + Spacing.sm,
-                    bottom = padding.calculateBottomPadding() + 80.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md),
-            ) {
-                items(state.logs, key = { it.id }) { log ->
-                    QuestLogCard(
-                        log = log,
-                        onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
-                        onToggleCompleted = { checked ->
-                            onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+
+            if (state.showHeaderSections && state.activePathways.isNotEmpty()) {
+                item(key = "pathway_header") {
+                    SectionHeader("Devam Eden Yollar")
+                }
+                items(state.activePathways, key = { "pw_${it.pathway.id}" }) { summary ->
+                    ActivePathwayCard(
+                        summary = summary,
+                        onClick = {
+                            onEvent(QuestLogListEvent.PathwayClicked(summary.pathway.id))
                         },
                     )
+                }
+            }
+
+            if (state.showHeaderSections && state.activePathways.isEmpty()) {
+                item(key = "pathway_cta") {
+                    Card(
+                        onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(Modifier.padding(Spacing.md)) {
+                            Text(
+                                "Bir yola gir",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(Modifier.height(Spacing.xs))
+                            Text(
+                                "Yollar sıralı görevlerden oluşur. Tamamlarsan " +
+                                        "biriken XP'yi ve bonusu kazanırsın.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (state.isEmpty) {
+                item(key = "empty") {
+                    Column(
+                        Modifier.fillMaxWidth().padding(vertical = Spacing.xxl),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            if (state.isEmptyBecauseOfFilters) "Eşleşen görev yok"
+                            else "Henüz görevin yok",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(Spacing.sm))
+                        Text(
+                            if (state.isEmptyBecauseOfFilters)
+                                "Arama veya filtreleri değiştirmeyi dene."
+                            else
+                                "Bir yola gir ya da + ile kendi görevini oluştur.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            } else {
+                if (state.activeLogs.isNotEmpty()) {
+                    item(key = "active_header") {
+                        SectionHeader(
+                            if (state.isSearching) "Sonuçlar" else "Görevlerim",
+                            "${state.activeLogs.size}",
+                        )
+                    }
+                    items(state.activeLogs, key = { it.id }) { log ->
+                        QuestLogCard(
+                            log = log,
+                            onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
+                            onToggleCompleted = { checked ->
+                                onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+                            },
+                        )
+                    }
+                }
+
+                if (state.completedLogs.isNotEmpty()) {
+                    item(key = "completed_header") {
+                        SectionHeader("Tamamlananlar", "${state.completedLogs.size}")
+                    }
+                    items(state.completedLogs, key = { it.id }) { log ->
+                        QuestLogCard(
+                            log = log,
+                            onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
+                            onToggleCompleted = { checked ->
+                                onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -195,5 +290,27 @@ fun QuestLogListScreen(
             onClear = { onEvent(QuestLogListEvent.FiltersCleared) },
             onDismiss = { onEvent(QuestLogListEvent.FilterSheetToggled(false)) },
         )
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, trailing: String? = null) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = Spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        if (trailing != null) {
+            Spacer(Modifier.weight(1f))
+            Text(
+                trailing,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

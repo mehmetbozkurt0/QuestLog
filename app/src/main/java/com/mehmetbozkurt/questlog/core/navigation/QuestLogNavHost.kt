@@ -96,7 +96,9 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                 QuestLogListRoute(
                     onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
                     onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
-                    onNavigateToPathways = { navController.navigate(PathwayListRouteKey) }
+                    onNavigateToPathways = { navController.navigate(PathwayListRouteKey) },
+                    onNavigateToPathwayDetail = { id -> navController.navigate(PathwayDetailRouteKey(id)) },
+                    onNavigateToCharacter = { navController.navigate(CharacterRouteKey) },
                 )
             }
 

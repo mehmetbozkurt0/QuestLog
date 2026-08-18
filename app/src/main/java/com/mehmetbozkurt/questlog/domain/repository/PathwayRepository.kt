@@ -11,6 +11,7 @@ interface PathwayRepository {
     fun observeProgress(): Flow<List<PathwayProgress>>
     fun observeDetail(pathwayId: String): Flow<PathwayDetail?>
 
+    suspend fun detailSnapshot(pathwayId: String): PathwayDetail?
     suspend fun refreshCatalog()
     suspend fun startPathway(pathwayId: String): StartResult
     suspend fun abandonPathway(pathwayId: String)

@@ -87,6 +87,29 @@ class PathwayRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun detailSnapshot(pathwayId: String): PathwayDetail? =
+        withContext(io) {
+            val user = authRepository.currentUserSync() ?: return@withContext null
+            val pathway = dao.getPathway(pathwayId)?.toDomain() ?: return@withContext null
+            val questEntities = dao.getQuestsFor(pathwayId)
+            val completionMap = dao.getCompletionsSnapshot(user.uid).associateBy { it.questId }
+
+            val questProgress = questEntities.mapNotNull { entity ->
+                entity.toDomain()?.let { quest ->
+                    PathwayQuestProgress(
+                        quest = quest,
+                        completions = completionMap[quest.id]?.completions ?: 0,
+                    )
+                }
+            }
+
+            PathwayDetail(
+                pathway = pathway,
+                quests = questProgress,
+                progress = dao.getProgress(user.uid, pathwayId)?.toDomain(),
+            )
+        }
+
     override suspend fun refreshCatalog() = withContext(io) {
         runCatching {
             val snapshot = remote.fetchCatalog()
