@@ -1,9 +1,7 @@
 package com.mehmetbozkurt.questlog.data.mapper
 
-import com.mehmetbozkurt.questlog.core.database.entity.CategoryEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
-import com.mehmetbozkurt.questlog.domain.model.Category
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
@@ -56,22 +54,4 @@ fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity 
         completedAtMillis = completedAt?.toEpochMilli(),
         syncState = syncState.name,
         pathwayQuestId = pathwayQuestId,
-    )
-
-fun CategoryEntity.toDomain(): Category = Category(
-    id = id,
-    ownerId = ownerId,
-    name = name,
-    colorHex = colorHex,
-    createdAt = Instant.ofEpochMilli(createdAtMillis),
-)
-
-fun Category.toEntity(syncState: SyncState = SyncState.PENDING): CategoryEntity =
-    CategoryEntity(
-        id = id,
-        ownerId = ownerId,
-        name = name,
-        colorHex = colorHex,
-        createdAtMillis = createdAt.toEpochMilli(),
-        syncState = syncState.name,
     )

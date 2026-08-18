@@ -1,12 +1,8 @@
 package com.mehmetbozkurt.questlog.core.sync
 
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
-import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
-import com.mehmetbozkurt.questlog.core.database.dao.CategoryDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
-import com.mehmetbozkurt.questlog.data.remote.CatalogRemoteDataSource
-import com.mehmetbozkurt.questlog.data.remote.CategoryRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
@@ -26,10 +22,6 @@ class RemoteSyncManager @Inject constructor(
     private val authRepository: AuthRepository,
     private val remote: QuestLogRemoteDataSource,
     private val dao: QuestLogDao,
-    private val categoryRemote: CategoryRemoteDataSource,
-    private val categoryDao: CategoryDao,
-    private val catalogRemote: CatalogRemoteDataSource,
-    private val catalogDao: CatalogDao,
     private val pathwayRemote: PathwayRemoteDataSource,
     private val pathwayDao: PathwayDao,
     private val pathwayRepository: PathwayRepository,
@@ -41,19 +33,6 @@ class RemoteSyncManager @Inject constructor(
             else remote.observeForUser(user.uid)
         }.catch { }//eklenecek
             .onEach { entities -> dao.mergeFromRemote(entities) }
-            .launchIn(scope)
-
-        authRepository.currentUser.flatMapLatest { user ->
-            if (user == null) emptyFlow() else  categoryRemote.observeForUser(user.uid)
-        }.catch { e ->
-            android.util.Log.e("QuestLog", "Category sync")
-        }.onEach {entities ->
-            categoryDao.mergeFromRemote(entities)
-        }.launchIn(scope)
-
-        catalogRemote.observeCatalog()
-            .catch { e -> android.util.Log.e("QuestLog", "Katalog sync", e) }
-            .onEach { entities -> catalogDao.replaceAll(entities) }
             .launchIn(scope)
 
         scope.launch { pathwayRepository.refreshCatalog() }

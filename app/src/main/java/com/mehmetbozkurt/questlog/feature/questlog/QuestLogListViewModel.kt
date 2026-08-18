@@ -63,8 +63,8 @@ class QuestLogListViewModel @Inject constructor(
                 )
             }
 
-            QuestLogListEvent.CatalogClicked ->
-                sendEffect(QuestLogListEffect.NavigateToCatalog)
+            QuestLogListEvent.PathwaysClicked ->
+                sendEffect(QuestLogListEffect.NavigateToPathways)
         }
     }
 }

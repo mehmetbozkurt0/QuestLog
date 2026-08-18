@@ -92,12 +92,12 @@ sealed interface QuestLogListEvent : UiEvent {
     data class SortChanged(val value: SortOption) : QuestLogListEvent
     data class FilterSheetToggled(val show: Boolean) : QuestLogListEvent
     data object FiltersCleared : QuestLogListEvent
-    data object CatalogClicked : QuestLogListEvent
+    data object PathwaysClicked : QuestLogListEvent
 }
 
 sealed interface QuestLogListEffect : UiEffect {
     data class NavigateToDetail(val id: String) : QuestLogListEffect
     data object NavigateToCreate : QuestLogListEffect
     data class ShowXpMessage(val text: String) : QuestLogListEffect
-    data object NavigateToCatalog : QuestLogListEffect
+    data object NavigateToPathways : QuestLogListEffect
 }

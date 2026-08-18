@@ -3,7 +3,6 @@ package com.mehmetbozkurt.questlog.feature.logedit
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
-import com.mehmetbozkurt.questlog.domain.model.Category
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
@@ -23,8 +22,6 @@ data class LogEditState(
     val showRemindPicker: Boolean = false,
     val statType: StatType? = null,
     val difficulty: Difficulty = Difficulty.MEDIUM,
-    val categories: List<Category> = emptyList(),
-    val categoryId: String? = null
 ): UiState{
     val isEditMode: Boolean get() = id != null
     val canSave: Boolean get() = !isSaving && title.isNotEmpty()

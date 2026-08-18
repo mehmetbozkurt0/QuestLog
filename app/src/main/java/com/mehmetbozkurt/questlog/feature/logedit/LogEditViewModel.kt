@@ -11,7 +11,6 @@ import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
-import com.mehmetbozkurt.questlog.domain.repository.CategoryRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
@@ -45,7 +44,6 @@ class LogEditViewModel @Inject constructor(
                             type = log.type,
                             title = log.title,
                             description = log.description,
-                            categoryId = log.categoryId,
                             priority = log.priority ?: Priority.MEDIUM,
                             dueAt = log.dueAt,
                             remindAt = log.remindAt,
@@ -97,7 +95,6 @@ class LogEditViewModel @Inject constructor(
                 type = state.type,
                 title = state.title.trim(),
                 description = state.description.trim(),
-                categoryId = state.categoryId,
                 priority = if (isQuest) state.priority else null,
                 dueAt = if (isQuest) state.dueAt else null,
                 remindAt = if (isQuest) state.remindAt else null,

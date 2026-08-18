@@ -24,13 +24,7 @@ data object CrewRouteKey
 data object CampaignsRouteKey
 
 @Serializable
-data object CategoryRouteKey
-
-@Serializable
 data object CharacterRouteKey
-
-@Serializable
-data object CatalogRouteKey
 
 @Serializable
 data object PathwayListRouteKey

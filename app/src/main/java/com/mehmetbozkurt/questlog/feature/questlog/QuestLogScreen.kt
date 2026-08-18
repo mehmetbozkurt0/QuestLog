@@ -31,7 +31,7 @@ import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 fun QuestLogListRoute(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToCreate: () -> Unit,
-    onNavigateToCatalog: () -> Unit,
+    onNavigateToPathways: () -> Unit,
     viewModel: QuestLogListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -42,7 +42,7 @@ fun QuestLogListRoute(
             when (effect) {
                 is QuestLogListEffect.NavigateToDetail -> onNavigateToDetail(effect.id)
                 QuestLogListEffect.NavigateToCreate -> onNavigateToCreate()
-                QuestLogListEffect.NavigateToCatalog -> onNavigateToCatalog()
+                QuestLogListEffect.NavigateToPathways -> onNavigateToPathways()
                 is QuestLogListEffect.ShowXpMessage ->
                     snackbarHostState.showSnackbar(effect.text)
             }
@@ -75,7 +75,7 @@ fun QuestLogListScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = { onEvent(QuestLogListEvent.CatalogClicked) }) {
+                        IconButton(onClick = { onEvent(QuestLogListEvent.PathwaysClicked) }) {
                             Icon(Icons.Default.Explore, contentDescription = "Yollar")
                         }
 

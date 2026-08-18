@@ -4,9 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Label
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +21,6 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun ProfileRoute(
     onNavigateToAuth: () -> Unit,
-    onNavigateToCategories: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -39,7 +36,6 @@ fun ProfileRoute(
     ProfileScreen(
         state = state,
         onEvent = viewModel::onEvent,
-        onNavigateToCategories = onNavigateToCategories,
     )
 }
 
@@ -48,7 +44,6 @@ fun ProfileRoute(
 fun ProfileScreen(
     state: ProfileState,
     onEvent: (ProfileEvent) -> Unit,
-    onNavigateToCategories: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -111,41 +106,6 @@ fun ProfileScreen(
             ) {
                 StatCard("Toplam Kayıt", state.totalLogs, Modifier.weight(1f))
                 StatCard("Tamamlanan", state.completedQuests, Modifier.weight(1f))
-            }
-
-            Spacer(Modifier.height(Spacing.lg))
-
-            Card(
-                onClick = onNavigateToCategories,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Spacing.md),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Default.Label,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(Spacing.md))
-                    Text(
-                        "Kategorileri Yönet",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
 
             Spacer(Modifier.weight(1f))

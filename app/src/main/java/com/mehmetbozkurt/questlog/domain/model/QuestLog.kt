@@ -13,7 +13,7 @@ data class QuestLog (
     val type: LogType,
     val title: String,
     val description: String,
-    val categoryId: String?,
+    val categoryId: String? = null,
     val priority: Priority?,
     val dueAt: Instant?,
     val remindAt: Instant?,

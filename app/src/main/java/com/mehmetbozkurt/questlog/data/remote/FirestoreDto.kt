@@ -1,8 +1,6 @@
 package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.DocumentSnapshot
-import com.mehmetbozkurt.questlog.core.database.entity.CatalogQuestEntity
-import com.mehmetbozkurt.questlog.core.database.entity.CategoryEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestEntity
@@ -52,46 +50,6 @@ fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
         isDeleted = getBoolean("isDeleted") ?: false,
         syncState = SyncState.SYNCED.name,
         pathwayQuestId = getString("pathwayQuestId"),
-    )
-}
-
-fun CategoryEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
-    "id" to id,
-    "ownerId" to ownerId,
-    "name" to name,
-    "colorHex" to colorHex,
-    "createdAtMillis" to createdAtMillis,
-    "isDeleted" to isDeleted,
-)
-
-fun DocumentSnapshot.toCategoryEntityOrNull(): CategoryEntity? {
-    val id = getString("id") ?: return null
-    val ownerId = getString("ownerId") ?: return null
-    val name = getString("name") ?: return null
-
-    return CategoryEntity(
-        id = id,
-        ownerId = ownerId,
-        name = name,
-        colorHex = getString("colorHex") ?: "#C8A951",
-        createdAtMillis = getLong("createdAtMillis") ?: 0L,
-        isDeleted = getBoolean("isDeleted") ?: false,
-        syncState = SyncState.SYNCED.name,
-    )
-}
-
-fun DocumentSnapshot.toCatalogEntityOrNull(): CatalogQuestEntity? {
-    val title = getString("title") ?: return null
-    val statType = getString("statType") ?: return null
-    val difficulty = getString("difficulty") ?: return null
-
-    return CatalogQuestEntity(
-        id = id,
-        title = title,
-        description = getString("description").orEmpty(),
-        statType = statType,
-        difficulty = difficulty,
-        sortOrder = (getLong("order") ?: 0L).toInt(),
     )
 }
 
