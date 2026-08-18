@@ -26,6 +26,7 @@ fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "isDeleted" to isDeleted,
     "readerIds" to listOf(ownerId),
     "editorIds" to listOf(ownerId),
+    "pathwayQuestId" to pathwayQuestId,
 )
 
 fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
@@ -61,7 +62,6 @@ fun CategoryEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "colorHex" to colorHex,
     "createdAtMillis" to createdAtMillis,
     "isDeleted" to isDeleted,
-    "pathwayQuestId" to pathwayQuestId
 )
 
 fun DocumentSnapshot.toCategoryEntityOrNull(): CategoryEntity? {

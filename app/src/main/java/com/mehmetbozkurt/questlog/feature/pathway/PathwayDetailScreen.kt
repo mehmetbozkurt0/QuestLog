@@ -252,6 +252,8 @@ fun PathwayDetailScreen(
                                 questProgress = qp,
                                 statColor = qp.quest.statType.colorHex().toComposeColor(),
                                 unlocked = unlocked,
+                                enabled = state.isActive && !state.isWorking,
+                                onClick = { onEvent(PathwayDetailEvent.QuestClicked(qp.quest.id)) },
                             )
                             Spacer(Modifier.height(Spacing.sm))
                         }
@@ -295,14 +297,19 @@ private fun QuestRow(
     questProgress: PathwayQuestProgress,
     statColor: androidx.compose.ui.graphics.Color,
     unlocked: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
 ) {
     val quest = questProgress.quest
     val alpha = if (unlocked) 1f else 0.4f
+    val clickable = unlocked && enabled && !questProgress.isComplete
 
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
+        onClick = onClick,
+        enabled = clickable,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

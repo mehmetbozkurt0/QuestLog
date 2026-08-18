@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.data.repository
 
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
+import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
@@ -14,8 +15,9 @@ import com.mehmetbozkurt.questlog.domain.model.PathwayProgress
 import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
-import com.mehmetbozkurt.questlog.domain.repository.CompletionOutcome
+import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
+import com.mehmetbozkurt.questlog.domain.repository.QuestCompletionResult
 import com.mehmetbozkurt.questlog.domain.repository.StartResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +25,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
@@ -35,8 +39,10 @@ class PathwayRepositoryImpl @Inject constructor(
     private val remote: PathwayRemoteDataSource,
     private val authRepository: AuthRepository,
     private val syncScheduler: SyncScheduler,
+    private val characterRepository: CharacterRepository,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : PathwayRepository {
+    private val completionMutex = Mutex()
 
     override fun observePathways(): Flow<List<Pathway>> =
         dao.observePathways().map { list -> list.mapNotNull { it.toDomain() } }
@@ -173,62 +179,131 @@ class PathwayRepositoryImpl @Inject constructor(
         syncScheduler.requestSync()
     }
 
-    override suspend fun recordQuestCompletion(
-        questId: String,
-        earnedXp: Int,
-    ): CompletionOutcome? = withContext(io) {
-        val user = authRepository.currentUserSync() ?: return@withContext null
-        val quest = dao.getQuest(questId) ?: return@withContext null
-        val progress = dao.getProgress(user.uid, quest.pathwayId) ?: return@withContext null
-        if (!progress.isActive()) return@withContext null
+    override suspend fun completeQuest(questId: String): QuestCompletionResult =
+        withContext(io){
+            completionMutex.withLock{
+                val user = authRepository.currentUserSync()
+                    ?: return@withLock QuestCompletionResult.Rejected("Oturum bulunamadı")
 
-        val pathway = dao.getPathway(quest.pathwayId) ?: return@withContext null
-        val now = System.currentTimeMillis()
-        val current = dao.getCompletion(user.uid, questId)
-        val newCount = (current?.completions ?: 0) + 1
+                val quest = dao.getQuest(questId)?.toDomain()
+                    ?: return@withLock QuestCompletionResult.Rejected("Görev bulunamadı")
 
-        dao.upsertCompletion(
-            PathwayQuestCompletionEntity(
-                userId = user.uid,
-                questId = questId,
-                completions = newCount,
-                lastCompletedAtMillis = now,
-                syncState = SyncState.PENDING.name,
-            )
-        )
+                val progress = dao.getProgress(user.uid, quest.pathwayId)
+                    ?: return@withLock QuestCompletionResult.Rejected("Bu yola henüz girmedin")
 
-        val split = PathwayRules.splitXp(earnedXp)
-        val newEscrow = progress.escrowedXp + split.escrowed
-        val allQuests = dao.getQuestsFor(quest.pathwayId)
-        val completions = dao.observeCompletionsSnapshot(user.uid)
-        val completionMap = completions.associateBy { it.questId }
+                if (!progress.isActive()) {
+                    return@withLock QuestCompletionResult.Rejected("Bu yol aktif değil")
+                }
 
-        val isComplete = allQuests.all { q ->
-            val done = if (q.id == questId) newCount
-            else completionMap[q.id]?.completions ?: 0
-            done >= q.requiredCompletions
+                val pathwayEntity = dao.getPathway(quest.pathwayId)
+                    ?: return@withLock QuestCompletionResult.Rejected("Yol bulunamadı")
+
+                val allQuestEntities = dao.getQuestsFor(quest.pathwayId)
+                val completionMap = dao.getCompletionsSnapshot(user.uid).associateBy { it.questId }
+
+                val unlockedStage = allQuestEntities
+                    .groupBy { it.stage }
+                    .toSortedMap()
+                    .entries
+                    .firstOrNull { (_, quests) ->
+                        quests.any {
+                            (completionMap[it.id]?.completions ?: 0) < it.requiredCompletions
+                        }
+                    }?.key ?: quest.stage
+
+                if (quest.stage > unlockedStage) {
+                    return@withLock QuestCompletionResult.Rejected("Bu aşama henüz açılmadı")
+                }
+
+                val currentCount = completionMap[questId]?.completions ?: 0
+                if (currentCount >= quest.requiredCompletions) {
+                    return@withLock QuestCompletionResult.Rejected("Bu görevi zaten tamamladın")
+                }
+
+                val todayStart = startOfTodayMillis()
+                val lastCompleted = completionMap[questId]?.lastCompletedAtMillis ?: 0L
+                if (lastCompleted >= todayStart) {
+                    return@withLock QuestCompletionResult.Rejected("Bu görevi bugün zaten yaptın")
+                }
+
+                val now = System.currentTimeMillis()
+                val baseXp = quest.difficulty.baseXp
+                val split = PathwayRules.splitXp(baseXp)
+
+                val award = characterRepository.awardSplitXp(
+                    statType = quest.statType,
+                    difficulty = quest.difficulty,
+                    logId = questId,
+                    immediateCharacterXp = split.immediate,
+                    fullStatXp = baseXp,
+                ) ?: return@withLock QuestCompletionResult.Rejected("XP verilemedi")
+
+                val newCount = currentCount + 1
+                dao.upsertCompletion(
+                    PathwayQuestCompletionEntity(
+                        userId = user.uid,
+                        questId = questId,
+                        completions = newCount,
+                        lastCompletedAtMillis = now,
+                        syncState = SyncState.PENDING.name,
+                    )
+                )
+
+                fun completionsFor(id: String): Int =
+                    if (id == questId) newCount else completionMap[id]?.completions ?: 0
+
+                val stageQuests = allQuestEntities.filter { it.stage == quest.stage }
+                val stageDone = stageQuests.all {
+                    completionsFor(it.id) >= it.requiredCompletions
+                }
+                val pathwayDone = allQuestEntities.all {
+                    completionsFor(it.id) >= it.requiredCompletions
+                }
+
+                val newEscrow = progress.escrowedXp + split.escrowed
+                var releasedXp = 0
+                var bonusXp = 0
+                var leveledUp = award.leveledUp
+                var newLevel = award.newLevel
+                var featGained = award.featChoicesGained
+
+                if (pathwayDone) {
+                    releasedXp = newEscrow
+                    bonusXp = pathwayEntity.completionBonusXp
+                    val releaseInfo = characterRepository.awardCharacterOnlyXp(releasedXp + bonusXp)
+                    leveledUp = leveledUp || releaseInfo.leveledUp
+                    newLevel = releaseInfo.newLevel
+                    featGained += releaseInfo.featChoicesGained
+                }
+
+                dao.upsertProgress(
+                    progress.copy(
+                        lastActivityAtMillis = now,
+                        escrowedXp = if (pathwayDone) 0 else newEscrow,
+                        completedAtMillis = if (pathwayDone) now else null,
+                        syncState = SyncState.PENDING.name,
+                    )
+                )
+
+                syncScheduler.requestSync()
+
+                QuestCompletionResult.Success(
+                    questTitle = quest.title,
+                    statType = quest.statType,
+                    immediateXp = split.immediate,
+                    escrowedXp = split.escrowed,
+                    statIncreased = award.statIncreased,
+                    newStatValue = award.newStatValue,
+                    leveledUp = leveledUp,
+                    newLevel = newLevel,
+                    featChoicesGained = featGained,
+                    stageCompleted = stageDone && !pathwayDone,
+                    pathwayCompleted = pathwayDone,
+                    releasedXp = releasedXp,
+                    bonusXp = bonusXp,
+                )
+            }
         }
-
-        val updated = progress.copy(
-            lastActivityAtMillis = now,
-            escrowedXp = if (isComplete) 0 else newEscrow,
-            completedAtMillis = if (isComplete) now else null,
-            syncState = SyncState.PENDING.name,
-        )
-        dao.upsertProgress(updated)
-
-        syncScheduler.requestSync()
-
-        CompletionOutcome(
-            pathwayId = quest.pathwayId,
-            pathwayTitle = pathway.title,
-            escrowedXp = split.escrowed,
-            stageUnlocked = null,
-            pathwayCompleted = isComplete,
-            releasedXp = if (isComplete) newEscrow else 0,
-            bonusXp = if (isComplete) pathway.completionBonusXp else 0,
-        )
-    }
 
     private fun PathwayProgressEntity.isActive(): Boolean =
         completedAtMillis == null && abandonedAtMillis == null

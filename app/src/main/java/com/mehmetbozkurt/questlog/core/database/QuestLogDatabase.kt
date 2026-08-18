@@ -33,7 +33,7 @@ import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
         PathwayProgressEntity::class,
         PathwayQuestCompletionEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class QuestLogDatabase : RoomDatabase() {

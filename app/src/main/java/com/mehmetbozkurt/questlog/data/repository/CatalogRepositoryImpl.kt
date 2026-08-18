@@ -54,6 +54,7 @@ class CatalogRepositoryImpl @Inject constructor(
                 proofLevel = ProofLevel.NONE,
                 proofNote = null,
                 completedAt = null,
+                pathwayQuestId = null
             )
         )
     }

@@ -66,117 +66,6 @@ class CharacterRepositoryImpl @Inject constructor(
             else dao.observeFeats(user.uid).map { list -> list.map { it.toDomain() } }
         }
 
-    override suspend fun awardSplitXp(
-        statType: StatType,
-        difficulty: Difficulty,
-        logId: String,
-        immediateCharacterXp: Int,
-        fullStatXp: Int,
-    ): XpAward.Granted? = withContext(io) {
-        val user = authRepository.currentUserSync() ?: return@withContext null
-        ensureCharacter()
-
-        val now = System.currentTimeMillis()
-
-        val statEntity = dao.getStat(user.uid, statType.name)
-            ?: StatEntity(
-                userId = user.uid,
-                statType = statType.name,
-                value = XpCurve.MIN_STAT,
-                currentXp = 0,
-                updatedAtMillis = now,
-            )
-
-        val statUpdate = XpEngine.applyStatXp(
-            currentValue = statEntity.value,
-            currentXp = statEntity.currentXp,
-            gainedXp = fullStatXp,
-        )
-
-        dao.upsertStat(
-            statEntity.copy(
-                value = statUpdate.newValue,
-                currentXp = statUpdate.remainingXp,
-                updatedAtMillis = now,
-                syncState = SyncState.PENDING.name,
-            )
-        )
-
-        val character = dao.getCharacter(user.uid)!!
-        val oldLevel = XpCurve.levelFromTotalXp(character.totalXp).level
-        val newTotalXp = character.totalXp + immediateCharacterXp
-        val newLevel = XpCurve.levelFromTotalXp(newTotalXp).level
-        val featGain = XpCurve.featChoicesBetween(oldLevel, newLevel)
-
-        dao.upsertCharacter(
-            character.copy(
-                totalXp = newTotalXp,
-                pendingFeatChoices = character.pendingFeatChoices + featGain,
-                updatedAtMillis = now,
-                syncState = SyncState.PENDING.name,
-            )
-        )
-
-        dao.insertLedger(
-            XpLedgerEntity(
-                id = UUID.randomUUID().toString(),
-                userId = user.uid,
-                logId = logId,
-                statType = statType.name,
-                baseXp = difficulty.baseXp,
-                finalXp = fullStatXp,
-                earnedAtMillis = now,
-            )
-        )
-
-        syncScheduler.requestSync()
-
-        XpAward.Granted(
-            result = XpResult(
-                baseXp = difficulty.baseXp,
-                finalXp = fullStatXp,
-                cappedAmount = 0,
-                appliedBonuses = emptyList(),
-            ),
-            statType = statType,
-            statIncreased = statUpdate.increases > 0,
-            newStatValue = statUpdate.newValue,
-            leveledUp = newLevel > oldLevel,
-            newLevel = newLevel,
-            featChoicesGained = featGain,
-        )
-    }
-
-    override suspend fun awardCharacterOnlyXp(amount: Int): LevelUpInfo = withContext(io) {
-        val user = authRepository.currentUserSync()
-            ?: return@withContext LevelUpInfo(false, 1, 0)
-        val character = dao.getCharacter(user.uid)
-            ?: return@withContext LevelUpInfo(false, 1, 0)
-
-        val now = System.currentTimeMillis()
-        val oldLevel = XpCurve.levelFromTotalXp(character.totalXp).level
-        val newTotalXp = character.totalXp + amount
-        val newLevel = XpCurve.levelFromTotalXp(newTotalXp).level
-        val featGain = XpCurve.featChoicesBetween(oldLevel, newLevel)
-
-        dao.upsertCharacter(
-            character.copy(
-                totalXp = newTotalXp,
-                pendingFeatChoices = character.pendingFeatChoices + featGain,
-                updatedAtMillis = now,
-                syncState = SyncState.PENDING.name,
-            )
-        )
-
-        syncScheduler.requestSync()
-
-        LevelUpInfo(
-            leveledUp = newLevel > oldLevel,
-            newLevel = newLevel,
-            featChoicesGained = featGain,
-        )
-    }
-
     override suspend fun ensureCharacter() = withContext(io) {
         val user = authRepository.currentUserSync() ?: return@withContext
         if (dao.getCharacter(user.uid) != null) return@withContext
@@ -395,5 +284,116 @@ class CharacterRepositoryImpl @Inject constructor(
         )
 
         syncScheduler.requestSync()
+    }
+
+    override suspend fun awardSplitXp(
+        statType: StatType,
+        difficulty: Difficulty,
+        logId: String,
+        immediateCharacterXp: Int,
+        fullStatXp: Int,
+    ): XpAward.Granted? = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext null
+        ensureCharacter()
+
+        val now = System.currentTimeMillis()
+
+        val statEntity = dao.getStat(user.uid, statType.name)
+            ?: StatEntity(
+                userId = user.uid,
+                statType = statType.name,
+                value = XpCurve.MIN_STAT,
+                currentXp = 0,
+                updatedAtMillis = now,
+            )
+
+        val statUpdate = XpEngine.applyStatXp(
+            currentValue = statEntity.value,
+            currentXp = statEntity.currentXp,
+            gainedXp = fullStatXp,
+        )
+
+        dao.upsertStat(
+            statEntity.copy(
+                value = statUpdate.newValue,
+                currentXp = statUpdate.remainingXp,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        val character = dao.getCharacter(user.uid) ?: return@withContext null
+        val oldLevel = XpCurve.levelFromTotalXp(character.totalXp).level
+        val newTotalXp = character.totalXp + immediateCharacterXp
+        val newLevel = XpCurve.levelFromTotalXp(newTotalXp).level
+        val featGain = XpCurve.featChoicesBetween(oldLevel, newLevel)
+
+        dao.upsertCharacter(
+            character.copy(
+                totalXp = newTotalXp,
+                pendingFeatChoices = character.pendingFeatChoices + featGain,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        dao.insertLedger(
+            XpLedgerEntity(
+                id = UUID.randomUUID().toString(),
+                userId = user.uid,
+                logId = logId,
+                statType = statType.name,
+                baseXp = difficulty.baseXp,
+                finalXp = fullStatXp,
+                earnedAtMillis = now,
+            )
+        )
+
+        syncScheduler.requestSync()
+
+        XpAward.Granted(
+            result = XpResult(
+                baseXp = difficulty.baseXp,
+                finalXp = fullStatXp,
+                cappedAmount = 0,
+                appliedBonuses = emptyList(),
+            ),
+            statType = statType,
+            statIncreased = statUpdate.increases > 0,
+            newStatValue = statUpdate.newValue,
+            leveledUp = newLevel > oldLevel,
+            newLevel = newLevel,
+            featChoicesGained = featGain,
+        )
+    }
+
+    override suspend fun awardCharacterOnlyXp(amount: Int): LevelUpInfo = withContext(io) {
+        val user = authRepository.currentUserSync()
+            ?: return@withContext LevelUpInfo(false, 1, 0)
+        val character = dao.getCharacter(user.uid)
+            ?: return@withContext LevelUpInfo(false, 1, 0)
+
+        val now = System.currentTimeMillis()
+        val oldLevel = XpCurve.levelFromTotalXp(character.totalXp).level
+        val newTotalXp = character.totalXp + amount
+        val newLevel = XpCurve.levelFromTotalXp(newTotalXp).level
+        val featGain = XpCurve.featChoicesBetween(oldLevel, newLevel)
+
+        dao.upsertCharacter(
+            character.copy(
+                totalXp = newTotalXp,
+                pendingFeatChoices = character.pendingFeatChoices + featGain,
+                updatedAtMillis = now,
+                syncState = SyncState.PENDING.name,
+            )
+        )
+
+        syncScheduler.requestSync()
+
+        LevelUpInfo(
+            leveledUp = newLevel > oldLevel,
+            newLevel = newLevel,
+            featChoicesGained = featGain,
+        )
     }
 }

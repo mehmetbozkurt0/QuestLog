@@ -94,5 +94,5 @@ interface PathwayDao {
     suspend fun getPendingCompletions(): List<PathwayQuestCompletionEntity>
 
     @Query("SELECT * FROM pathway_quest_completions WHERE userId = :userId")
-    suspend fun observeCompletionsSnapshot(userId: String): List<PathwayQuestCompletionEntity>
+    suspend fun getCompletionsSnapshot(userId: String): List<PathwayQuestCompletionEntity>
 }

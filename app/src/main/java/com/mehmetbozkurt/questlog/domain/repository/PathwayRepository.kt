@@ -27,7 +27,6 @@ sealed interface StartResult {
 }
 
 data class CompletionOutcome(
-    val pathwayId: String,
     val pathwayTitle: String,
     val escrowedXp: Int,
     val stageUnlocked: Int?,

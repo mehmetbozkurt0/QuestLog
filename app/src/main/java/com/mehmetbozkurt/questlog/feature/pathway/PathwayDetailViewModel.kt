@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toUserMessage
 import com.mehmetbozkurt.questlog.core.navigation.PathwayDetailRouteKey
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
@@ -51,7 +52,7 @@ class PathwayDetailViewModel @Inject constructor(
 
             PathwayDetailEvent.AbandonConfirmed -> abandon()
 
-            is PathwayDetailEvent.QuestClicked -> Unit
+            is PathwayDetailEvent.QuestClicked -> completeQuest(event.questId)
         }
     }
 
@@ -81,6 +82,17 @@ class PathwayDetailViewModel @Inject constructor(
             repository.abandonPathway(pathwayId)
             setState { copy(isWorking = false) }
             sendEffect(PathwayDetailEffect.ShowMessage("Yolu bıraktın. Emanetteki XP kayboldu."))
+        }
+    }
+
+    private fun completeQuest(questId: String) {
+        if (currentState.isWorking) return
+        setState { copy(isWorking = true) }
+
+        viewModelScope.launch {
+            val result = repository.completeQuest(questId)
+            setState { copy(isWorking = false) }
+            sendEffect(PathwayDetailEffect.ShowMessage(result.toUserMessage()))
         }
     }
 }

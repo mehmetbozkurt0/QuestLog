@@ -17,6 +17,16 @@ interface CharacterRepository {
     suspend fun awardXpFor(log: QuestLog): XpAward?
     suspend fun revokeXpFor(logId: String)
     suspend fun chooseFeat(featId: FeatId, chosenStat: StatType?)
+
+    suspend fun awardSplitXp(
+        statType: StatType,
+        difficulty: Difficulty,
+        logId: String,
+        immediateCharacterXp: Int,
+        fullStatXp: Int,
+    ): XpAward.Granted?
+
+    suspend fun awardCharacterOnlyXp(amount: Int): LevelUpInfo
 }
 
 sealed interface XpAward {
@@ -39,16 +49,6 @@ sealed interface XpAward {
         NOT_ELIGIBLE,
     }
 }
-
-suspend fun awardSplitXp(
-    statType: StatType,
-    difficulty: Difficulty,
-    logId: String,
-    immediateCharacterXp: Int,
-    fullStatXp: Int,
-): XpAward.Granted?
-
-suspend fun awardCharacterOnlyXp(amount: Int): LevelUpInfo
 
 data class LevelUpInfo(
     val leveledUp: Boolean,
