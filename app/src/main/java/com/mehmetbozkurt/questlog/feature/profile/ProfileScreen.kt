@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -108,6 +109,26 @@ fun ProfileScreen(
                 StatCard("Tamamlanan", state.completedQuests, Modifier.weight(1f))
             }
 
+            Spacer(Modifier.height(Spacing.xl))
+
+            Column(Modifier.fillMaxWidth()) {
+                Text(
+                    "Görünüm",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(Spacing.sm))
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    ThemePreference.entries.forEach { pref ->
+                        FilterChip(
+                            selected = state.theme == pref,
+                            onClick = { onEvent(ProfileEvent.ThemeChanged(pref)) },
+                            label = { Text(pref.label()) },
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.weight(1f))
 
             OutlinedButton(
@@ -145,6 +166,12 @@ fun ProfileScreen(
             },
         )
     }
+}
+
+private fun ThemePreference.label(): String = when (this) {
+    ThemePreference.SYSTEM -> "Sistem"
+    ThemePreference.LIGHT -> "Aydınlık"
+    ThemePreference.DARK -> "Karanlık"
 }
 
 @Composable

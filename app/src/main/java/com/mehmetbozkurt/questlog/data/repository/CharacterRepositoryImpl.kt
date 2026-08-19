@@ -1,22 +1,29 @@
 package com.mehmetbozkurt.questlog.data.repository
 
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
+import com.mehmetbozkurt.questlog.core.common.daysAgoMillis
 import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PendingDeletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
 import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.mapper.buildCharacterSheet
+import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
 import com.mehmetbozkurt.questlog.data.mapper.toDomain
 import com.mehmetbozkurt.questlog.domain.model.AcquiredFeat
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.model.DayActivity
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.WeeklySummary
+import com.mehmetbozkurt.questlog.domain.progression.StreakEngine
+import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import com.mehmetbozkurt.questlog.domain.progression.XpContext
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.domain.progression.XpEngine
@@ -34,6 +41,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +52,7 @@ class CharacterRepositoryImpl @Inject constructor(
     private val dao: CharacterDao,
     private val authRepository: AuthRepository,
     private val syncScheduler: SyncScheduler,
+    private val characterRemote: CharacterRemoteDataSource,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : CharacterRepository {
 
@@ -66,9 +76,96 @@ class CharacterRepositoryImpl @Inject constructor(
             else dao.observeFeats(user.uid).map { list -> list.map { it.toDomain() } }
         }
 
+    override fun observeStreak(): Flow<StreakInfo> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) {
+                flowOf(StreakInfo.EMPTY)
+            } else {
+                combine(
+                    dao.observeLedgerTimes(user.uid),
+                    dao.observeFeats(user.uid),
+                ) { times, feats ->
+                    val zone = ZoneId.systemDefault()
+                    val activeDays = times
+                        .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+                        .toSet()
+                    StreakEngine.calculate(
+                        activeDays = activeDays,
+                        today = LocalDate.now(zone),
+                        hasResolute = feats.any { it.featId == FeatId.RESOLUTE.name },
+                    )
+                }
+            }
+        }
+
+    override fun observeWeeklySummary(): Flow<WeeklySummary> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) {
+                flowOf(emptyWeeklySummary())
+            } else {
+                dao.observeLedgerSince(user.uid, daysAgoMillis(6)).map { entries ->
+                    val zone = ZoneId.systemDefault()
+                    val today = LocalDate.now(zone)
+                    val byDay = entries.groupBy {
+                        Instant.ofEpochMilli(it.earnedAtMillis).atZone(zone).toLocalDate()
+                    }
+                    val days = (6 downTo 0).map { offset ->
+                        val date = today.minusDays(offset.toLong())
+                        DayActivity(date, byDay[date]?.sumOf { it.finalXp } ?: 0)
+                    }
+                    val topStat = entries
+                        .groupBy { it.statType }
+                        .maxByOrNull { (_, list) -> list.sumOf { it.finalXp } }
+                        ?.key
+                        ?.let { name -> runCatching { StatType.valueOf(name) }.getOrNull() }
+                    WeeklySummary(
+                        days = days,
+                        totalXp = entries.sumOf { it.finalXp },
+                        entryCount = entries.size,
+                        topStat = topStat,
+                    )
+                }
+            }
+        }
+
+    private fun emptyWeeklySummary(): WeeklySummary {
+        val today = LocalDate.now()
+        return WeeklySummary(
+            days = (6 downTo 0).map { DayActivity(today.minusDays(it.toLong()), 0) },
+            totalXp = 0,
+            entryCount = 0,
+            topStat = null,
+        )
+    }
+
+    private suspend fun streakMilestoneAfterAward(userId: String): Int? {
+        if (dao.ledgerCountSince(userId, startOfTodayMillis()) != 1) return null
+        val zone = ZoneId.systemDefault()
+        val activeDays = dao. getLedgerTimes(userId).map {
+            Instant.ofEpochMilli(it).atZone(zone).toLocalDate()
+        }.toSet()
+        val hasResolute = dao.getFeats(userId).any{
+            it.featId == FeatId.RESOLUTE.name
+        }
+        val streak = StreakEngine.calculate(activeDays, LocalDate.now(zone), hasResolute)
+        return streak.currentStreak.takeIf { it in StreakEngine.MILESTONES }
+    }
+
     override suspend fun ensureCharacter() = withContext(io) {
         val user = authRepository.currentUserSync() ?: return@withContext
         if (dao.getCharacter(user.uid) != null) return@withContext
+
+        val remoteCharacter = runCatching { characterRemote.fetchCharacter(user.uid) }.getOrNull()
+        if (remoteCharacter != null) {
+            dao.upsertCharacter(remoteCharacter)
+            runCatching { characterRemote.fetchStats(user.uid) }.getOrNull()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { dao.upsertStats(it) }
+            runCatching { characterRemote.fetchFeats(user.uid) }.getOrNull()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { dao.upsertFeats(it) }
+            return@withContext
+        }
 
         val now = System.currentTimeMillis()
 
@@ -193,12 +290,14 @@ class CharacterRepositoryImpl @Inject constructor(
                 id = UUID.randomUUID().toString(),
                 userId = user.uid,
                 logId = log.id,
-                statType = statType.name,
+                statType = statType.name, 
                 baseXp = result.baseXp,
                 finalXp = result.finalXp,
                 earnedAtMillis = now,
             )
         )
+
+        val milestone = streakMilestoneAfterAward(user.uid)
 
         syncScheduler.requestSync()
 
@@ -210,6 +309,7 @@ class CharacterRepositoryImpl @Inject constructor(
             leveledUp = newLevel > oldLevel,
             newLevel = newLevel,
             featChoicesGained = featGain,
+            streakMilestone = milestone
         )
     }
 
@@ -252,6 +352,15 @@ class CharacterRepositoryImpl @Inject constructor(
             )
         )
 
+        dao.insertPendingDeletions(
+            entries.map {
+                PendingDeletionEntity(
+                    docId = it.id,
+                    collection = "xpLedger",
+                    userId = user.uid,
+                )
+            }
+        )
         dao.deleteLedgerForLog(logId)
         syncScheduler.requestSync()
     }
@@ -349,6 +458,8 @@ class CharacterRepositoryImpl @Inject constructor(
             )
         )
 
+        val milestone = streakMilestoneAfterAward(user.uid)
+
         syncScheduler.requestSync()
 
         XpAward.Granted(
@@ -364,6 +475,7 @@ class CharacterRepositoryImpl @Inject constructor(
             leveledUp = newLevel > oldLevel,
             newLevel = newLevel,
             featChoicesGained = featGain,
+            streakMilestone = milestone
         )
     }
 

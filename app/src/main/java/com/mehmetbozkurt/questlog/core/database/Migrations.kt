@@ -159,3 +159,15 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         db.execSQL("DROP TABLE IF EXISTS catalog_quests")
     }
 }
+
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS pending_deletions (
+                docId TEXT NOT NULL PRIMARY KEY,
+                collection TEXT NOT NULL,
+                userId TEXT NOT NULL
+            )
+        """)
+    }
+}

@@ -31,6 +31,10 @@ class QuestLogListViewModel @Inject constructor(
             setState { copy(character = sheet) }
         }.launchIn(viewModelScope)
 
+        characterRepository.observeStreak().onEach { info ->
+            setState { copy(streak = info) }
+        }.launchIn(viewModelScope)
+
         combine(
             pathwayRepository.observePathways(),
             pathwayRepository.observeProgress()

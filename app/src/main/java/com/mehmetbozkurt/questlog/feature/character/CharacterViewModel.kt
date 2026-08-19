@@ -25,6 +25,14 @@ class CharacterViewModel @Inject constructor(
         repository.observeFeats()
             .onEach { feats -> setState { copy(feats = feats) } }
             .launchIn(viewModelScope)
+
+        repository.observeStreak()
+            .onEach { info -> setState { copy(streak = info) } }
+            .launchIn(viewModelScope)
+
+        repository.observeWeeklySummary()
+            .onEach { summary -> setState { copy(weekly = summary) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: CharacterEvent) {

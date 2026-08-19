@@ -8,6 +8,8 @@ import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.WeeklySummary
+import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 
 data class CharacterState(
     val character: CharacterSheet? = null,
@@ -17,6 +19,8 @@ data class CharacterState(
     val selectedFeatId: FeatId? = null,
     val selectedStatForFeat: StatType? = null,
     val isSavingFeat: Boolean = false,
+    val streak: StreakInfo? = null,
+    val weekly: WeeklySummary? = null,
 ): UiState{
     val levelProgress: Float
         get() {

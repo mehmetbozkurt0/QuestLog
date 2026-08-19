@@ -26,6 +26,7 @@ import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.feature.character.component.FeatChoiceDialog
+import com.mehmetbozkurt.questlog.feature.character.component.WeeklySummaryCard
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -150,6 +151,10 @@ fun CharacterScreen(
                         )
                     }
                 }
+
+                Spacer(Modifier.height(Spacing.md))
+
+                WeeklySummaryCard(streak = state.streak, weekly = state.weekly)
 
                 if (character.pendingFeatChoices > 0) {
                     Spacer(Modifier.height(Spacing.md))

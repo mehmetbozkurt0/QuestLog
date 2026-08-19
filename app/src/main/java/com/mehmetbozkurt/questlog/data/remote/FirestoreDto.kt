@@ -1,11 +1,16 @@
 package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
+import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
+import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
+import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
 
 fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "id" to id,
@@ -97,3 +102,104 @@ fun PathwayProgressEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "completedAtMillis" to completedAtMillis,
     "abandonedAtMillis" to abandonedAtMillis,
 )
+
+fun CharacterEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "userId" to userId,
+    "totalXp" to totalXp,
+    "pendingFeatChoices" to pendingFeatChoices,
+    "createdAtMillis" to createdAtMillis,
+    "updatedAtMillis" to updatedAtMillis,
+)
+
+fun DocumentSnapshot.toCharacterEntityOrNull(): CharacterEntity? {
+    val userId = getString("userId") ?: return null
+    return CharacterEntity(
+        userId = userId,
+        totalXp = (getLong("totalXp") ?: 0L).toInt(),
+        pendingFeatChoices = (getLong("pendingFeatChoices") ?: 0L).toInt(),
+        createdAtMillis = getLong("createdAtMillis") ?: 0L,
+        updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun StatEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "statType" to statType,
+    "value" to value,
+    "currentXp" to currentXp,
+    "updatedAtMillis" to updatedAtMillis,
+)
+
+fun DocumentSnapshot.toStatEntityOrNull(userId: String): StatEntity? {
+    val statType = getString("statType") ?: return null
+    return StatEntity(
+        userId = userId,
+        statType = statType,
+        value = (getLong("value") ?: 10L).toInt(),
+        currentXp = (getLong("currentXp") ?: 0L).toInt(),
+        updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun FeatEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "id" to id,
+    "featId" to featId,
+    "chosenStat" to chosenStat,
+    "acquiredAtLevel" to acquiredAtLevel,
+    "acquiredAtMillis" to acquiredAtMillis,
+)
+
+fun DocumentSnapshot.toFeatEntityOrNull(userId: String): FeatEntity? {
+    val featId = getString("featId") ?: return null
+    return FeatEntity(
+        id = id,
+        userId = userId,
+        featId = featId,
+        chosenStat = getString("chosenStat"),
+        acquiredAtLevel = (getLong("acquiredAtLevel") ?: 1L).toInt(),
+        acquiredAtMillis = getLong("acquiredAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun XpLedgerEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "id" to id,
+    "logId" to logId,
+    "statType" to statType,
+    "baseXp" to baseXp,
+    "finalXp" to finalXp,
+    "earnedAtMillis" to earnedAtMillis,
+)
+
+fun DocumentSnapshot.toLedgerEntityOrNull(userId: String): XpLedgerEntity? {
+    val logId = getString("logId") ?: return null
+    val statType = getString("statType") ?: return null
+    return XpLedgerEntity(
+        id = id,
+        userId = userId,
+        logId = logId,
+        statType = statType,
+        baseXp = (getLong("baseXp") ?: 0L).toInt(),
+        finalXp = (getLong("finalXp") ?: 0L).toInt(),
+        earnedAtMillis = getLong("earnedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun PathwayQuestCompletionEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "questId" to questId,
+    "completions" to completions,
+    "lastCompletedAtMillis" to lastCompletedAtMillis,
+)
+
+fun DocumentSnapshot.toCompletionEntityOrNull(userId: String): PathwayQuestCompletionEntity? {
+    val questId = getString("questId") ?: return null
+    return PathwayQuestCompletionEntity(
+        userId = userId,
+        questId = questId,
+        completions = (getLong("completions") ?: 0L).toInt(),
+        lastCompletedAtMillis = getLong("lastCompletedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}

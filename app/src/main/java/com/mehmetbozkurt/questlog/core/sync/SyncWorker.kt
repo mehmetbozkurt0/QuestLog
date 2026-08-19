@@ -6,9 +6,11 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
+import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import dagger.assisted.Assisted
@@ -22,18 +24,13 @@ class SyncWorker @AssistedInject constructor(
     private val remote: QuestLogRemoteDataSource,
     private val pathwayDao: PathwayDao,
     private val pathwayRemote: PathwayRemoteDataSource,
+    private val characterDao: CharacterDao,
+    private val characterRemote: CharacterRemoteDataSource,
 ): CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        val pending = dao.getPendingSync()
-        if (pending.isEmpty() &&
-            pathwayDao.getPendingProgress().isEmpty()
-        ) {
-            return Result.success()
-        }
-
         var hadRetryableFailure = false
 
-        pending.forEach { entity ->
+        dao.getPendingSync().forEach { entity ->
             try {
                 remote.push(entity)
                 dao.updateSyncState(entity.id, SyncState.SYNCED.name)
@@ -46,11 +43,64 @@ class SyncWorker @AssistedInject constructor(
             }
         }
 
-        val pendingPathways = pathwayDao.getPendingProgress()
-        pendingPathways.forEach { entity ->
+        pathwayDao.getPendingProgress().forEach { entity ->
             try {
                 pathwayRemote.pushProgress(entity)
                 pathwayDao.upsertProgress(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        pathwayDao.getPendingCompletions().forEach { entity ->
+            try {
+                characterRemote.pushCompletion(entity)
+                pathwayDao.upsertCompletion(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        characterDao.getPendingCharacters().forEach { entity ->
+            try {
+                characterRemote.pushCharacter(entity)
+                characterDao.upsertCharacter(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        characterDao.getPendingStats().forEach { entity ->
+            try {
+                characterRemote.pushStat(entity)
+                characterDao.upsertStat(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        characterDao.getPendingFeats().forEach { entity ->
+            try {
+                characterRemote.pushFeat(entity)
+                characterDao.upsertFeat(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        characterDao.getPendingLedger().forEach { entity ->
+            try {
+                characterRemote.pushLedgerEntry(entity)
+                characterDao.insertLedger(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        characterDao.getPendingDeletions().forEach { deletion ->
+            try {
+                characterRemote.deleteLedgerEntry(deletion.userId, deletion.docId)
+                characterDao.clearPendingDeletion(deletion.docId)
             } catch (e: Exception) {
                 if (e.isRetryable()) hadRetryableFailure = true
             }

@@ -324,6 +324,7 @@ class PathwayRepositoryImpl @Inject constructor(
                     pathwayCompleted = pathwayDone,
                     releasedXp = releasedXp,
                     bonusXp = bonusXp,
+                    streakMilestone = award.streakMilestone
                 )
             }
         }

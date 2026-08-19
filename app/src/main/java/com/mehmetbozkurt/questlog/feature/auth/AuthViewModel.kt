@@ -51,7 +51,10 @@ class AuthViewModel @Inject constructor(
                 is DataResult.Error -> setState { copy(isLoading = false, errorMessage = result.exception.toAuthMessage()) }
                 is DataResult.Success<*> -> {
                     setState { copy(isLoading = false) }
-                    sendEffect(AuthEffect.NavigateToHome)
+                    sendEffect(
+                        if (state.mode == AuthMode.SIGN_UP) AuthEffect.NavigateToOnboarding
+                        else AuthEffect.NavigateToHome
+                    )
                 }
             }
         }

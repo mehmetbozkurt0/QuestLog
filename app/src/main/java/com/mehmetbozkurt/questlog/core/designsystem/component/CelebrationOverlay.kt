@@ -151,6 +151,14 @@ private fun BannerContent(celebration: Celebration) {
                     color = MaterialTheme.colorScheme.tertiary,
                 )
             }
+            if (celebration.streakMilestone != null) {
+                Spacer(Modifier.height(Spacing.xs))
+                Text(
+                    "🔥 ${celebration.streakMilestone} gün seri!",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             if (celebration.bonuses.isNotEmpty()) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
@@ -285,6 +293,13 @@ private fun EpicCelebration(
                     "Yeni yetenek hakkı kazandın",
                     style = MaterialTheme.typography.titleMedium,
                     color = Parchment,
+                )
+            }
+            if (celebration.streakMilestone != null) {
+                Text(
+                    "🔥 ${celebration.streakMilestone} gün seri!",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = AgedGold,
                 )
             }
             Spacer(Modifier.height(Spacing.xl))

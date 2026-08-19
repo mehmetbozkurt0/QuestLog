@@ -182,6 +182,7 @@ fun QuestLogListScreen(
                     CharacterSummaryCard(
                         character = state.character,
                         progress = state.levelProgress,
+                        streak = state.streak,
                         onClick = { onEvent(QuestLogListEvent.CharacterClicked) },
                     )
                 }
@@ -219,8 +220,8 @@ fun QuestLogListScreen(
                             )
                             Spacer(Modifier.height(Spacing.xs))
                             Text(
-                                "Yollar sıralı görevlerden oluşur. Tamamlarsan " +
-                                        "biriken XP'yi ve bonusu kazanırsın.",
+                                "Yollar aşamalı görevlerden oluşan uzun maceralardır. " +
+                                        "Bitirene emanet XP ve bonus, bırakana hiçbir şey.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -237,7 +238,7 @@ fun QuestLogListScreen(
                     ) {
                         Text(
                             if (state.isEmptyBecauseOfFilters) "Eşleşen görev yok"
-                            else "Henüz görevin yok",
+                            else "Günlüğün bomboş, maceracı",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -246,7 +247,8 @@ fun QuestLogListScreen(
                             if (state.isEmptyBecauseOfFilters)
                                 "Arama veya filtreleri değiştirmeyi dene."
                             else
-                                "Bir yola gir ya da + ile kendi görevini oluştur.",
+                                "+ ile ilk görevini yaz. Hangi yeteneği geliştirdiğini seç — " +
+                                        "Güç, Zeka, Karizma... Her tamamlanan görev XP getirir.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,

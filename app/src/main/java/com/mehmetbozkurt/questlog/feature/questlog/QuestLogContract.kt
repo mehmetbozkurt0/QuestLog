@@ -10,6 +10,7 @@ import com.mehmetbozkurt.questlog.domain.model.PathwayProgress
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 
 enum class CompletionFilter { ALL, COMPLETED, ACTIVE }
 
@@ -50,6 +51,7 @@ data class QuestLogListState(
     val priorityFilter: Priority? = null,
     val sortOption: SortOption = SortOption.RECENT,
     val showFilterSheet: Boolean = false,
+    val streak: StreakInfo? = null
 ) : UiState {
 
     val logs: List<QuestLog>

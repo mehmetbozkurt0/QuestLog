@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PendingDeletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
 import kotlinx.coroutines.flow.Flow
@@ -79,6 +80,18 @@ interface CharacterDao {
     @Query("SELECT * FROM feats WHERE syncState != 'SYNCED'")
     suspend fun getPendingFeats(): List<FeatEntity>
 
+    @Query("SELECT earnedAtMillis FROM xp_ledger WHERE userId = :userId")
+    fun observeLedgerTimes(userId: String): Flow<List<Long>>
+
+    @Query("SELECT * FROM xp_ledger WHERE userId = :userId AND earnedAtMillis >= :sinceMillis")
+    fun observeLedgerSince(userId: String, sinceMillis: Long): Flow<List<XpLedgerEntity>>
+
+    @Query("SELECT earnedAtMillis FROM xp_ledger WHERE userId = :userId")
+    suspend fun getLedgerTimes(userId: String): List<Long>
+
+    @Query("SELECT COUNT(*) FROM xp_ledger WHERE userId = :userId AND earnedAtMillis >= :sinceMillis")
+    suspend fun ledgerCountSince(userId: String, sinceMillis: Long): Int
+
     @Query("""
         SELECT COUNT(*) FROM xp_ledger
         WHERE userId = :userId AND logId = :logId
@@ -105,6 +118,26 @@ interface CharacterDao {
     @Query("SELECT * FROM xp_ledger WHERE userId = :userId AND logId = :logId")
     suspend fun ledgerEntriesForLog(userId: String, logId: String): List<XpLedgerEntity>
 
+    @Query("SELECT * FROM xp_ledger WHERE syncState != 'SYNCED'")
+    suspend fun getPendingLedger(): List<XpLedgerEntity>
+
+    @Upsert
+    suspend fun upsertLedgerEntries(entities: List<XpLedgerEntity>)
+
+    @Upsert
+    suspend fun upsertFeats(entities: List<FeatEntity>)
+
+    @Query("SELECT * FROM pending_deletions")
+    suspend fun getPendingDeletions(): List<PendingDeletionEntity>
+
+    @Query("SELECT docId FROM pending_deletions")
+    suspend fun getPendingDeletionIds(): List<String>
+
+    @Upsert
+    suspend fun insertPendingDeletions(entities: List<PendingDeletionEntity>)
+
+    @Query("DELETE FROM pending_deletions WHERE docId = :docId")
+    suspend fun clearPendingDeletion(docId: String)
 }
 
 

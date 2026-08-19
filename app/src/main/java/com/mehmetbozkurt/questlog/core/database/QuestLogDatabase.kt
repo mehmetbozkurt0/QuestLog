@@ -8,6 +8,7 @@ import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
+import com.mehmetbozkurt.questlog.core.database.entity.PendingDeletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestEntity
@@ -26,8 +27,9 @@ import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
         PathwayQuestEntity::class,
         PathwayProgressEntity::class,
         PathwayQuestCompletionEntity::class,
+        PendingDeletionEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class QuestLogDatabase : RoomDatabase() {

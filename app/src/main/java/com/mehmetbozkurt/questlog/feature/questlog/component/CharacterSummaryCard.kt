@@ -6,8 +6,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,12 +23,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 
 @Composable
 fun CharacterSummaryCard(
     character: CharacterSheet,
     progress: Float,
+    streak: StreakInfo?,
     onClick: () -> Unit,
 ) {
     Card(
@@ -49,6 +55,32 @@ fun CharacterSummaryCard(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
+                }
+                if (streak != null && streak.currentStreak > 0) {
+                    Spacer(Modifier.width(Spacing.sm))
+                    val flameColor =
+                        if (streak.activeToday) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        Icons.Default.LocalFireDepartment,
+                        contentDescription = "Seri",
+                        tint = flameColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        "${streak.currentStreak}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = flameColor,
+                    )
+                    if (streak.graceUsed) {
+                        Spacer(Modifier.width(2.dp))
+                        Icon(
+                            Icons.Default.Shield,
+                            contentDescription = "Kararlı devrede",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(12.dp),
+                        )
+                    }
                 }
                 Spacer(Modifier.weight(1f))
                 Text(

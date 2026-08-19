@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AuthRoute(
     onNavigateToHome: () -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -29,6 +30,7 @@ fun AuthRoute(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 AuthEffect.NavigateToHome -> onNavigateToHome()
+                AuthEffect.NavigateToOnboarding -> onNavigateToOnboarding()
             }
         }
     }

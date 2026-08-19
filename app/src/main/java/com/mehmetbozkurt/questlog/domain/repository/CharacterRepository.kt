@@ -6,12 +6,16 @@ import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.WeeklySummary
+import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import com.mehmetbozkurt.questlog.domain.progression.XpResult
 import kotlinx.coroutines.flow.Flow
 
 interface CharacterRepository {
     fun observeCharacter(): Flow<CharacterSheet?>
     fun observeFeats(): Flow<List<AcquiredFeat>>
+    fun observeStreak(): Flow<StreakInfo>
+    fun observeWeeklySummary(): Flow<WeeklySummary>
 
     suspend fun ensureCharacter()
     suspend fun awardXpFor(log: QuestLog): XpAward?
@@ -38,6 +42,7 @@ sealed interface XpAward {
         val leveledUp: Boolean,
         val newLevel: Int,
         val featChoicesGained: Int,
+        val streakMilestone: Int? = null
     ) : XpAward
 
     data class Rejected(val reason: RejectReason) : XpAward

@@ -31,3 +31,6 @@ data object PathwayListRouteKey
 
 @Serializable
 data class PathwayDetailRouteKey(val pathwayId: String)
+
+@Serializable
+data object OnboardingRouteKey

@@ -7,6 +7,7 @@ import com.mehmetbozkurt.questlog.core.database.MIGRATION_2_3
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_3_4
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_4_5
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_5_6
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_6_7
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
@@ -27,7 +28,7 @@ object DatabaseModule {
         context,
         QuestLogDatabase::class.java,
         "questlog.db"
-    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
+    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
 
     @Provides
     fun provideQuestLogDao(db: QuestLogDatabase): QuestLogDao = db.questLogDao()

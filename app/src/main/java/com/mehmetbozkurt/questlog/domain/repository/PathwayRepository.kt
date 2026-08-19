@@ -51,6 +51,7 @@ sealed interface QuestCompletionResult {
         val pathwayCompleted: Boolean,
         val releasedXp: Int,
         val bonusXp: Int,
+        val streakMilestone: Int? = null
     ) : QuestCompletionResult
 
     data class Rejected(val reason: String) : QuestCompletionResult

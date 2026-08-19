@@ -19,11 +19,12 @@ data class Celebration(
     val pathwayCompleted: Boolean = false,
     val completionBonusXp: Int = 0,
     val bonuses: List<String> = emptyList(),
+    val streakMilestone: Int? = null
 ) {
     val tier: CelebrationTier
         get() = when {
             leveledUp || pathwayCompleted -> CelebrationTier.EPIC
-            statIncreased || stageCompleted || featChoicesGained > 0 -> CelebrationTier.MAJOR
+            statIncreased || stageCompleted || featChoicesGained > 0 || streakMilestone != null -> CelebrationTier.MAJOR
             else -> CelebrationTier.MINOR
         }
 }
@@ -37,6 +38,7 @@ fun XpAward.Granted.toCelebration() = Celebration(
     newLevel = newLevel,
     featChoicesGained = featChoicesGained,
     bonuses = result.appliedBonuses,
+    streakMilestone = streakMilestone
 )
 
 fun QuestCompletionResult.Success.toCelebration() = Celebration(
@@ -51,4 +53,5 @@ fun QuestCompletionResult.Success.toCelebration() = Celebration(
     stageCompleted = stageCompleted,
     pathwayCompleted = pathwayCompleted,
     completionBonusXp = releasedXp + bonusXp,
+    streakMilestone = streakMilestone
 )

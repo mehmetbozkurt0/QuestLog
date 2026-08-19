@@ -21,9 +21,11 @@ import androidx.navigation.compose.rememberNavController
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.logdetail.LogDetailRoute
 import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
+import com.mehmetbozkurt.questlog.feature.onboarding.OnboardingRoute
 import com.mehmetbozkurt.questlog.feature.profile.ProfileRoute
 import com.mehmetbozkurt.questlog.feature.questlog.QuestLogListRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavHostController
 import com.mehmetbozkurt.questlog.feature.character.CharacterRoute
 import com.mehmetbozkurt.questlog.feature.pathway.PathwayDetailRoute
 import com.mehmetbozkurt.questlog.feature.pathway.PathwayListRoute
@@ -51,13 +53,7 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                navController.navigateToTab(item.route)
                             },
                             icon = { Icon(item.icon, contentDescription = item.label) },
                             label = {
@@ -88,6 +84,21 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                         navController.navigate(HomeRouteKey) {
                             popUpTo(AuthRouteKey) { inclusive = true }
                         }
+                    },
+                    onNavigateToOnboarding = {
+                        navController.navigate(OnboardingRouteKey) {
+                            popUpTo(AuthRouteKey) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable<OnboardingRouteKey> {
+                OnboardingRoute(
+                    onFinished = {
+                        navController.navigate(HomeRouteKey) {
+                            popUpTo(OnboardingRouteKey) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -98,7 +109,7 @@ fun QuestLogNavHost(startLoggedIn: Boolean) {
                     onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
                     onNavigateToPathways = { navController.navigate(PathwayListRouteKey) },
                     onNavigateToPathwayDetail = { id -> navController.navigate(PathwayDetailRouteKey(id)) },
-                    onNavigateToCharacter = { navController.navigate(CharacterRouteKey) },
+                    onNavigateToCharacter = { navController.navigateToTab(CharacterRouteKey) },
                 )
             }
 
@@ -155,3 +166,13 @@ private fun androidx.navigation.NavDestination.hasRouteOf(item: BottomNavItem): 
         BottomNavItem.CREW -> hasRoute(CrewRouteKey::class)
         BottomNavItem.PROFILE -> hasRoute(ProfileRouteKey::class)
     }
+
+private fun NavHostController.navigateToTab(route: Any){
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}

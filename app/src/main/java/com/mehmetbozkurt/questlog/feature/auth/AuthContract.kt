@@ -33,6 +33,7 @@ sealed interface AuthEvent: UiEvent {
 
 sealed interface AuthEffect: UiEffect {
     data object  NavigateToHome : AuthEffect
+    data object NavigateToOnboarding : AuthEffect
 }
 
 
