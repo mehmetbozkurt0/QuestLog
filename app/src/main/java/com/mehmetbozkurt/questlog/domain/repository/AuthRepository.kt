@@ -9,5 +9,6 @@ interface AuthRepository {
     fun currentUserSync(): AppUser?
     suspend fun signIn(email: String, password: String): DataResult<AppUser>
     suspend fun signUp(email: String, password: String, displayName: String): DataResult<AppUser>
+    suspend fun sendPasswordReset(email: String): DataResult<Unit>
     fun signOut()
 }

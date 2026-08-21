@@ -19,8 +19,14 @@ data class ProfileState(
     val completedQuests: Int = 0,
     val activeQuests: Int = 0,
     val showSignOutDialog: Boolean = false,
+    val showDeleteDialog: Boolean = false,
+    val deletePassword: String = "",
+    val isDeleting: Boolean = false,
+    val deleteError: String? = null,
     val theme: ThemePreference = ThemePreference.SYSTEM,
 ) : UiState {
+    val canDelete: Boolean get() = !isDeleting && deletePassword.length >= 6
+
     val level: Int get() = character?.level ?: 1
 
     val totalXp: Int get() = character?.totalXp ?: 0
@@ -49,6 +55,9 @@ sealed interface ProfileEvent : UiEvent {
     data object SignOutConfirmed : ProfileEvent
     data class ThemeChanged(val value: ThemePreference) : ProfileEvent
     data object NotificationSettingsClicked : ProfileEvent
+    data class DeleteDialogToggled(val show: Boolean) : ProfileEvent
+    data class DeletePasswordChanged(val value: String) : ProfileEvent
+    data object DeleteConfirmed : ProfileEvent
 }
 
 sealed interface ProfileEffect : UiEffect {

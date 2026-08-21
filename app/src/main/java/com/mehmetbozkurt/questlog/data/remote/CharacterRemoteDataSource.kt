@@ -48,6 +48,13 @@ class CharacterRemoteDataSource @Inject constructor(
         ledger(uid).document(docId).delete().await()
     }
 
+    suspend fun deleteUserDocument(uid: String) {
+        listOf(stats(uid), feats(uid), ledger(uid), completions(uid)).forEach { collection ->
+            collection.get().await().documents.forEach { it.reference.delete().await() }
+        }
+        userDoc(uid).delete().await()
+    }
+
     suspend fun fetchCharacter(uid: String): CharacterEntity? =
         userDoc(uid).get().await().toCharacterEntityOrNull()
 

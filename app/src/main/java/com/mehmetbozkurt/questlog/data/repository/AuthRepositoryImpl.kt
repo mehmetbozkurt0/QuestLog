@@ -77,6 +77,14 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun sendPasswordReset(email: String): DataResult<Unit> =
+        withContext(io) {
+            runCatchingResult {
+                auth.sendPasswordResetEmail(email.trim()).await()
+                Unit
+            }
+        }
+
     override fun signOut() = auth.signOut()
 
     private fun FirebaseUser.toAppUser() = AppUser(

@@ -25,17 +25,26 @@ fun AuthRoute(
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 AuthEffect.NavigateToHome -> onNavigateToHome()
                 AuthEffect.NavigateToOnboarding -> onNavigateToOnboarding()
+                is AuthEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
             }
         }
     }
 
-    AuthScreen(state = state, onEvent = viewModel::onEvent)
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { padding ->
+        Box(Modifier.padding(padding)) {
+            AuthScreen(state = state, onEvent = viewModel::onEvent)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,7 +164,19 @@ fun AuthScreen(
             }
         }
 
-        Spacer(Modifier.height(Spacing.md))
+        if (!isSignUp) {
+            TextButton(
+                onClick = { onEvent(AuthEvent.ForgotPasswordClicked) },
+                enabled = !state.isLoading,
+            ) {
+                Text(
+                    text = "Şifremi unuttum",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        } else {
+            Spacer(Modifier.height(Spacing.md))
+        }
 
         TextButton(
             onClick = { onEvent(AuthEvent.ModeToggled) },

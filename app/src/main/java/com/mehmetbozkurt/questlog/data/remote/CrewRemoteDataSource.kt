@@ -41,6 +41,11 @@ class CrewRemoteDataSource @Inject constructor(
         members(crewId).document(uid).delete().await()
     }
 
+    suspend fun deleteFeedEntriesBy(crewId: String, uid: String) {
+        feed(crewId).whereEqualTo("authorId", uid).get().await().documents
+            .forEach { it.reference.delete().await() }
+    }
+
     suspend fun pushMemberCard(entity: CrewMemberEntity) {
         members(entity.crewId).document(entity.userId).set(entity.toFireStoreMap()).await()
     }

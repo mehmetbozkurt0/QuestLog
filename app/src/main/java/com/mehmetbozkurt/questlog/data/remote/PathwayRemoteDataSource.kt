@@ -39,6 +39,11 @@ class PathwayRemoteDataSource @Inject constructor(
         return PathwayCatalogSnapshot(pathways, quests)
     }
 
+    suspend fun deleteProgressForUser(uid: String) {
+        progressCollection.whereEqualTo("userId", uid).get().await().documents
+            .forEach { it.reference.delete().await() }
+    }
+
     suspend fun pushProgress(entity: PathwayProgressEntity) {
         progressCollection
             .document("${entity.userId}_${entity.pathwayId}")

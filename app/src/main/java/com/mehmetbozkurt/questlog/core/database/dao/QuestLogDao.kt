@@ -58,6 +58,9 @@ interface QuestLogDao {
     @Query("SELECT * FROM quest_logs WHERE syncState != 'SYNCED'")
     suspend fun getPendingSync(): List<QuestLogEntity>
 
+    @Query("SELECT * FROM quest_logs WHERE ownerId = :ownerId")
+    suspend fun getAllForOwner(ownerId: String): List<QuestLogEntity>
+
     @Query("""
         SELECT * FROM quest_logs
         WHERE proofPhotoLocalPath IS NOT NULL AND proofPhotoUrl IS NULL AND isDeleted = 0

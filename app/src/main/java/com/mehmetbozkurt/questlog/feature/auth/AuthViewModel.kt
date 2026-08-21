@@ -31,6 +31,35 @@ class AuthViewModel @Inject constructor(
             AuthEvent.ErrorDismissed -> setState {
                 copy(errorMessage = null)
             }
+
+            AuthEvent.ForgotPasswordClicked -> sendPasswordReset()
+        }
+    }
+
+    private fun sendPasswordReset() {
+        val state = currentState
+        if (state.email.isBlank() || !state.isEmailValid) {
+            setState { copy(errorMessage = "Önce e-posta adresini gir.") }
+            return
+        }
+
+        setState { copy(isLoading = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            when (val result = authRepository.sendPasswordReset(state.email)) {
+                is DataResult.Error -> setState {
+                    copy(isLoading = false, errorMessage = result.exception.toAuthMessage())
+                }
+
+                is DataResult.Success<*> -> {
+                    setState { copy(isLoading = false) }
+                    sendEffect(
+                        AuthEffect.ShowMessage(
+                            "Sıfırlama bağlantısı ${state.email.trim()} adresine gönderildi."
+                        )
+                    )
+                }
+            }
         }
     }
     private fun submit() {

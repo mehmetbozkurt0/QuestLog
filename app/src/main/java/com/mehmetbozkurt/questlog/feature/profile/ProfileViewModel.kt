@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.domain.model.LogType
+import com.mehmetbozkurt.questlog.domain.repository.AccountRepository
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.DeleteAccountResult
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
@@ -21,6 +23,7 @@ class ProfileViewModel @Inject constructor(
     characterRepository: CharacterRepository,
     crewRepository: CrewRepository,
     private val settingsRepository: SettingsRepository,
+    private val accountRepository: AccountRepository,
 ) : MviViewModel<ProfileState, ProfileEvent, ProfileEffect>(ProfileState()) {
     init {
         authRepository.currentUser
@@ -81,6 +84,48 @@ class ProfileViewModel @Inject constructor(
 
             ProfileEvent.NotificationSettingsClicked ->
                 sendEffect(ProfileEffect.OpenNotificationSettings)
+
+            is ProfileEvent.DeleteDialogToggled -> setState {
+                copy(
+                    showDeleteDialog = event.show,
+                    deletePassword = "",
+                    deleteError = null,
+                )
+            }
+
+            is ProfileEvent.DeletePasswordChanged -> setState {
+                copy(deletePassword = event.value, deleteError = null)
+            }
+
+            ProfileEvent.DeleteConfirmed -> deleteAccount()
+        }
+    }
+
+    private fun deleteAccount() {
+        if (!currentState.canDelete) return
+        val password = currentState.deletePassword
+
+        setState { copy(isDeleting = true, deleteError = null) }
+
+        viewModelScope.launch {
+            when (val result = accountRepository.deleteAccount(password)) {
+                DeleteAccountResult.Success -> {
+                    setState { copy(isDeleting = false, showDeleteDialog = false) }
+                    sendEffect(ProfileEffect.NavigateToAuth)
+                }
+
+                DeleteAccountResult.WrongPassword -> setState {
+                    copy(isDeleting = false, deleteError = "Parola yanlış.")
+                }
+
+                DeleteAccountResult.NoSession -> setState {
+                    copy(isDeleting = false, deleteError = "Oturum bulunamadı.")
+                }
+
+                is DeleteAccountResult.Failed -> setState {
+                    copy(isDeleting = false, deleteError = result.message)
+                }
+            }
         }
     }
 }

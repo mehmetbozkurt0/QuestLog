@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -26,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -215,6 +218,19 @@ fun ProfileScreen(
                 Text("Çıkış Yap", style = MaterialTheme.typography.labelLarge)
             }
 
+            Spacer(Modifier.height(Spacing.sm))
+
+            TextButton(
+                onClick = { onEvent(ProfileEvent.DeleteDialogToggled(true)) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    "Hesabımı sil",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
             Spacer(Modifier.height(Spacing.lg))
 
             Text(
@@ -227,6 +243,65 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xxl))
         }
+    }
+
+    if (state.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!state.isDeleting) onEvent(ProfileEvent.DeleteDialogToggled(false))
+            },
+            title = { Text("Hesabını sil") },
+            text = {
+                Column {
+                    Text(
+                        "Bu geri alınamaz. Karakterin, tüm görevlerin, yol ilerlemelerin, " +
+                                "kanıt fotoğrafların ve ekip kaydın kalıcı olarak silinecek.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(Spacing.md))
+                    Text(
+                        "Onaylamak için parolanı gir.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(Spacing.sm))
+                    OutlinedTextField(
+                        value = state.deletePassword,
+                        onValueChange = { onEvent(ProfileEvent.DeletePasswordChanged(it)) },
+                        label = { Text("Parola") },
+                        singleLine = true,
+                        enabled = !state.isDeleting,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        isError = state.deleteError != null,
+                        supportingText = {
+                            state.deleteError?.let { Text(it) }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (state.isDeleting) {
+                        Spacer(Modifier.height(Spacing.sm))
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onEvent(ProfileEvent.DeleteConfirmed) },
+                    enabled = state.canDelete,
+                ) {
+                    Text("Kalıcı olarak sil", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onEvent(ProfileEvent.DeleteDialogToggled(false)) },
+                    enabled = !state.isDeleting,
+                ) {
+                    Text("Vazgeç")
+                }
+            },
+        )
     }
 
     if (state.showSignOutDialog) {

@@ -29,11 +29,13 @@ sealed interface AuthEvent: UiEvent {
     data object ModeToggled : AuthEvent
     data object SubmitClicked : AuthEvent
     data object ErrorDismissed : AuthEvent
+    data object ForgotPasswordClicked : AuthEvent
 }
 
 sealed interface AuthEffect: UiEffect {
     data object  NavigateToHome : AuthEffect
     data object NavigateToOnboarding : AuthEffect
+    data class ShowMessage(val text: String) : AuthEffect
 }
 
 
