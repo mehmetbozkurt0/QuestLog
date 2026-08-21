@@ -36,6 +36,8 @@ data class QuestLogEntity(
     val difficulty: String? = null,
     val proofLevel:String = "NONE",
     val proofNote: String? = null,
+    val proofPhotoUrl: String? = null,
+    val proofPhotoLocalPath: String? = null,
     val pathwayQuestId: String? = null,
     val completedAtMillis: Long? = null
 )

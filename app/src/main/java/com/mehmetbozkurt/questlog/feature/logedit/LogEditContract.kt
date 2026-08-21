@@ -6,6 +6,7 @@ import com.mehmetbozkurt.questlog.core.common.mvi.UiState
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import java.time.Instant
 
@@ -22,6 +23,10 @@ data class LogEditState(
     val showRemindPicker: Boolean = false,
     val statType: StatType? = null,
     val difficulty: Difficulty = Difficulty.MEDIUM,
+    val proofLevel: ProofLevel = ProofLevel.NONE,
+    val proofNote: String = "",
+    val proofPhotoUrl: String? = null,
+    val proofPhotoLocalPath: String? = null,
 ): UiState{
     val isEditMode: Boolean get() = id != null
     val canSave: Boolean get() = !isSaving && title.isNotEmpty()

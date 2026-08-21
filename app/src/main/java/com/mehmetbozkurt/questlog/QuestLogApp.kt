@@ -5,6 +5,8 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
 import com.mehmetbozkurt.questlog.core.firebase.FirebaseInitializer
+import com.mehmetbozkurt.questlog.core.notification.NotificationChannels
+import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.sync.RemoteSyncManager
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
@@ -21,6 +23,7 @@ class QuestLogApp: Application(), Configuration.Provider {
     @Inject lateinit var remoteSyncManager: RemoteSyncManager
     @Inject lateinit var characterRepository: CharacterRepository
     @Inject lateinit var authRepository: AuthRepository
+    @Inject lateinit var reminderScheduler: ReminderScheduler
     @ApplicationScope @Inject lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration get() = Configuration.Builder()
@@ -30,6 +33,8 @@ class QuestLogApp: Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         FirebaseInitializer.configureFirestore()
+        NotificationChannels.ensureCreated(this)
+        reminderScheduler.scheduleStreakCheck()
         remoteSyncManager.start()
 
         authRepository.currentUser.filterNotNull().onEach { characterRepository.ensureCharacter() }.launchIn(appScope)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.colorHex
@@ -28,8 +30,8 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun PathwayListRoute(
-    onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: PathwayListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -54,7 +56,7 @@ fun PathwayListRoute(
 fun PathwayListScreen(
     state: PathwayListState,
     onEvent: (PathwayListEvent) -> Unit,
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)?,
 ) {
     Scaffold(
         topBar = {
@@ -67,8 +69,10 @@ fun PathwayListScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -131,10 +135,10 @@ fun PathwayListScreen(
 
             if (state.items.isEmpty()) {
                 item {
-                    Text(
-                        "Yollar yüklenemedi. İnternet bağlantını kontrol et.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    EmptyState(
+                        icon = Icons.Default.CloudOff,
+                        title = "Yol haritası boş",
+                        body = "Yollar buluttan gelir. İnternet bağlantını kontrol edip tekrar dene.",
                     )
                 }
             }

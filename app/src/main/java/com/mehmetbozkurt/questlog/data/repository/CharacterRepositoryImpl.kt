@@ -4,7 +4,9 @@ import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.common.daysAgoMillis
 import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PendingDeletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
@@ -22,6 +24,7 @@ import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.domain.model.WeeklySummary
+import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.progression.StreakEngine
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import com.mehmetbozkurt.questlog.domain.progression.XpContext
@@ -50,6 +53,7 @@ import javax.inject.Singleton
 @Singleton
 class CharacterRepositoryImpl @Inject constructor(
     private val dao: CharacterDao,
+    private val crewDao: CrewDao,
     private val authRepository: AuthRepository,
     private val syncScheduler: SyncScheduler,
     private val characterRemote: CharacterRemoteDataSource,
@@ -205,6 +209,7 @@ class CharacterRepositoryImpl @Inject constructor(
 
         ensureCharacter()
 
+        val crewCharacter = dao.getCharacter(user.uid)
         val todayStart = startOfTodayMillis()
 
         if (XpLimits.ONE_AWARD_PER_LOG_PER_DAY &&
@@ -237,6 +242,10 @@ class CharacterRepositoryImpl @Inject constructor(
                 feats = feats,
                 distinctStatsToday = distinctToday,
                 xpAlreadyEarnedTodayForStat = earnedTodayForStat,
+                isNewMember = crewCharacter?.crewId != null && CrewRules.isNewMember(
+                    crewCharacter.crewJoinedAtMillis,
+                    completedAt.toEpochMilli(),
+                ),
             )
         )
 
@@ -298,6 +307,23 @@ class CharacterRepositoryImpl @Inject constructor(
         )
 
         val milestone = streakMilestoneAfterAward(user.uid)
+
+        character.crewId?.let { crewId ->
+            crewDao.upsertFeedEntry(
+                CrewFeedEntity(
+                    id = UUID.randomUUID().toString(),
+                    crewId = crewId,
+                    authorId = user.uid,
+                    authorName = user.displayName,
+                    questLogId = log.id,
+                    title = log.title,
+                    statType = statType.name,
+                    difficulty = difficulty.name,
+                    completedAtMillis = now,
+                    proofPhotoUrl = log.proofPhotoUrl,
+                )
+            )
+        }
 
         syncScheduler.requestSync()
 

@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 data object AuthRouteKey
 
 @Serializable
+data object OnboardingRouteKey
+
+@Serializable
 data object HomeRouteKey
 
 @Serializable
@@ -15,22 +18,4 @@ data class LogDetailRouteKey(val id: String)
 data class LogEditRouteKey(val logId: String?)
 
 @Serializable
-data object ProfileRouteKey
-
-@Serializable
-data object CrewRouteKey
-
-@Serializable
-data object CampaignsRouteKey
-
-@Serializable
-data object CharacterRouteKey
-
-@Serializable
-data object PathwayListRouteKey
-
-@Serializable
 data class PathwayDetailRouteKey(val pathwayId: String)
-
-@Serializable
-data object OnboardingRouteKey

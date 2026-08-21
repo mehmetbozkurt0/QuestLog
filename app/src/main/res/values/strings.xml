@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">QuestLog</string>
+    <string name="app_name">Renown</string>
+    <string name="reminder_channel_name">Görev hatırlatıcıları</string>
+    <string name="reminder_channel_description">Hatırlatıcı kurduğun görevler için bildirim.</string>
+    <string name="streak_channel_name">Seri uyarıları</string>
+    <string name="streak_channel_description">Serin kırılmak üzereyken akşam uyarısı.</string>
 </resources>

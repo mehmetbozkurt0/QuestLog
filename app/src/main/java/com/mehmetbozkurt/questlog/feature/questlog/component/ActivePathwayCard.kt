@@ -3,8 +3,7 @@ package com.mehmetbozkurt.questlog.feature.questlog.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.colorHex
@@ -25,18 +26,23 @@ fun ActivePathwayCard(
 ) {
     val statColor = summary.pathway.primaryStat.colorHex().toComposeColor()
 
-    Card(
+    QuestCard(
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        accent = statColor,
+        seed = summary.pathway.id.hashCode(),
+        contentPadding = PaddingValues(0.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(Spacing.md)) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(statColor, CircleShape))
-                Spacer(Modifier.width(Spacing.sm))
+                Icon(
+                    imageVector = summary.pathway.primaryStat.icon(),
+                    contentDescription = null,
+                    tint = statColor,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(Spacing.xs))
                 Text(
                     summary.pathway.title,
                     style = MaterialTheme.typography.titleMedium,

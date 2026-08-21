@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,10 +26,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.feature.questlog.component.ActivePathwayCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.CharacterSummaryCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
+import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
 
@@ -93,9 +99,6 @@ fun QuestLogListScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = { onEvent(QuestLogListEvent.PathwaysClicked) }) {
-                            Icon(Icons.Default.Explore, contentDescription = "Yollar")
-                        }
                         BadgedBox(
                             badge = {
                                 if (state.activeFilterCount > 0) {
@@ -205,53 +208,46 @@ fun QuestLogListScreen(
 
             if (state.showHeaderSections && state.activePathways.isEmpty()) {
                 item(key = "pathway_cta") {
-                    Card(
+                    QuestCard(
                         onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        seed = 7,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Column(Modifier.padding(Spacing.md)) {
-                            Text(
-                                "Bir yola gir",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Spacer(Modifier.height(Spacing.xs))
-                            Text(
-                                "Yollar aşamalı görevlerden oluşan uzun maceralardır. " +
-                                        "Bitirene emanet XP ve bonus, bırakana hiçbir şey.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Text(
+                            "Bir yola gir",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Spacer(Modifier.height(Spacing.xs))
+                        Text(
+                            "Yollar aşamalı görevlerden oluşan uzun maceralardır. " +
+                                    "Bitirene emanet XP ve bonus, bırakana hiçbir şey.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
 
             if (state.isEmpty) {
                 item(key = "empty") {
-                    Column(
-                        Modifier.fillMaxWidth().padding(vertical = Spacing.xxl),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            if (state.isEmptyBecauseOfFilters) "Eşleşen görev yok"
-                            else "Günlüğün bomboş, maceracı",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    if (state.isEmptyBecauseOfFilters) {
+                        EmptyState(
+                            icon = Icons.Default.SearchOff,
+                            title = "Eşleşen görev yok",
+                            body = "Arama veya filtreleri değiştirmeyi dene.",
+                            actionLabel = "Filtreleri temizle",
+                            onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
                         )
-                        Spacer(Modifier.height(Spacing.sm))
-                        Text(
-                            if (state.isEmptyBecauseOfFilters)
-                                "Arama veya filtreleri değiştirmeyi dene."
-                            else
-                                "+ ile ilk görevini yaz. Hangi yeteneği geliştirdiğini seç — " +
-                                        "Güç, Zeka, Karizma... Her tamamlanan görev XP getirir.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
+                    } else {
+                        EmptyState(
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            title = "Günlüğün bomboş, maceracı",
+                            body = "+ ile ilk görevini yaz. Hangi yeteneği geliştirdiğini seç — " +
+                                    "Güç, Zeka, Karizma... Her tamamlanan görev XP getirir.",
+                            actionLabel = "İlk görevini yaz",
+                            onAction = { onEvent(QuestLogListEvent.CreateClicked) },
                         )
                     }
                 }
@@ -294,6 +290,23 @@ fun QuestLogListScreen(
         }
     }
 
+    state.proofSheetLogId?.let { logId ->
+        ProofSheet(
+            logId = logId,
+            questTitle = state.proofSheetTitle,
+            onDismiss = { onEvent(QuestLogListEvent.ProofSheetDismissed) },
+            onConfirm = { draft ->
+                onEvent(
+                    QuestLogListEvent.ProofConfirmed(
+                        id = logId,
+                        note = draft.note,
+                        photoLocalPath = draft.photoLocalPath,
+                    )
+                )
+            },
+        )
+    }
+
     if (state.showFilterSheet) {
         FilterSheet(
             completionFilter = state.completionFilter,
@@ -321,8 +334,10 @@ private fun SectionHeader(title: String, trailing: String? = null) {
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
+        Spacer(Modifier.width(Spacing.md))
+        SectionRule(Modifier.weight(1f))
         if (trailing != null) {
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(Spacing.md))
             Text(
                 trailing,
                 style = MaterialTheme.typography.labelMedium,

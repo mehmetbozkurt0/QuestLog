@@ -8,6 +8,12 @@ interface QuestLogRepository {
     fun observeById(id: String): Flow<QuestLog?>
     suspend fun upsert(log: QuestLog)
     suspend fun setCompleted(id: String, completed: Boolean): XpAward?
+
+    suspend fun completeWithProof(
+        id: String,
+        note: String?,
+        photoLocalPath: String?,
+    ): XpAward?
     suspend fun delete(id: String)
     fun newId(): String
 }

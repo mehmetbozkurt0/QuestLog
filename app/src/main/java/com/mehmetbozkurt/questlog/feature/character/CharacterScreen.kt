@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,6 +19,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
@@ -82,13 +86,14 @@ fun CharacterScreen(
             }
 
             character == null -> Box(
-                Modifier.fillMaxSize().padding(padding).padding(Spacing.xl),
+                Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    "Karakter yükleniyor. İlk görevini tamamladığında burası canlanacak.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                EmptyState(
+                    icon = Icons.Default.Shield,
+                    title = "Karakterin henüz uyanmadı",
+                    body = "İlk görevini tamamladığında seviyen, yeteneklerin ve " +
+                            "haftalık seyir defterin burada belirecek.",
                 )
             }
 
@@ -101,14 +106,13 @@ fun CharacterScreen(
             ) {
                 Spacer(Modifier.height(Spacing.md))
 
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
+                QuestCard(
+                    seed = 11,
+                    contentPadding = PaddingValues(Spacing.lg),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(
-                        Modifier.fillMaxWidth().padding(Spacing.lg),
+                        Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
@@ -158,15 +162,14 @@ fun CharacterScreen(
 
                 if (character.pendingFeatChoices > 0) {
                     Spacer(Modifier.height(Spacing.md))
-                    Card(
+                    QuestCard(
                         onClick = { onEvent(CharacterEvent.FeatDialogToggled(true)) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        ),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        seed = 13,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().padding(Spacing.md),
+                            Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(Modifier.weight(1f)) {
@@ -215,30 +218,26 @@ fun CharacterScreen(
 
                     state.feats.forEach { feat ->
                         val def = FeatCatalog.byId(feat.featId)
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
+                        QuestCard(
+                            seed = feat.featId.hashCode(),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Column(Modifier.padding(Spacing.md)) {
+                            Text(
+                                def.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                def.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (feat.chosenStat != null) {
                                 Text(
-                                    def.name,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    "Odak: ${feat.chosenStat.displayName()}",
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
-                                Text(
-                                    def.description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                if (feat.chosenStat != null) {
-                                    Text(
-                                        "Odak: ${feat.chosenStat.displayName()}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
-                                }
                             }
                         }
                         Spacer(Modifier.height(Spacing.sm))
@@ -288,7 +287,14 @@ private fun StatRow(stat: StatProgress) {
         Spacer(Modifier.width(Spacing.md))
 
         Column(Modifier.weight(1f)) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = stat.statType.icon(),
+                    contentDescription = null,
+                    tint = statColor,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(Spacing.xs))
                 Text(
                     stat.statType.displayName(),
                     style = MaterialTheme.typography.titleMedium,

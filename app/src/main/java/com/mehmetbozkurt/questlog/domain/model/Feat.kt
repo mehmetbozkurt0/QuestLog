@@ -58,5 +58,5 @@ object FeatCatalog {
     )
 
     fun byId(id: FeatId): FeatDefinition = all.first { it.id == id }
-    val selectable: List<FeatDefinition> = all.filter {it.id != FeatId.MENTOR }
+    val selectable: List<FeatDefinition> = all
 }

@@ -3,19 +3,25 @@ package com.mehmetbozkurt.questlog.core.sync
 import android.util.Log
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
+import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
+import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,6 +37,9 @@ class RemoteSyncManager @Inject constructor(
     private val pathwayRepository: PathwayRepository,
     private val characterRemote: CharacterRemoteDataSource,
     private val characterDao: CharacterDao,
+    private val characterRepository: CharacterRepository,
+    private val crewRemote: CrewRemoteDataSource,
+    private val crewDao: CrewDao,
     @ApplicationScope private val scope: CoroutineScope
 ) {
     fun start(){
@@ -129,7 +138,57 @@ class RemoteSyncManager @Inject constructor(
                 }
             }
             .launchIn(scope)
+
+        observeCrewId()
+            .flatMapLatest { crewId ->
+                if (crewId == null) emptyFlow() else crewRemote.observeCrew(crewId)
+            }
+            .catch { e -> Log.e(TAG, "Crew sync", e) }
+            .onEach { remoteCrew -> if (remoteCrew != null) crewDao.upsertCrew(remoteCrew) }
+            .launchIn(scope)
+
+        observeCrewId()
+            .flatMapLatest { crewId ->
+                if (crewId == null) emptyFlow() else crewRemote.observeMembers(crewId)
+            }
+            .catch { e -> Log.e(TAG, "Crew members sync", e) }
+            .onEach { remoteMembers ->
+                val ownUid = authRepository.currentUserSync()?.uid
+                val incoming = remoteMembers.filter { it.userId != ownUid }
+                if (incoming.isNotEmpty()) crewDao.upsertMembers(incoming)
+            }
+            .launchIn(scope)
+
+        observeCrewId()
+            .flatMapLatest { crewId ->
+                if (crewId == null) emptyFlow() else crewRemote.observeFeed(crewId)
+            }
+            .catch { e -> Log.e(TAG, "Crew feed sync", e) }
+            .onEach { remoteFeed ->
+                val ownUid = authRepository.currentUserSync()?.uid
+                remoteFeed.forEach { remoteEntry ->
+                    val local = crewDao.getFeedEntry(remoteEntry.id)
+                    if (ownUid != null && remoteEntry.authorId == ownUid) {
+                        val known = local?.approvedBy.orEmpty().toSet()
+                        val fresh = remoteEntry.approvedBy.filter { it != ownUid && it !in known }
+                        if (fresh.isNotEmpty()) {
+                            characterRepository.awardCharacterOnlyXp(
+                                CrewRules.MENTOR_APPROVAL_XP * fresh.size
+                            )
+                        }
+                    }
+                    crewDao.upsertFeedEntry(remoteEntry)
+                }
+            }
+            .launchIn(scope)
     }
+
+    private fun observeCrewId() = authRepository.currentUser
+        .flatMapLatest { user ->
+            if (user == null) emptyFlow()
+            else characterDao.observeCharacter(user.uid).map { it?.crewId }
+        }
+        .distinctUntilChanged()
 
     private companion object {
         const val TAG = "QuestLog"

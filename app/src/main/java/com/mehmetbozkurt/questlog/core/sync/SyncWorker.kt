@@ -7,11 +7,14 @@ import androidx.work.WorkerParameters
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
+import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
+import com.mehmetbozkurt.questlog.data.remote.ProofPhotoRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -26,9 +29,24 @@ class SyncWorker @AssistedInject constructor(
     private val pathwayRemote: PathwayRemoteDataSource,
     private val characterDao: CharacterDao,
     private val characterRemote: CharacterRemoteDataSource,
+    private val crewDao: CrewDao,
+    private val crewRemote: CrewRemoteDataSource,
+    private val proofPhotoRemote: ProofPhotoRemoteDataSource,
 ): CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         var hadRetryableFailure = false
+
+        dao.getPendingProofPhotos().forEach { entity ->
+            val localPath = entity.proofPhotoLocalPath ?: return@forEach
+            try {
+                val url = proofPhotoRemote.upload(entity.ownerId, entity.id, localPath)
+                dao.setProofPhotoUrl(entity.id, url)
+                dao.updateSyncState(entity.id, SyncState.PENDING.name)
+                crewDao.setFeedProofPhotoUrl(entity.id, entity.ownerId, url)
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
 
         dao.getPendingSync().forEach { entity ->
             try {
@@ -101,6 +119,24 @@ class SyncWorker @AssistedInject constructor(
             try {
                 characterRemote.deleteLedgerEntry(deletion.userId, deletion.docId)
                 characterDao.clearPendingDeletion(deletion.docId)
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        crewDao.getPendingMembers().forEach { entity ->
+            try {
+                crewRemote.pushMemberCard(entity)
+                crewDao.upsertMember(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        crewDao.getPendingFeedEntries().forEach { entity ->
+            try {
+                crewRemote.pushFeedEntry(entity)
+                crewDao.upsertFeedEntry(entity.copy(syncState = SyncState.SYNCED.name))
             } catch (e: Exception) {
                 if (e.isRetryable()) hadRetryableFailure = true
             }

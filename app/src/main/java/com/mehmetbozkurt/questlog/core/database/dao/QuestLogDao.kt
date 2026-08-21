@@ -25,6 +25,13 @@ interface QuestLogDao {
     @Query("SELECT * FROM quest_logs WHERE id = :id")
     suspend fun getById(id: String): QuestLogEntity?
 
+    @Query("""
+        SELECT * FROM quest_logs
+        WHERE ownerId = :ownerId AND isDeleted = 0 AND isCompleted = 0
+          AND remindAtMillis IS NOT NULL AND remindAtMillis > :afterMillis
+    """)
+    suspend fun getPendingReminders(ownerId: String, afterMillis: Long): List<QuestLogEntity>
+
     @Upsert
     suspend fun upsert(entity: QuestLogEntity)
 
@@ -51,6 +58,33 @@ interface QuestLogDao {
     @Query("SELECT * FROM quest_logs WHERE syncState != 'SYNCED'")
     suspend fun getPendingSync(): List<QuestLogEntity>
 
+    @Query("""
+        SELECT * FROM quest_logs
+        WHERE proofPhotoLocalPath IS NOT NULL AND proofPhotoUrl IS NULL AND isDeleted = 0
+    """)
+    suspend fun getPendingProofPhotos(): List<QuestLogEntity>
+
+    @Query("UPDATE quest_logs SET proofPhotoUrl = :url WHERE id = :id")
+    suspend fun setProofPhotoUrl(id: String, url: String)
+
+    @Query("""
+        UPDATE quest_logs SET
+            proofLevel = :level,
+            proofNote = :note,
+            proofPhotoLocalPath = :photoLocalPath,
+            proofPhotoUrl = NULL,
+            updatedAtMillis = :nowMillis,
+            syncState = 'PENDING'
+        WHERE id = :id
+    """)
+    suspend fun setProof(
+        id: String,
+        level: String,
+        note: String?,
+        photoLocalPath: String?,
+        nowMillis: Long,
+    )
+
     @Query("UPDATE quest_logs SET syncState = :state WHERE id = :id")
     suspend fun updateSyncState(id: String, state: String)
 
@@ -69,6 +103,13 @@ interface QuestLogDao {
             createdAtMillis = :createdAtMillis,
             updatedAtMillis = :updatedAtMillis,
             isDeleted = :isDeleted,
+            statType = :statType,
+            difficulty = :difficulty,
+            proofLevel = :proofLevel,
+            proofNote = :proofNote,
+            proofPhotoUrl = :proofPhotoUrl,
+            completedAtMillis = :completedAtMillis,
+            pathwayQuestId = :pathwayQuestId,
             syncState = 'SYNCED'
         WHERE id = :id
         AND syncState = 'SYNCED'
@@ -89,6 +130,13 @@ interface QuestLogDao {
         createdAtMillis: Long,
         updatedAtMillis: Long,
         isDeleted: Boolean,
+        statType: String?,
+        difficulty: String?,
+        proofLevel: String,
+        proofNote: String?,
+        proofPhotoUrl: String?,
+        completedAtMillis: Long?,
+        pathwayQuestId: String?,
     )
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -114,6 +162,13 @@ interface QuestLogDao {
                     createdAtMillis = e.createdAtMillis,
                     updatedAtMillis = e.updatedAtMillis,
                     isDeleted = e.isDeleted,
+                    statType = e.statType,
+                    difficulty = e.difficulty,
+                    proofLevel = e.proofLevel,
+                    proofNote = e.proofNote,
+                    proofPhotoUrl = e.proofPhotoUrl,
+                    completedAtMillis = e.completedAtMillis,
+                    pathwayQuestId = e.pathwayQuestId,
                 )
             }
         }

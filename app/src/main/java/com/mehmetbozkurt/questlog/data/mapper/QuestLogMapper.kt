@@ -28,6 +28,8 @@ fun QuestLogEntity.toDomain(): QuestLog = QuestLog(
     difficulty = difficulty?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() },
     proofLevel = runCatching { ProofLevel.valueOf(proofLevel) }.getOrDefault(ProofLevel.NONE),
     proofNote = proofNote,
+    proofPhotoUrl = proofPhotoUrl,
+    proofPhotoLocalPath = proofPhotoLocalPath,
     completedAt = completedAtMillis?.let(Instant::ofEpochMilli),
     pathwayQuestId = pathwayQuestId,
 )
@@ -51,6 +53,8 @@ fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity 
         difficulty = difficulty?.name,
         proofLevel = proofLevel.name,
         proofNote = proofNote,
+        proofPhotoUrl = proofPhotoUrl,
+        proofPhotoLocalPath = proofPhotoLocalPath,
         completedAtMillis = completedAt?.toEpochMilli(),
         syncState = syncState.name,
         pathwayQuestId = pathwayQuestId,

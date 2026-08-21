@@ -51,7 +51,9 @@ data class QuestLogListState(
     val priorityFilter: Priority? = null,
     val sortOption: SortOption = SortOption.RECENT,
     val showFilterSheet: Boolean = false,
-    val streak: StreakInfo? = null
+    val streak: StreakInfo? = null,
+    val proofSheetLogId: String? = null,
+    val proofSheetTitle: String = "",
 ) : UiState {
 
     val logs: List<QuestLog>
@@ -119,6 +121,12 @@ data class QuestLogListState(
 sealed interface QuestLogListEvent : UiEvent {
     data class LogClicked(val id: String) : QuestLogListEvent
     data class CompletionToggled(val id: String, val completed: Boolean) : QuestLogListEvent
+    data object ProofSheetDismissed : QuestLogListEvent
+    data class ProofConfirmed(
+        val id: String,
+        val note: String?,
+        val photoLocalPath: String?,
+    ) : QuestLogListEvent
     data object CreateClicked : QuestLogListEvent
     data class SearchChanged(val value: String) : QuestLogListEvent
     data class CompletionFilterChanged(val value: CompletionFilter) : QuestLogListEvent

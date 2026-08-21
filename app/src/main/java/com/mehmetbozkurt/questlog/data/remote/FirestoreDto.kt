@@ -30,6 +30,12 @@ fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "readerIds" to listOf(ownerId),
     "editorIds" to listOf(ownerId),
     "pathwayQuestId" to pathwayQuestId,
+    "statType" to statType,
+    "difficulty" to difficulty,
+    "proofLevel" to proofLevel,
+    "proofNote" to proofNote,
+    "proofPhotoUrl" to proofPhotoUrl,
+    "completedAtMillis" to completedAtMillis,
 )
 
 fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
@@ -55,6 +61,12 @@ fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
         isDeleted = getBoolean("isDeleted") ?: false,
         syncState = SyncState.SYNCED.name,
         pathwayQuestId = getString("pathwayQuestId"),
+        statType = getString("statType"),
+        difficulty = getString("difficulty"),
+        proofLevel = getString("proofLevel") ?: "NONE",
+        proofNote = getString("proofNote"),
+        proofPhotoUrl = getString("proofPhotoUrl"),
+        completedAtMillis = getLong("completedAtMillis"),
     )
 }
 
@@ -109,6 +121,8 @@ fun CharacterEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "pendingFeatChoices" to pendingFeatChoices,
     "createdAtMillis" to createdAtMillis,
     "updatedAtMillis" to updatedAtMillis,
+    "crewId" to crewId,
+    "crewJoinedAtMillis" to crewJoinedAtMillis,
 )
 
 fun DocumentSnapshot.toCharacterEntityOrNull(): CharacterEntity? {
@@ -120,6 +134,8 @@ fun DocumentSnapshot.toCharacterEntityOrNull(): CharacterEntity? {
         createdAtMillis = getLong("createdAtMillis") ?: 0L,
         updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
         syncState = SyncState.SYNCED.name,
+        crewId = getString("crewId"),
+        crewJoinedAtMillis = getLong("crewJoinedAtMillis"),
     )
 }
 

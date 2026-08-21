@@ -25,6 +25,8 @@ data class QuestLog (
     val difficulty: Difficulty?,
     val proofLevel: ProofLevel,
     val proofNote: String?,
+    val proofPhotoUrl: String? = null,
+    val proofPhotoLocalPath: String? = null,
     val completedAt: Instant?,
 ) {
     val descriptionFirstLine: String

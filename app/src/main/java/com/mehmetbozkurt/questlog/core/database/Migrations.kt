@@ -171,3 +171,63 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         """)
     }
 }
+
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE characters ADD COLUMN crewId TEXT")
+        db.execSQL("ALTER TABLE characters ADD COLUMN crewJoinedAtMillis INTEGER")
+        db.execSQL("ALTER TABLE characters ADD COLUMN approvalDayMillis INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE characters ADD COLUMN approvalsToday INTEGER NOT NULL DEFAULT 0")
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS crews (
+                crewId TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL,
+                inviteCode TEXT NOT NULL,
+                ownerId TEXT NOT NULL,
+                memberIdsCsv TEXT NOT NULL,
+                updatedAtMillis INTEGER NOT NULL
+            )
+        """)
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS crew_members (
+                userId TEXT NOT NULL PRIMARY KEY,
+                crewId TEXT NOT NULL,
+                displayName TEXT NOT NULL,
+                level INTEGER NOT NULL,
+                totalXp INTEGER NOT NULL,
+                currentStreak INTEGER NOT NULL,
+                updatedAtMillis INTEGER NOT NULL,
+                syncState TEXT NOT NULL
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_crew_members_crewId ON crew_members(crewId)")
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS crew_feed (
+                id TEXT NOT NULL PRIMARY KEY,
+                crewId TEXT NOT NULL,
+                authorId TEXT NOT NULL,
+                authorName TEXT NOT NULL,
+                questLogId TEXT NOT NULL,
+                title TEXT NOT NULL,
+                statType TEXT,
+                difficulty TEXT,
+                completedAtMillis INTEGER NOT NULL,
+                approvedByCsv TEXT NOT NULL,
+                syncState TEXT NOT NULL
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_crew_feed_crewId ON crew_feed(crewId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_crew_feed_completedAtMillis ON crew_feed(completedAtMillis)")
+    }
+}
+
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE quest_logs ADD COLUMN proofPhotoUrl TEXT")
+        db.execSQL("ALTER TABLE quest_logs ADD COLUMN proofPhotoLocalPath TEXT")
+        db.execSQL("ALTER TABLE crew_feed ADD COLUMN proofPhotoUrl TEXT")
+    }
+}

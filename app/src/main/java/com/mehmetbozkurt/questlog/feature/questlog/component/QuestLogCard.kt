@@ -3,9 +3,10 @@ package com.mehmetbozkurt.questlog.feature.questlog.component
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,17 +19,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.model.shortLabel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -44,110 +50,115 @@ fun QuestLogCard(
     val statColor = log.statType?.colorHex()?.toComposeColor()
     val priorityColor = log.priority?.color()
 
-    Card(
+    QuestCard(
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        accent = statColor,
+        seed = log.id.hashCode(),
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (log.isCompleted) 0.55f else 1f),
     ) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(statColor ?: Color.Transparent)
-            )
-            Column(Modifier.padding(Spacing.md)) {
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (log.statType != null && statColor != null) {
-                        Box(Modifier.size(8.dp).background(statColor, CircleShape))
-                        Spacer(Modifier.width(Spacing.sm))
-                        Text(
-                            text = log.statType.shortLabel(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = statColor,
-                        )
-                        if (log.difficulty != null) {
-                            Spacer(Modifier.width(Spacing.sm))
-                            Text(
-                                text = "· ${log.difficulty.displayName()}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    Spacer(Modifier.weight(1f))
-                    if (priorityColor != null) {
-                        Text(
-                            text = log.priority.label(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = priorityColor,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.sm))
-
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = log.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            textDecoration = if (log.isCompleted)
-                                TextDecoration.LineThrough else null,
-                        )
-                        if (log.descriptionFirstLine.isNotBlank()) {
-                            Spacer(Modifier.height(Spacing.xs))
-                            Text(
-                                text = log.descriptionFirstLine,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-
-                    if (log.type == LogType.QUEST) {
-                        val scale = remember { Animatable(1f) }
-                        var wasCompleted by remember { mutableStateOf(log.isCompleted) }
-                        LaunchedEffect(log.isCompleted) {
-                            if (log.isCompleted && !wasCompleted) {
-                                scale.snapTo(1.35f)
-                                scale.animateTo(
-                                    1f,
-                                    spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessMedium,
-                                    ),
-                                )
-                            }
-                            wasCompleted = log.isCompleted
-                        }
-                        Checkbox(
-                            checked = log.isCompleted,
-                            onCheckedChange = onToggleCompleted,
-                            modifier = Modifier.scale(scale.value),
-                        )
-                    }
-                }
-
-                if (log.dueAt != null) {
-                    Spacer(Modifier.height(Spacing.sm))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (log.statType != null && statColor != null) {
+                Icon(
+                    imageVector = log.statType.icon(),
+                    contentDescription = null,
+                    tint = statColor,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(Spacing.xs))
+                Text(
+                    text = log.statType.shortLabel(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = statColor,
+                )
+                if (log.difficulty != null) {
+                    Spacer(Modifier.width(Spacing.sm))
                     Text(
-                        text = "Son tarih: ${log.dueAt.formatted()}",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = log.difficulty.pips(),
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (log.proofLevel != ProofLevel.NONE) {
+                    Spacer(Modifier.width(Spacing.sm))
+                    Icon(
+                        imageVector = if (log.proofLevel == ProofLevel.PHOTO)
+                            Icons.Default.PhotoCamera else Icons.Default.EditNote,
+                        contentDescription = "Kanıtlı",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
             }
+            Spacer(Modifier.weight(1f))
+            if (priorityColor != null) {
+                Text(
+                    text = log.priority.label(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = priorityColor,
+                )
+            }
+        }
+
+        Spacer(Modifier.height(Spacing.sm))
+
+        Row(verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = log.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textDecoration = if (log.isCompleted)
+                        TextDecoration.LineThrough else null,
+                )
+                if (log.descriptionFirstLine.isNotBlank()) {
+                    Spacer(Modifier.height(Spacing.xs))
+                    Text(
+                        text = log.descriptionFirstLine,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            if (log.type == LogType.QUEST) {
+                val scale = remember { Animatable(1f) }
+                val haptics = LocalHapticFeedback.current
+                var wasCompleted by remember { mutableStateOf(log.isCompleted) }
+                LaunchedEffect(log.isCompleted) {
+                    if (log.isCompleted && !wasCompleted) {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        scale.snapTo(1.35f)
+                        scale.animateTo(
+                            1f,
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                        )
+                    }
+                    wasCompleted = log.isCompleted
+                }
+                Checkbox(
+                    checked = log.isCompleted,
+                    onCheckedChange = onToggleCompleted,
+                    modifier = Modifier.scale(scale.value),
+                )
+            }
+        }
+
+        if (log.dueAt != null) {
+            Spacer(Modifier.height(Spacing.sm))
+            Text(
+                text = "Son tarih: ${log.dueAt.formatted()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

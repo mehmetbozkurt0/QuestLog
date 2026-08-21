@@ -56,7 +56,7 @@ fun AuthScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "QuestLog",
+            text = "Renown",
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.primary,
         )

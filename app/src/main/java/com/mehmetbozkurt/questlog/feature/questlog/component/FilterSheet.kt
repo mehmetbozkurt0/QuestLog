@@ -4,9 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.feature.questlog.CompletionFilter
 import com.mehmetbozkurt.questlog.feature.questlog.SortOption
@@ -75,6 +79,14 @@ fun FilterSheet(
                         selected = statFilter == stat,
                         onClick = { onStatChange(stat) },
                         label = { Text(stat.displayName()) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = stat.icon(),
+                                contentDescription = null,
+                                tint = stat.colorHex().toComposeColor(),
+                                modifier = Modifier.size(16.dp),
+                            )
+                        },
                     )
                 }
             }

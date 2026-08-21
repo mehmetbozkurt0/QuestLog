@@ -9,8 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
@@ -33,11 +32,11 @@ fun CharacterSummaryCard(
     streak: StreakInfo?,
     onClick: () -> Unit,
 ) {
-    Card(
+    QuestCard(
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        seed = 5,
+        contentPadding = PaddingValues(0.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(Spacing.md)) {

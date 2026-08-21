@@ -3,9 +3,11 @@ package com.mehmetbozkurt.questlog.core.di
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.data.repository.AuthRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.CharacterRepositoryImpl
+import com.mehmetbozkurt.questlog.data.repository.CrewRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.PathwayRepositoryImpl
 import com.mehmetbozkurt.questlog.data.repository.QuestLogRepositoryImpl
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
+import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
 import dagger.Binds
@@ -32,4 +34,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPathwayRepository(impl: PathwayRepositoryImpl): PathwayRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCrewRepository(impl: CrewRepositoryImpl): CrewRepository
 }

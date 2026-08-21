@@ -11,4 +11,8 @@ data class CharacterEntity(
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
     val syncState: String = SyncState.PENDING.name,
+    val crewId: String? = null,
+    val crewJoinedAtMillis: Long? = null,
+    val approvalDayMillis: Long = 0L,
+    val approvalsToday: Int = 0,
 )

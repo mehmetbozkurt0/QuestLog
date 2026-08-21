@@ -77,13 +77,26 @@ class QuestLogListViewModel @Inject constructor(
             QuestLogListEvent.CreateClicked ->
                 sendEffect(QuestLogListEffect.NavigateToCreate)
 
-            is QuestLogListEvent.CompletionToggled -> viewModelScope.launch {
-                when (val award = repository.setCompleted(event.id, event.completed)) {
-                    is XpAward.Granted -> sendEffect(QuestLogListEffect.ShowCelebration(award.toCelebration()))
-                    is XpAward.Rejected -> award.toUserMessage()?.let {
-                        sendEffect(QuestLogListEffect.ShowXpMessage(it))
+            is QuestLogListEvent.CompletionToggled -> {
+                val log = currentState.allLogs.firstOrNull { it.id == event.id }
+                if (event.completed && log != null && log.isXpEligible) {
+                    setState {
+                        copy(proofSheetLogId = event.id, proofSheetTitle = log.title)
                     }
-                    null -> Unit
+                } else {
+                    viewModelScope.launch { complete(repository.setCompleted(event.id, event.completed)) }
+                }
+            }
+
+            QuestLogListEvent.ProofSheetDismissed ->
+                setState { copy(proofSheetLogId = null, proofSheetTitle = "") }
+
+            is QuestLogListEvent.ProofConfirmed -> {
+                setState { copy(proofSheetLogId = null, proofSheetTitle = "") }
+                viewModelScope.launch {
+                    complete(
+                        repository.completeWithProof(event.id, event.note, event.photoLocalPath)
+                    )
                 }
             }
 
@@ -121,6 +134,19 @@ class QuestLogListViewModel @Inject constructor(
 
             QuestLogListEvent.CharacterClicked ->
                 sendEffect(QuestLogListEffect.NavigateToCharacter)
+        }
+    }
+
+    private fun complete(award: XpAward?) {
+        when (award) {
+            is XpAward.Granted ->
+                sendEffect(QuestLogListEffect.ShowCelebration(award.toCelebration()))
+
+            is XpAward.Rejected -> award.toUserMessage()?.let {
+                sendEffect(QuestLogListEffect.ShowXpMessage(it))
+            }
+
+            null -> Unit
         }
     }
 }

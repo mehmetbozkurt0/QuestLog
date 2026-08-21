@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
@@ -24,7 +25,7 @@ class CharacterRemoteDataSource @Inject constructor(
     private fun completions(uid: String) = userDoc(uid).collection("questCompletions")
 
     suspend fun pushCharacter(entity: CharacterEntity) {
-        userDoc(entity.userId).set(entity.toFireStoreMap()).await()
+        userDoc(entity.userId).set(entity.toFireStoreMap(), SetOptions.merge()).await()
     }
 
     suspend fun pushStat(entity: StatEntity) {

@@ -35,15 +35,23 @@ class LogDetailViewModel @Inject constructor(
 
             LogDetailEvent.CompletionToggled -> {
                 val current = currentState.log ?: return
-                viewModelScope.launch {
-                    when (val award = repository.setCompleted(logId, !current.isCompleted)) {
-                        is XpAward.Granted ->
-                            sendEffect(LogDetailEffect.ShowCelebration(award.toCelebration()))
-                        is XpAward.Rejected -> award.toUserMessage()?.let {
-                            sendEffect(LogDetailEffect.ShowXpMessage(it))
-                        }
-                        null -> Unit
+                if (!current.isCompleted && current.isXpEligible) {
+                    setState { copy(showProofSheet = true) }
+                } else {
+                    viewModelScope.launch {
+                        publish(repository.setCompleted(logId, !current.isCompleted))
                     }
+                }
+            }
+
+            LogDetailEvent.ProofSheetDismissed -> setState { copy(showProofSheet = false) }
+
+            is LogDetailEvent.ProofConfirmed -> {
+                setState { copy(showProofSheet = false) }
+                viewModelScope.launch {
+                    publish(
+                        repository.completeWithProof(logId, event.note, event.photoLocalPath)
+                    )
                 }
             }
 
@@ -54,6 +62,19 @@ class LogDetailViewModel @Inject constructor(
                 repository.delete(logId)
                 sendEffect(LogDetailEffect.NavigateBack)
             }
+        }
+    }
+
+    private fun publish(award: XpAward?) {
+        when (award) {
+            is XpAward.Granted ->
+                sendEffect(LogDetailEffect.ShowCelebration(award.toCelebration()))
+
+            is XpAward.Rejected -> award.toUserMessage()?.let {
+                sendEffect(LogDetailEffect.ShowXpMessage(it))
+            }
+
+            null -> Unit
         }
     }
 }

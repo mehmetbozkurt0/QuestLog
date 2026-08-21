@@ -18,22 +18,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.model.displayName
+import com.mehmetbozkurt.questlog.feature.logedit.formattedWithTime
+import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
 import com.mehmetbozkurt.questlog.feature.questlog.component.label
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 @Composable
 fun LogDetailRoute(
@@ -190,10 +198,58 @@ fun LogDetailScreen(
                 }
 
                 log.remindAt?.let {
-                    DetailRow("Hatırlatma", it.formatted())
+                    DetailRow("Hatırlatma", it.formattedWithTime())
                 }
 
                 DetailRow("Oluşturulma", log.createdAt.formatted())
+
+                if (log.proofLevel != ProofLevel.NONE) {
+                    DetailRow(
+                        "Kanıt",
+                        "${log.proofLevel.displayName()} · +%${
+                            ((log.proofLevel.multiplier - 1) * 100).roundToInt()
+                        }",
+                        MaterialTheme.colorScheme.primary,
+                    )
+                }
+
+                (log.proofPhotoLocalPath ?: log.proofPhotoUrl)?.let { source ->
+                    Spacer(Modifier.height(Spacing.md))
+                    AsyncImage(
+                        model = source,
+                        contentDescription = "Kanıt fotoğrafı",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .clip(MaterialTheme.shapes.medium),
+                    )
+                    if (log.proofPhotoUrl == null) {
+                        Spacer(Modifier.height(Spacing.xs))
+                        Text(
+                            "Fotoğraf yüklenmeyi bekliyor",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                if (!log.proofNote.isNullOrBlank()) {
+                    Spacer(Modifier.height(Spacing.md))
+                    QuestCard(seed = log.id.hashCode() + 1, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "Kanıt notu",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(Spacing.xs))
+                        Text(
+                            log.proofNote,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
 
                 if (log.type == LogType.QUEST) {
                     Spacer(Modifier.height(Spacing.xl))
@@ -220,6 +276,17 @@ fun LogDetailScreen(
                 Spacer(Modifier.height(Spacing.xxl))
             }
         }
+    }
+
+    if (state.showProofSheet && state.log != null) {
+        ProofSheet(
+            logId = state.log.id,
+            questTitle = state.log.title,
+            onDismiss = { onEvent(LogDetailEvent.ProofSheetDismissed) },
+            onConfirm = { draft ->
+                onEvent(LogDetailEvent.ProofConfirmed(draft.note, draft.photoLocalPath))
+            },
+        )
     }
 
     if (state.showDeleteDialog) {

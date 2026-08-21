@@ -8,8 +8,11 @@ import com.mehmetbozkurt.questlog.core.database.MIGRATION_3_4
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_4_5
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_5_6
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_6_7
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_7_8
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_8_9
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
+import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import dagger.Module
@@ -28,7 +31,16 @@ object DatabaseModule {
         context,
         QuestLogDatabase::class.java,
         "questlog.db"
-    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
+    ).addMigrations(
+        MIGRATION_1_2,
+        MIGRATION_2_3,
+        MIGRATION_3_4,
+        MIGRATION_4_5,
+        MIGRATION_5_6,
+        MIGRATION_6_7,
+        MIGRATION_7_8,
+        MIGRATION_8_9,
+    ).build()
 
     @Provides
     fun provideQuestLogDao(db: QuestLogDatabase): QuestLogDao = db.questLogDao()
@@ -38,4 +50,7 @@ object DatabaseModule {
 
     @Provides
     fun providesPathwayDao(db: QuestLogDatabase): PathwayDao = db.pathwayDao()
+
+    @Provides
+    fun provideCrewDao(db: QuestLogDatabase): CrewDao = db.crewDao()
 }

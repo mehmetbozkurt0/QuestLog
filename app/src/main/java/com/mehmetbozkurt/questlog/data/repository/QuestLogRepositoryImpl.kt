@@ -2,13 +2,16 @@ package com.mehmetbozkurt.questlog.data.repository
 
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
+import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.mapper.toDomain
 import com.mehmetbozkurt.questlog.data.mapper.toEntity
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
+import com.mehmetbozkurt.questlog.domain.repository.XpAward
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -25,6 +28,7 @@ class QuestLogRepositoryImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val syncScheduler: SyncScheduler,
     private val characterRepository: CharacterRepository,
+    private val reminderScheduler: ReminderScheduler,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : QuestLogRepository {
 
@@ -40,6 +44,13 @@ class QuestLogRepositoryImpl @Inject constructor(
     override suspend fun upsert(log: QuestLog) = withContext(io) {
         dao.upsert(log.toEntity())
         syncScheduler.requestSync()
+
+        val remindAt = log.remindAt?.toEpochMilli()
+        if (remindAt != null && !log.isCompleted) {
+            reminderScheduler.scheduleQuestReminder(log.id, log.title, remindAt)
+        } else {
+            reminderScheduler.cancelQuestReminder(log.id)
+        }
     }
 
     override suspend fun setCompleted(id: String, completed: Boolean) = withContext(io) {
@@ -52,6 +63,14 @@ class QuestLogRepositoryImpl @Inject constructor(
             val log = dao.getById(id)?.toDomain() ?: return@withContext null
 
             if (completed) {
+                reminderScheduler.cancelQuestReminder(id)
+            } else {
+                log.remindAt?.toEpochMilli()?.let { at ->
+                    reminderScheduler.scheduleQuestReminder(id, log.title, at)
+                }
+            }
+
+            if (completed) {
                 characterRepository.awardXpFor(log)
             } else {
                 characterRepository.revokeXpFor(id)
@@ -60,8 +79,29 @@ class QuestLogRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun completeWithProof(
+        id: String,
+        note: String?,
+        photoLocalPath: String?,
+    ): XpAward? = withContext(io) {
+        val level = when {
+            photoLocalPath != null -> ProofLevel.PHOTO
+            !note.isNullOrBlank() -> ProofLevel.NOTE
+            else -> ProofLevel.NONE
+        }
+        dao.setProof(
+            id = id,
+            level = level.name,
+            note = note?.takeIf { it.isNotBlank() },
+            photoLocalPath = photoLocalPath,
+            nowMillis = System.currentTimeMillis(),
+        )
+        setCompleted(id, true)
+    }
+
     override suspend fun delete(id: String) = withContext(io) {
         dao.softDelete(id, System.currentTimeMillis())
+        reminderScheduler.cancelQuestReminder(id)
         syncScheduler.requestSync()
     }
 

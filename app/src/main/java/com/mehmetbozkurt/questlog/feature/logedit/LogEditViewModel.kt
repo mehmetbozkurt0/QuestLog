@@ -27,8 +27,11 @@ class LogEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): MviViewModel<LogEditState, LogEditEvent, LogEditEffect>(LogEditState()) {
     private val route = savedStateHandle.toRoute<LogEditRouteKey>()
+    private val workingId: String = route.logId ?: repository.newId()
     private var originalCreatedAt: Instant? = null
     private var originalCompleted: Boolean = false
+    private var originalCompletedAt: Instant? = null
+    private var originalPathwayQuestId: String? = null
 
     init {
         val existingId = route.logId
@@ -38,6 +41,8 @@ class LogEditViewModel @Inject constructor(
                 if (log != null) {
                     originalCreatedAt = log.createdAt
                     originalCompleted = log.isCompleted
+                    originalCompletedAt = log.completedAt
+                    originalPathwayQuestId = log.pathwayQuestId
                     setState {
                         copy(
                             id = log.id,
@@ -48,7 +53,11 @@ class LogEditViewModel @Inject constructor(
                             dueAt = log.dueAt,
                             remindAt = log.remindAt,
                             statType = log.statType,
-                            difficulty = log.difficulty ?: Difficulty.MEDIUM
+                            difficulty = log.difficulty ?: Difficulty.MEDIUM,
+                            proofLevel = log.proofLevel,
+                            proofNote = log.proofNote.orEmpty(),
+                            proofPhotoUrl = log.proofPhotoUrl,
+                            proofPhotoLocalPath = log.proofPhotoLocalPath,
                         )
                     }
                 }
@@ -89,7 +98,7 @@ class LogEditViewModel @Inject constructor(
             val isQuest = state.type == LogType.QUEST
 
             val log = QuestLog(
-                id = state.id ?: repository.newId(),
+                id = workingId,
                 ownerId = user.uid,
                 campaignId = null,
                 type = state.type,
@@ -103,10 +112,12 @@ class LogEditViewModel @Inject constructor(
                 updatedAt = now,
                 statType = state.statType,
                 difficulty = state.difficulty,
-                proofLevel = ProofLevel.NONE,
-                proofNote = null,
-                completedAt = null,
-                pathwayQuestId = null,
+                proofLevel = if (isQuest) state.proofLevel else ProofLevel.NONE,
+                proofNote = state.proofNote.takeIf { isQuest && it.isNotBlank() },
+                proofPhotoUrl = if (isQuest) state.proofPhotoUrl else null,
+                proofPhotoLocalPath = if (isQuest) state.proofPhotoLocalPath else null,
+                completedAt = originalCompletedAt,
+                pathwayQuestId = originalPathwayQuestId,
             )
 
             repository.upsert(log)

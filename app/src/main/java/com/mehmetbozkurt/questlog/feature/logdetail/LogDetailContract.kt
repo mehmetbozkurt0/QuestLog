@@ -10,11 +10,17 @@ data class LogDetailState(
     val log: QuestLog? = null,
     val isLoading: Boolean = true,
     val showDeleteDialog: Boolean = false,
+    val showProofSheet: Boolean = false,
 ): UiState
 
 sealed interface LogDetailEvent: UiEvent {
     data object EditClicked : LogDetailEvent
     data object CompletionToggled : LogDetailEvent
+    data object ProofSheetDismissed : LogDetailEvent
+    data class ProofConfirmed(
+        val note: String?,
+        val photoLocalPath: String?,
+    ) : LogDetailEvent
     data class DeleteDialogToggled(val show: Boolean) : LogDetailEvent
     data object DeleteConfirmed : LogDetailEvent
 }

@@ -1,5 +1,9 @@
-package com.mehmetbozkurt.questlog.feature.logedit
+﻿package com.mehmetbozkurt.questlog.feature.logedit
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,18 +12,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.model.description
@@ -29,6 +42,11 @@ import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
 import com.mehmetbozkurt.questlog.feature.questlog.component.label
 import kotlinx.coroutines.flow.collectLatest
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun LogEditRoute(
@@ -141,10 +159,11 @@ fun LogEditScreen(
                         enabled = !state.isSaving,
                         label = { Text(stat.displayName()) },
                         leadingIcon = {
-                            Box(
-                                Modifier
-                                    .size(10.dp)
-                                    .background(stat.colorHex().toComposeColor(), CircleShape)
+                            Icon(
+                                imageVector = stat.icon(),
+                                contentDescription = null,
+                                tint = stat.colorHex().toComposeColor(),
+                                modifier = Modifier.size(16.dp),
                             )
                         },
                     )
@@ -177,7 +196,14 @@ fun LogEditScreen(
                         shape = SegmentedButtonDefaults.itemShape(index, Difficulty.entries.size),
                         enabled = !state.isSaving,
                     ) {
-                        Text(diff.displayName(), style = MaterialTheme.typography.labelMedium)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(diff.displayName(), style = MaterialTheme.typography.labelMedium)
+                            Text(
+                                diff.pips(),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                 }
             }
@@ -233,11 +259,20 @@ fun LogEditScreen(
                 Spacer(Modifier.height(Spacing.md))
 
                 DateField(
-                    label = "Hatırlatma tarihi",
+                    label = "Hatırlatma",
                     value = state.remindAt,
                     enabled = !state.isSaving,
+                    withTime = true,
                     onPick = { onEvent(LogEditEvent.RemindPickerToggled(true)) },
                     onClear = { onEvent(LogEditEvent.RemindAtChanged(null)) },
+                )
+
+                Spacer(Modifier.height(Spacing.md))
+
+                Text(
+                    "Kanıtı görevi tamamlarken ekleyeceksin — not %15, fotoğraf %30 bonus verir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -272,7 +307,7 @@ fun LogEditScreen(
     }
 
     if (state.showRemindPicker) {
-        LogDatePicker(
+        LogDateTimePicker(
             initial = state.remindAt,
             onDismiss = { onEvent(LogEditEvent.RemindPickerToggled(false)) },
             onConfirm = { onEvent(LogEditEvent.RemindAtChanged(it)) },
@@ -287,6 +322,7 @@ private fun DateField(
     enabled: Boolean,
     onPick: () -> Unit,
     onClear: () -> Unit,
+    withTime: Boolean = false,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(
@@ -295,7 +331,10 @@ private fun DateField(
             modifier = Modifier.weight(1f),
         ) {
             Text(
-                text = value?.let { "$label: ${it.formatted()}" } ?: "$label seç",
+                text = value?.let {
+                    val shown = if (withTime) it.formattedWithTime() else it.formatted()
+                    "$label: $shown"
+                } ?: "$label seç",
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -304,6 +343,73 @@ private fun DateField(
                 Icon(Icons.Default.Clear, contentDescription = "Temizle")
             }
         }
+    }
+}
+
+private val timeFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Locale("tr"))
+
+fun Instant.formattedWithTime(): String =
+    timeFormatter.format(this.atZone(ZoneId.systemDefault()))
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LogDateTimePicker(
+    initial: Instant?,
+    onDismiss: () -> Unit,
+    onConfirm: (Instant) -> Unit,
+) {
+    val zone = ZoneId.systemDefault()
+    val initialLocal = (initial ?: Instant.now().plusSeconds(3600)).atZone(zone)
+
+    var pickedDateMillis by remember { mutableStateOf<Long?>(null) }
+
+    if (pickedDateMillis == null) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialLocal.toLocalDate()
+                .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = {
+                    pickedDateMillis = pickerState.selectedDateMillis
+                }) { Text("İleri") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("İptal") }
+            },
+        ) {
+            DatePicker(state = pickerState)
+        }
+    } else {
+        val timeState = rememberTimePickerState(
+            initialHour = initialLocal.hour,
+            initialMinute = initialLocal.minute,
+            is24Hour = true,
+        )
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Saat seç", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = timeState)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val date = Instant.ofEpochMilli(pickedDateMillis!!)
+                        .atZone(ZoneOffset.UTC).toLocalDate()
+                    onConfirm(
+                        date.atTime(timeState.hour, timeState.minute)
+                            .atZone(zone).toInstant()
+                    )
+                }) { Text("Tamam") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickedDateMillis = null }) { Text("Geri") }
+            },
+        )
     }
 }
 
