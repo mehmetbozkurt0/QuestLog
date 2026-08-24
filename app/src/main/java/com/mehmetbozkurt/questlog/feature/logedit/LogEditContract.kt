@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.logedit
 
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -48,5 +49,5 @@ sealed interface LogEditEvent: UiEvent {
 
 sealed interface LogEditEffect: UiEffect {
     data object NavigateBack: LogEditEffect
-    data class  ShowError(val message: String): LogEditEffect
+    data class  ShowError(val message: UiText): LogEditEffect
 }

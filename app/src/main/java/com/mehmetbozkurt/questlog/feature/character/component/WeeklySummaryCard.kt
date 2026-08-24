@@ -24,13 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.model.WeeklySummary
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import java.time.format.TextStyle
 import java.util.Locale
-
-private val trLocale = Locale("tr")
 
 @Composable
 fun WeeklySummaryCard(
@@ -38,6 +39,8 @@ fun WeeklySummaryCard(
     weekly: WeeklySummary?,
     modifier: Modifier = Modifier,
 ) {
+    val locale = LocalConfiguration.current.locales[0]
+
     QuestCard(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         seed = 3,
@@ -48,7 +51,7 @@ fun WeeklySummaryCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Bu Hafta",
+                    stringResource(R.string.weekly_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -59,13 +62,13 @@ fun WeeklySummaryCard(
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     Icon(
                         Icons.Default.LocalFireDepartment,
-                        contentDescription = "Seri",
+                        contentDescription = stringResource(R.string.character_streak),
                         tint = flameColor,
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(2.dp))
                     Text(
-                        "${streak.currentStreak} gün",
+                        stringResource(R.string.weekly_streak_days, streak.currentStreak),
                         style = MaterialTheme.typography.labelLarge,
                         color = flameColor,
                     )
@@ -75,10 +78,11 @@ fun WeeklySummaryCard(
             if (streak != null && streak.longestStreak > 0) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    buildString {
-                        append("En uzun seri: ${streak.longestStreak} gün")
-                        if (streak.graceUsed) append(" · Kararlı devrede")
-                    },
+                    stringResource(
+                        if (streak.graceUsed) R.string.weekly_longest_streak_grace
+                        else R.string.weekly_longest_streak,
+                        streak.longestStreak,
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -113,7 +117,7 @@ fun WeeklySummaryCard(
                             Spacer(Modifier.height(Spacing.xs))
                             Text(
                                 day.date.dayOfWeek
-                                    .getDisplayName(TextStyle.SHORT, trLocale)
+                                    .getDisplayName(TextStyle.SHORT, locale)
                                     .take(2),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -124,11 +128,19 @@ fun WeeklySummaryCard(
 
                 Spacer(Modifier.height(Spacing.sm))
 
+                val topStatName = weekly.topStat?.let { stringResource(it.nameRes()) }
+
                 Text(
-                    buildString {
-                        append("${weekly.totalXp} XP · ${weekly.entryCount} görev")
-                        weekly.topStat?.let { append(" · En çok: ${it.displayName()}") }
-                    },
+                    if (topStatName != null) stringResource(
+                        R.string.weekly_summary_with_top,
+                        weekly.totalXp,
+                        weekly.entryCount,
+                        topStatName,
+                    ) else stringResource(
+                        R.string.weekly_summary,
+                        weekly.totalXp,
+                        weekly.entryCount,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

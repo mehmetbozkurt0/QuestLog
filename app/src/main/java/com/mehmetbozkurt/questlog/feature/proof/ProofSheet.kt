@@ -39,6 +39,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -111,7 +113,7 @@ fun ProofSheet(
                 .padding(bottom = Spacing.xxl),
         ) {
             Text(
-                "Nasıl geçti?",
+                stringResource(R.string.proof_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -125,8 +127,7 @@ fun ProofSheet(
             Spacer(Modifier.height(Spacing.lg))
 
             Text(
-                "Kanıt bırakırsan daha fazla XP alırsın: not %15, fotoğraf %30. " +
-                        "Fotoğrafı ekip arkadaşların görür ve onaylayabilir.",
+                stringResource(R.string.proof_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -136,8 +137,8 @@ fun ProofSheet(
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("Kanıt notu") },
-                placeholder = { Text("5 km koştum, 32 dakika") },
+                label = { Text(stringResource(R.string.proof_note_label)) },
+                placeholder = { Text(stringResource(R.string.proof_note_placeholder)) },
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -149,7 +150,7 @@ fun ProofSheet(
                 Box(Modifier.fillMaxWidth()) {
                     AsyncImage(
                         model = path,
-                        contentDescription = "Kanıt fotoğrafı",
+                        contentDescription = stringResource(R.string.proof_photo),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -165,7 +166,10 @@ fun ProofSheet(
                             .align(Alignment.TopEnd)
                             .padding(Spacing.sm),
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Fotoğrafı kaldır")
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(R.string.proof_remove_photo),
+                        )
                     }
                 }
             } else {
@@ -187,7 +191,10 @@ fun ProofSheet(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(Spacing.xs))
-                        Text("Galeri", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.proof_gallery),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                     OutlinedButton(
                         onClick = {
@@ -204,7 +211,10 @@ fun ProofSheet(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(Spacing.xs))
-                        Text("Kamera", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.proof_camera),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
             }
@@ -217,8 +227,8 @@ fun ProofSheet(
             Spacer(Modifier.height(Spacing.lg))
 
             val bonus = when {
-                photoPath != null -> "+%30"
-                note.isNotBlank() -> "+%15"
+                photoPath != null -> stringResource(R.string.proof_bonus_photo)
+                note.isNotBlank() -> stringResource(R.string.proof_bonus_note)
                 else -> null
             }
 
@@ -235,7 +245,8 @@ fun ProofSheet(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
                 Text(
-                    if (bonus != null) "Tamamla ($bonus XP)" else "Tamamla",
+                    if (bonus != null) stringResource(R.string.proof_complete_with_bonus, bonus)
+                    else stringResource(R.string.proof_complete),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -248,7 +259,10 @@ fun ProofSheet(
                 enabled = !processing,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Kanıtsız tamamla", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.proof_complete_without),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
     }

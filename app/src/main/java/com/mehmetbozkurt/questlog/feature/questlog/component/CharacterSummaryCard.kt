@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
@@ -43,14 +45,14 @@ fun CharacterSummaryCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Seviye ${character.level}",
+                    stringResource(R.string.character_level, character.level),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 if (character.epicBoons > 0) {
                     Spacer(Modifier.width(Spacing.sm))
                     Text(
-                        "· ${character.epicBoons} Kutsama",
+                        stringResource(R.string.character_boons, character.epicBoons),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -62,7 +64,7 @@ fun CharacterSummaryCard(
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     Icon(
                         Icons.Default.LocalFireDepartment,
-                        contentDescription = "Seri",
+                        contentDescription = stringResource(R.string.character_streak),
                         tint = flameColor,
                         modifier = Modifier.size(18.dp),
                     )
@@ -75,7 +77,7 @@ fun CharacterSummaryCard(
                         Spacer(Modifier.width(2.dp))
                         Icon(
                             Icons.Default.Shield,
-                            contentDescription = "Kararlı devrede",
+                            contentDescription = stringResource(R.string.character_resolute_active),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(12.dp),
                         )
@@ -84,9 +86,17 @@ fun CharacterSummaryCard(
                 Spacer(Modifier.weight(1f))
                 Text(
                     if (character.level >= XpCurve.MAX_LEVEL)
-                        "${character.xpIntoLevel} / ${XpCurve.XP_PER_EPIC_BOON}"
+                        stringResource(
+                            R.string.character_stat_progress,
+                            character.xpIntoLevel,
+                            XpCurve.XP_PER_EPIC_BOON,
+                        )
                     else
-                        "${character.xpIntoLevel} / ${character.xpToNextLevel} XP",
+                        stringResource(
+                            R.string.character_xp_progress,
+                            character.xpIntoLevel,
+                            character.xpToNextLevel,
+                        ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -125,7 +135,10 @@ fun CharacterSummaryCard(
             if (character.pendingFeatChoices > 0) {
                 Spacer(Modifier.height(Spacing.sm))
                 Text(
-                    "${character.pendingFeatChoices} yetenek hakkın bekliyor",
+                    stringResource(
+                        R.string.character_pending_feats,
+                        character.pendingFeatChoices,
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )

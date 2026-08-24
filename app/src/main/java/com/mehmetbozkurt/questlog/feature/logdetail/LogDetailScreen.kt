@@ -34,12 +34,16 @@ import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.feature.logedit.formattedWithTime
 import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
-import com.mehmetbozkurt.questlog.feature.questlog.component.label
+import com.mehmetbozkurt.questlog.feature.questlog.component.labelRes
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
@@ -51,6 +55,7 @@ fun LogDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var celebration by remember { mutableStateOf<Celebration?>(null) }
 
     LaunchedEffect(Unit) {
@@ -58,7 +63,8 @@ fun LogDetailRoute(
             when (effect) {
                 is LogDetailEffect.NavigateToEdit -> onNavigateToEdit(effect.id)
                 LogDetailEffect.NavigateBack -> onNavigateBack()
-                is LogDetailEffect.ShowXpMessage -> snackbarHostState.showSnackbar(effect.text)
+                is LogDetailEffect.ShowXpMessage ->
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
                 is LogDetailEffect.ShowCelebration -> celebration = effect.celebration
             }
         }
@@ -94,18 +100,18 @@ fun LogDetailScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     if (log != null) {
                         IconButton(onClick = { onEvent(LogDetailEvent.EditClicked) }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Düzenle")
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
                         }
                         IconButton(onClick = { onEvent(LogDetailEvent.DeleteDialogToggled(true)) }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Sil",
+                                contentDescription = stringResource(R.string.common_delete),
                                 tint = MaterialTheme.colorScheme.error,
                             )
                         }
@@ -132,7 +138,7 @@ fun LogDetailScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "Kayıt bulunamadı",
+                    stringResource(R.string.logdetail_not_found),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -151,7 +157,7 @@ fun LogDetailScreen(
                         Box(Modifier.size(10.dp).background(statColor, CircleShape))
                         Spacer(Modifier.width(Spacing.sm))
                         Text(
-                            log.statType.displayName(),
+                            stringResource(log.statType.nameRes()),
                             style = MaterialTheme.typography.labelLarge,
                             color = statColor,
                         )
@@ -181,7 +187,10 @@ fun LogDetailScreen(
                 Spacer(Modifier.height(Spacing.lg))
 
                 if (log.difficulty != null) {
-                    DetailRow("Zorluk", log.difficulty.displayName())
+                    DetailRow(
+                        stringResource(R.string.logdetail_difficulty),
+                        stringResource(log.difficulty.nameRes()),
+                    )
                 }
 
                 if (log.priority != null) {
@@ -190,23 +199,27 @@ fun LogDetailScreen(
                         Priority.MEDIUM -> MaterialTheme.extendedColors.priorityMedium
                         Priority.HIGH -> MaterialTheme.extendedColors.priorityHigh
                     }
-                    DetailRow("Öncelik", log.priority.label(), priorityColor)
+                    DetailRow(
+                        stringResource(R.string.logdetail_priority),
+                        stringResource(log.priority.labelRes()),
+                        priorityColor,
+                    )
                 }
 
                 log.dueAt?.let {
-                    DetailRow("Son teslim", it.formatted())
+                    DetailRow(stringResource(R.string.logdetail_due), it.formatted())
                 }
 
                 log.remindAt?.let {
-                    DetailRow("Hatırlatma", it.formattedWithTime())
+                    DetailRow(stringResource(R.string.logdetail_reminder), it.formattedWithTime())
                 }
 
-                DetailRow("Oluşturulma", log.createdAt.formatted())
+                DetailRow(stringResource(R.string.logdetail_created), log.createdAt.formatted())
 
                 if (log.proofLevel != ProofLevel.NONE) {
                     DetailRow(
-                        "Kanıt",
-                        "${log.proofLevel.displayName()} · +%${
+                        stringResource(R.string.logdetail_proof),
+                        "${stringResource(log.proofLevel.nameRes())} · +%${
                             ((log.proofLevel.multiplier - 1) * 100).roundToInt()
                         }",
                         MaterialTheme.colorScheme.primary,
@@ -217,7 +230,7 @@ fun LogDetailScreen(
                     Spacer(Modifier.height(Spacing.md))
                     AsyncImage(
                         model = source,
-                        contentDescription = "Kanıt fotoğrafı",
+                        contentDescription = stringResource(R.string.logdetail_proof_photo),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -227,7 +240,7 @@ fun LogDetailScreen(
                     if (log.proofPhotoUrl == null) {
                         Spacer(Modifier.height(Spacing.xs))
                         Text(
-                            "Fotoğraf yüklenmeyi bekliyor",
+                            stringResource(R.string.logdetail_photo_pending),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -238,7 +251,7 @@ fun LogDetailScreen(
                     Spacer(Modifier.height(Spacing.md))
                     QuestCard(seed = log.id.hashCode() + 1, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "Kanıt notu",
+                            stringResource(R.string.logdetail_proof_note),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -266,8 +279,10 @@ fun LogDetailScreen(
                         },
                     ) {
                         Text(
-                            if (log.isCompleted) "Tamamlanmadı olarak işaretle"
-                            else "Tamamlandı olarak işaretle",
+                            stringResource(
+                                if (log.isCompleted) R.string.logdetail_mark_incomplete
+                                else R.string.logdetail_mark_complete
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -292,16 +307,19 @@ fun LogDetailScreen(
     if (state.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { onEvent(LogDetailEvent.DeleteDialogToggled(false)) },
-            title = { Text("Kaydı sil") },
-            text = { Text("Bu kayıt kalıcı olarak silinecek. Emin misin?") },
+            title = { Text(stringResource(R.string.logdetail_delete_title)) },
+            text = { Text(stringResource(R.string.logdetail_delete_body)) },
             confirmButton = {
                 TextButton(onClick = { onEvent(LogDetailEvent.DeleteConfirmed) }) {
-                    Text("Sil", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(LogDetailEvent.DeleteDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )

@@ -36,8 +36,13 @@ import com.mehmetbozkurt.questlog.core.designsystem.theme.Parchment
 import com.mehmetbozkurt.questlog.core.designsystem.theme.ParchmentDim
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.common.toUiText
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -115,14 +120,14 @@ private fun BannerContent(celebration: Celebration) {
                 )
                 Spacer(Modifier.width(Spacing.sm))
                 Text(
-                    celebration.statType.displayName(),
+                    stringResource(celebration.statType.nameRes()),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             if (celebration.escrowedXp > 0) {
                 Text(
-                    "+${celebration.escrowedXp} XP emanette",
+                    stringResource(R.string.celebration_escrowed, celebration.escrowedXp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -130,7 +135,11 @@ private fun BannerContent(celebration: Celebration) {
             if (celebration.statIncreased) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "${celebration.statType.displayName()} ${celebration.newStatValue} oldu!",
+                    stringResource(
+                        R.string.celebration_stat_up,
+                        stringResource(celebration.statType.nameRes()),
+                        celebration.newStatValue,
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = statColor,
                 )
@@ -138,7 +147,7 @@ private fun BannerContent(celebration: Celebration) {
             if (celebration.stageCompleted) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "Aşama tamamlandı!",
+                    stringResource(R.string.celebration_stage_done),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -146,7 +155,7 @@ private fun BannerContent(celebration: Celebration) {
             if (celebration.featChoicesGained > 0) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "Yeni yetenek hakkı!",
+                    stringResource(R.string.celebration_new_feat),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.tertiary,
                 )
@@ -154,15 +163,16 @@ private fun BannerContent(celebration: Celebration) {
             if (celebration.streakMilestone != null) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "🔥 ${celebration.streakMilestone} gün seri!",
+                    stringResource(R.string.celebration_streak, celebration.streakMilestone ?: 0),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
             if (celebration.bonuses.isNotEmpty()) {
+                val context = LocalContext.current
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    celebration.bonuses.joinToString(" · "),
+                    celebration.bonuses.joinToString(" · ") { it.toUiText().resolve(context) },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -180,7 +190,7 @@ private fun XpCounterText(target: Int, style: TextStyle, color: androidx.compose
         label = "xpCounter",
     )
     LaunchedEffect(target) { started = true }
-    Text("+$value XP", style = style, color = color)
+    Text(stringResource(R.string.celebration_xp, value), style = style, color = color)
 }
 
 private class Spark(val angle: Float, val speed: Float, val size: Float)
@@ -246,16 +256,24 @@ private fun EpicCelebration(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (celebration.leveledUp) {
-                Text("SEVİYE", style = MaterialTheme.typography.labelLarge, color = AgedGold)
+                Text(
+                    stringResource(R.string.character_level_caps),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = AgedGold,
+                )
                 Text(
                     "${celebration.newLevel}",
                     style = MaterialTheme.typography.displayLarge,
                     color = Parchment,
                 )
             } else {
-                Text("YOL", style = MaterialTheme.typography.labelLarge, color = AgedGold)
                 Text(
-                    "TAMAMLANDI",
+                    stringResource(R.string.celebration_pathway),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = AgedGold,
+                )
+                Text(
+                    stringResource(R.string.celebration_pathway_done),
                     style = MaterialTheme.typography.displayMedium,
                     color = Parchment,
                     textAlign = TextAlign.Center,
@@ -263,48 +281,59 @@ private fun EpicCelebration(
             }
             Spacer(Modifier.height(Spacing.lg))
             Text(
-                "+${celebration.xpGained} XP · ${celebration.statType.displayName()}",
+                stringResource(
+                    R.string.celebration_xp_stat,
+                    celebration.xpGained,
+                    stringResource(celebration.statType.nameRes()),
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 color = Parchment,
             )
             if (celebration.completionBonusXp > 0) {
                 Text(
-                    "Emanet + bonus: +${celebration.completionBonusXp} XP",
+                    stringResource(
+                        R.string.celebration_escrow_bonus,
+                        celebration.completionBonusXp,
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = AgedGold,
                 )
             }
             if (celebration.leveledUp && celebration.pathwayCompleted) {
                 Text(
-                    "Yol da tamamlandı!",
+                    stringResource(R.string.celebration_pathway_too),
                     style = MaterialTheme.typography.titleMedium,
                     color = AgedGold,
                 )
             }
             if (celebration.statIncreased) {
                 Text(
-                    "${celebration.statType.displayName()} ${celebration.newStatValue} oldu",
+                    stringResource(
+                        R.string.celebration_stat_up_plain,
+                        stringResource(celebration.statType.nameRes()),
+                        celebration.newStatValue,
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = celebration.statType.colorHex().toComposeColor(),
                 )
             }
             if (celebration.featChoicesGained > 0) {
                 Text(
-                    "Yeni yetenek hakkı kazandın",
+                    stringResource(R.string.celebration_new_feat_long),
                     style = MaterialTheme.typography.titleMedium,
                     color = Parchment,
                 )
             }
             if (celebration.streakMilestone != null) {
                 Text(
-                    "🔥 ${celebration.streakMilestone} gün seri!",
+                    stringResource(R.string.celebration_streak, celebration.streakMilestone ?: 0),
                     style = MaterialTheme.typography.titleMedium,
                     color = AgedGold,
                 )
             }
             Spacer(Modifier.height(Spacing.xl))
             Text(
-                "Devam etmek için dokun",
+                stringResource(R.string.celebration_tap),
                 style = MaterialTheme.typography.bodySmall,
                 color = ParchmentDim,
             )

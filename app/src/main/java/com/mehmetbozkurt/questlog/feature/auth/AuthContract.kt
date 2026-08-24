@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.auth
 
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -13,7 +14,7 @@ data class AuthState (
     val displayName: String = "",
     val isLoading: Boolean = false,
     val isGoogleLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: UiText? = null
 ): UiState {
     val isEmailValid: Boolean
         get() = email.isBlank() || android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
@@ -36,13 +37,13 @@ sealed interface AuthEvent: UiEvent {
     data object ForgotPasswordClicked : AuthEvent
     data object GoogleSignInClicked : AuthEvent
     data class GoogleIdTokenReceived(val idToken: String) : AuthEvent
-    data class GoogleSignInFailed(val message: String?) : AuthEvent
+    data class GoogleSignInFailed(val message: UiText?) : AuthEvent
 }
 
 sealed interface AuthEffect: UiEffect {
     data object  NavigateToHome : AuthEffect
     data object NavigateToOnboarding : AuthEffect
-    data class ShowMessage(val text: String) : AuthEffect
+    data class ShowMessage(val text: UiText) : AuthEffect
     data object LaunchGoogleSignIn : AuthEffect
 }
 

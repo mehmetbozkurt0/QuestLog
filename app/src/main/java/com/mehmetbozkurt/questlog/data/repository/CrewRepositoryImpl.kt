@@ -21,10 +21,12 @@ import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
+import com.mehmetbozkurt.questlog.domain.repository.ApproveFailure
 import com.mehmetbozkurt.questlog.domain.repository.ApproveResult
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.CrewActionResult
+import com.mehmetbozkurt.questlog.domain.repository.CrewFailure
 import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -77,9 +79,9 @@ class CrewRepositoryImpl @Inject constructor(
 
     override suspend fun createCrew(name: String): CrewActionResult = withContext(io) {
         val user = authRepository.currentUserSync()
-            ?: return@withContext CrewActionResult.Failed("Oturum bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_SESSION)
         val character = characterDao.getCharacter(user.uid)
-            ?: return@withContext CrewActionResult.Failed("Karakter bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_CHARACTER)
         if (character.crewId != null) return@withContext CrewActionResult.AlreadyInCrew
 
         val now = System.currentTimeMillis()
@@ -111,9 +113,9 @@ class CrewRepositoryImpl @Inject constructor(
 
     override suspend fun joinByCode(code: String): CrewActionResult = withContext(io) {
         val user = authRepository.currentUserSync()
-            ?: return@withContext CrewActionResult.Failed("Oturum bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_SESSION)
         val character = characterDao.getCharacter(user.uid)
-            ?: return@withContext CrewActionResult.Failed("Karakter bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_CHARACTER)
         if (character.crewId != null) return@withContext CrewActionResult.AlreadyInCrew
 
         val normalized = code.trim().uppercase()
@@ -143,9 +145,9 @@ class CrewRepositoryImpl @Inject constructor(
 
     override suspend fun leaveCrew(): CrewActionResult = withContext(io) {
         val user = authRepository.currentUserSync()
-            ?: return@withContext CrewActionResult.Failed("Oturum bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_SESSION)
         val character = characterDao.getCharacter(user.uid)
-            ?: return@withContext CrewActionResult.Failed("Karakter bulunamadı.")
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_CHARACTER)
         val crewId = character.crewId ?: return@withContext CrewActionResult.NotInCrew
 
         runCatching { crewRemote.leaveCrew(crewId, user.uid) }
@@ -167,17 +169,17 @@ class CrewRepositoryImpl @Inject constructor(
 
     override suspend fun approve(entryId: String): ApproveResult = withContext(io) {
         val user = authRepository.currentUserSync()
-            ?: return@withContext ApproveResult.Failed("Oturum bulunamadı.")
+            ?: return@withContext ApproveResult.Failed(ApproveFailure.NO_SESSION)
         val character = characterDao.getCharacter(user.uid)
-            ?: return@withContext ApproveResult.Failed("Karakter bulunamadı.")
+            ?: return@withContext ApproveResult.Failed(ApproveFailure.NO_CHARACTER)
         val crewId = character.crewId
-            ?: return@withContext ApproveResult.Failed("Bir ekipte değilsin.")
+            ?: return@withContext ApproveResult.Failed(ApproveFailure.NOT_IN_CREW)
 
         val hasMentor = characterDao.getFeats(user.uid).any { it.featId == FeatId.MENTOR.name }
         if (!hasMentor) return@withContext ApproveResult.NoMentorFeat
 
         val entry = crewDao.getFeedEntry(entryId)
-            ?: return@withContext ApproveResult.Failed("Kayıt bulunamadı.")
+            ?: return@withContext ApproveResult.Failed(ApproveFailure.ENTRY_NOT_FOUND)
         if (entry.authorId == user.uid) return@withContext ApproveResult.OwnQuest
         if (user.uid in entry.approvedBy) return@withContext ApproveResult.AlreadyApproved
 
@@ -191,9 +193,7 @@ class CrewRepositoryImpl @Inject constructor(
         runCatching { crewRemote.approveFeedEntry(crewId, entryId, user.uid) }
             .onFailure {
                 Log.e(TAG, "Crew approve failed", it)
-                return@withContext ApproveResult.Failed(
-                    "Onay gönderilemedi: ${it.message ?: "bilinmeyen hata"}"
-                )
+                return@withContext ApproveResult.Failed(ApproveFailure.WRITE_FAILED)
             }
 
         crewDao.upsertFeedEntry(
@@ -269,15 +269,13 @@ class CrewRepositoryImpl @Inject constructor(
         Log.e(TAG, "Crew $action failed", this)
         return when ((this as? FirebaseFirestoreException)?.code) {
             FirebaseFirestoreException.Code.PERMISSION_DENIED ->
-                CrewActionResult.Failed(
-                    "Firestore izin vermedi. Ekip güvenlik kuralları yayınlanmamış olabilir."
-                )
+                CrewActionResult.Failed(CrewFailure.PERMISSION_DENIED)
 
             FirebaseFirestoreException.Code.UNAVAILABLE,
             FirebaseFirestoreException.Code.DEADLINE_EXCEEDED,
                 -> CrewActionResult.Offline
 
-            else -> CrewActionResult.Failed(message ?: "Bilinmeyen hata.")
+            else -> CrewActionResult.Failed(CrewFailure.UNKNOWN)
         }
     }
 

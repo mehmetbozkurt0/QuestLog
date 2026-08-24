@@ -19,7 +19,14 @@ sealed interface CrewActionResult {
     data object CodeNotFound : CrewActionResult
     data object NotInCrew : CrewActionResult
     data object Offline : CrewActionResult
-    data class Failed(val message: String) : CrewActionResult
+    data class Failed(val reason: CrewFailure) : CrewActionResult
+}
+
+enum class CrewFailure {
+    NO_SESSION,
+    NO_CHARACTER,
+    PERMISSION_DENIED,
+    UNKNOWN,
 }
 
 sealed interface ApproveResult {
@@ -28,5 +35,13 @@ sealed interface ApproveResult {
     data object DailyLimitReached : ApproveResult
     data object AlreadyApproved : ApproveResult
     data object OwnQuest : ApproveResult
-    data class Failed(val message: String) : ApproveResult
+    data class Failed(val reason: ApproveFailure) : ApproveResult
+}
+
+enum class ApproveFailure {
+    NO_SESSION,
+    NO_CHARACTER,
+    NOT_IN_CREW,
+    ENTRY_NOT_FOUND,
+    WRITE_FAILED,
 }

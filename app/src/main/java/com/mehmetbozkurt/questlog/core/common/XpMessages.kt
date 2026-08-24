@@ -1,13 +1,17 @@
 package com.mehmetbozkurt.questlog.core.common
 
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.domain.repository.XpAward
 
-fun XpAward.Rejected.toUserMessage(): String? = when (reason) {
+fun XpAward.Rejected.toUserMessage(): UiText? = when (reason) {
     XpAward.RejectReason.ALREADY_AWARDED_TODAY ->
-        "Bu görevden bugün zaten XP kazandın."
+        uiText(R.string.xp_reject_already_awarded_today)
+
     XpAward.RejectReason.DAILY_DIFFICULTY_LIMIT ->
-        "Bu zorlukta günlük sınıra ulaştın."
+        uiText(R.string.xp_reject_daily_difficulty_limit)
+
     XpAward.RejectReason.DAILY_STAT_CAP ->
-        "Bu yetenekte günlük XP tavanına ulaştın."
+        uiText(R.string.xp_reject_daily_stat_cap)
+
     XpAward.RejectReason.NOT_ELIGIBLE -> null
 }

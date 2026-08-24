@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.feature.logdetail
 
 import com.mehmetbozkurt.questlog.core.common.Celebration
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -28,6 +29,6 @@ sealed interface LogDetailEvent: UiEvent {
 sealed interface LogDetailEffect: UiEffect{
     data class NavigateToEdit(val id: String): LogDetailEffect
     data object NavigateBack: LogDetailEffect
-    data class ShowXpMessage(val text: String): LogDetailEffect
+    data class ShowXpMessage(val text: UiText): LogDetailEffect
     data class ShowCelebration(val celebration: Celebration): LogDetailEffect
 }

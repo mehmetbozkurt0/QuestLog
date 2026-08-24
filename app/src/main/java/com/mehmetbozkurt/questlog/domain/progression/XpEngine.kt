@@ -24,43 +24,57 @@ data class XpResult(
     val baseXp: Int,
     val finalXp: Int,
     val cappedAmount: Int,
-    val appliedBonuses: List<String>
+    val appliedBonuses: List<XpBonus>
 )
+
+data class XpBonus(val kind: Kind, val percent: Int) {
+    enum class Kind {
+        PROOF,
+        SPECIALIST,
+        EARLY_RISER,
+        ENDURING,
+        VERSATILE,
+        NEW_ADVENTURER,
+    }
+}
 
 object XpEngine {
     fun calculate(context: XpContext): XpResult {
         val base = context.difficulty.baseXp
         var multiplier = context.proofLevel.multiplier
-        val bonuses = mutableListOf<String>()
+        val bonuses = mutableListOf<XpBonus>()
 
         if (context.proofLevel != ProofLevel.NONE) {
-            bonuses += "Kanıt +${((context.proofLevel.multiplier - 1) * 100).roundToInt()}%"
+            bonuses += XpBonus(
+                XpBonus.Kind.PROOF,
+                ((context.proofLevel.multiplier - 1) * 100).roundToInt(),
+            )
         }
 
         context.feats.forEach { feat ->
             when (feat.featId) {
                 FeatId.SPECIALIST -> if (feat.chosenStat == context.statType) {
                     multiplier += 0.25
-                    bonuses += "Uzman +25%"
+                    bonuses += XpBonus(XpBonus.Kind.SPECIALIST, 25)
                 }
                 FeatId.EARLY_RISER -> {
                     val hour = context.completedAt.atZone(ZoneId.systemDefault()).hour
                     if (hour < 9) {
                         multiplier += 0.20
-                        bonuses += "Erkenci +20%"
+                        bonuses += XpBonus(XpBonus.Kind.EARLY_RISER, 20)
                     }
                 }
                 FeatId.ENDURING -> if (
                     context.difficulty == Difficulty.HARD || context.difficulty == Difficulty.EPIC
                 ) {
                     multiplier += 0.20
-                    bonuses += "Dayanıklı +20%"
+                    bonuses += XpBonus(XpBonus.Kind.ENDURING, 20)
                 }
                 FeatId.VERSATILE -> {
                     val distinct = context.distinctStatsToday + context.statType
                     if (distinct.size >= 3) {
                         multiplier += 0.20
-                        bonuses += "Çok Yönlü +20%"
+                        bonuses += XpBonus(XpBonus.Kind.VERSATILE, 20)
                     }
                 }
                 else -> Unit
@@ -69,7 +83,7 @@ object XpEngine {
 
         if (context.isNewMember) {
             multiplier += 0.50
-            bonuses += "Yeni Maceracı +50%"
+            bonuses += XpBonus(XpBonus.Kind.NEW_ADVENTURER, 50)
         }
 
         val raw = (base * multiplier).roundToInt()

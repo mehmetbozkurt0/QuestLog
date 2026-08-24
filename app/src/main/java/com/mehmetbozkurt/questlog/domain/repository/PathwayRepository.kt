@@ -54,5 +54,17 @@ sealed interface QuestCompletionResult {
         val streakMilestone: Int? = null
     ) : QuestCompletionResult
 
-    data class Rejected(val reason: String) : QuestCompletionResult
+    data class Rejected(val reason: QuestRejection) : QuestCompletionResult
+}
+
+enum class QuestRejection {
+    NO_SESSION,
+    QUEST_NOT_FOUND,
+    NOT_ENROLLED,
+    PATHWAY_INACTIVE,
+    PATHWAY_NOT_FOUND,
+    STAGE_LOCKED,
+    ALREADY_COMPLETED,
+    ALREADY_DONE_TODAY,
+    XP_NOT_AWARDED,
 }

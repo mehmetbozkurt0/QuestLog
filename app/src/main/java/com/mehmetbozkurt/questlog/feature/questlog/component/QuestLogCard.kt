@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,8 +35,11 @@ import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.shortLabelRes
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.shortLabel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -68,7 +72,7 @@ fun QuestLogCard(
                 )
                 Spacer(Modifier.width(Spacing.xs))
                 Text(
-                    text = log.statType.shortLabel(),
+                    text = stringResource(log.statType.shortLabelRes()),
                     style = MaterialTheme.typography.labelMedium,
                     color = statColor,
                 )
@@ -85,7 +89,7 @@ fun QuestLogCard(
                     Icon(
                         imageVector = if (log.proofLevel == ProofLevel.PHOTO)
                             Icons.Default.PhotoCamera else Icons.Default.EditNote,
-                        contentDescription = "Kanıtlı",
+                        contentDescription = stringResource(R.string.log_proof_badge),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(14.dp),
                     )
@@ -94,7 +98,7 @@ fun QuestLogCard(
             Spacer(Modifier.weight(1f))
             if (priorityColor != null) {
                 Text(
-                    text = log.priority.label(),
+                    text = stringResource(log.priority.labelRes()),
                     style = MaterialTheme.typography.labelMedium,
                     color = priorityColor,
                 )
@@ -155,7 +159,7 @@ fun QuestLogCard(
         if (log.dueAt != null) {
             Spacer(Modifier.height(Spacing.sm))
             Text(
-                text = "Son tarih: ${log.dueAt.formatted()}",
+                text = stringResource(R.string.log_due_date, log.dueAt.formatted()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -171,11 +175,12 @@ private fun LogType.color(): Color = when (this) {
     LogType.SESSION_NOTE -> MaterialTheme.extendedColors.typeSession
 }
 
-fun LogType.label(): String = when (this) {
-    LogType.QUEST -> "GÖREV"
-    LogType.NPC -> "NPC"
-    LogType.LORE -> "LORE"
-    LogType.SESSION_NOTE -> "OTURUM"
+@StringRes
+fun LogType.labelRes(): Int = when (this) {
+    LogType.QUEST -> R.string.log_type_quest
+    LogType.NPC -> R.string.log_type_npc
+    LogType.LORE -> R.string.log_type_lore
+    LogType.SESSION_NOTE -> R.string.log_type_session_note
 }
 
 @Composable
@@ -185,14 +190,18 @@ private fun Priority.color(): Color = when (this) {
     Priority.HIGH -> MaterialTheme.extendedColors.priorityHigh
 }
 
-fun Priority.label(): String = when (this) {
-    Priority.LOW -> "Düşük"
-    Priority.MEDIUM -> "Orta"
-    Priority.HIGH -> "Yüksek"
+@StringRes
+fun Priority.labelRes(): Int = when (this) {
+    Priority.LOW -> R.string.priority_low
+    Priority.MEDIUM -> R.string.priority_medium
+    Priority.HIGH -> R.string.priority_high
 }
 
-private val dateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy", Locale("tr"))
-
-fun java.time.Instant.formatted(): String =
-    dateFormatter.format(this.atZone(ZoneId.systemDefault()))
+@Composable
+fun java.time.Instant.formatted(): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val formatter = remember(locale) {
+        DateTimeFormatter.ofPattern("d MMM yyyy", locale)
+    }
+    return formatter.format(this.atZone(ZoneId.systemDefault()))
+}

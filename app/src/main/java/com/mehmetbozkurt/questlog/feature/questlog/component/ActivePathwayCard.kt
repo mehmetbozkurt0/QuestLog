@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
@@ -50,7 +52,11 @@ fun ActivePathwayCard(
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    "${summary.completedQuests}/${summary.totalQuests}",
+                    stringResource(
+                        R.string.pathway_quest_count,
+                        summary.completedQuests,
+                        summary.totalQuests,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     color = statColor,
                 )
@@ -69,7 +75,7 @@ fun ActivePathwayCard(
             if (summary.progress.escrowedXp > 0) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "${summary.progress.escrowedXp} XP emanette",
+                    stringResource(R.string.pathway_escrow_short, summary.progress.escrowedXp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

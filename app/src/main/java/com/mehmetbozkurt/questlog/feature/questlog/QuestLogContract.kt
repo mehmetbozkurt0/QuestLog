@@ -1,6 +1,9 @@
 package com.mehmetbozkurt.questlog.feature.questlog
 
+import androidx.annotation.StringRes
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.Celebration
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -16,17 +19,19 @@ enum class CompletionFilter { ALL, COMPLETED, ACTIVE }
 
 enum class SortOption { RECENT, DUE_DATE, PRIORITY, ALPHABETICAL }
 
-fun SortOption.label(): String = when (this) {
-    SortOption.RECENT -> "Son eklenen"
-    SortOption.DUE_DATE -> "Son teslim tarihi"
-    SortOption.PRIORITY -> "Öncelik"
-    SortOption.ALPHABETICAL -> "Alfabetik"
+@StringRes
+fun SortOption.labelRes(): Int = when (this) {
+    SortOption.RECENT -> R.string.sort_recent
+    SortOption.DUE_DATE -> R.string.sort_due_date
+    SortOption.PRIORITY -> R.string.sort_priority
+    SortOption.ALPHABETICAL -> R.string.sort_alphabetical
 }
 
-fun CompletionFilter.label(): String = when (this) {
-    CompletionFilter.ALL -> "Tümü"
-    CompletionFilter.COMPLETED -> "Tamamlananlar"
-    CompletionFilter.ACTIVE -> "Tamamlanmayanlar"
+@StringRes
+fun CompletionFilter.labelRes(): Int = when (this) {
+    CompletionFilter.ALL -> R.string.completion_all
+    CompletionFilter.COMPLETED -> R.string.completion_completed
+    CompletionFilter.ACTIVE -> R.string.completion_active
 }
 
 data class ActivePathwaySummary(
@@ -143,7 +148,7 @@ sealed interface QuestLogListEvent : UiEvent {
 sealed interface QuestLogListEffect : UiEffect {
     data class NavigateToDetail(val id: String) : QuestLogListEffect
     data object NavigateToCreate : QuestLogListEffect
-    data class ShowXpMessage(val text: String) : QuestLogListEffect
+    data class ShowXpMessage(val text: UiText) : QuestLogListEffect
     data object NavigateToPathways : QuestLogListEffect
     data class NavigateToPathwayDetail(val pathwayId: String) : QuestLogListEffect
     data object NavigateToCharacter : QuestLogListEffect

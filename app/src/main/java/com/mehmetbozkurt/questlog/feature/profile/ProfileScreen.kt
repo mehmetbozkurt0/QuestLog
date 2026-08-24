@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,12 +36,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.BuildConfig
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
+import com.mehmetbozkurt.questlog.core.common.asString
 import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
+import com.mehmetbozkurt.questlog.core.settings.AppLanguage
 import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import kotlinx.coroutines.flow.collectLatest
@@ -97,7 +103,7 @@ fun ProfileScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Profil",
+                        stringResource(R.string.profile_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -122,20 +128,20 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionHeader("Yolculuk")
+            SectionHeader(stringResource(R.string.profile_section_journey))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 MetricCard(
                     icon = Icons.Default.TaskAlt,
                     value = "${state.completedQuests}",
-                    label = "Tamamlanan",
+                    label = stringResource(R.string.profile_stat_completed),
                     modifier = Modifier.weight(1f),
                 )
                 MetricCard(
                     icon = Icons.Default.LocalFireDepartment,
                     value = "${state.streak?.currentStreak ?: 0}",
-                    label = "Günlük seri",
+                    label = stringResource(R.string.profile_stat_streak),
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -146,13 +152,13 @@ fun ProfileScreen(
                 MetricCard(
                     icon = Icons.Default.EmojiEvents,
                     value = "${state.featCount}",
-                    label = "Yetenek",
+                    label = stringResource(R.string.profile_stat_feats),
                     modifier = Modifier.weight(1f),
                 )
                 MetricCard(
                     icon = Icons.Default.Groups,
                     value = if (state.crewName != null) "1" else "0",
-                    label = state.crewName ?: "Ekip yok",
+                    label = state.crewName ?: stringResource(R.string.profile_no_crew),
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -160,8 +166,11 @@ fun ProfileScreen(
             if (state.streak != null && state.streak.longestStreak > 0) {
                 Spacer(Modifier.height(Spacing.sm))
                 Text(
-                    "En uzun serin: ${state.streak.longestStreak} gün · " +
-                            "Aktif görev: ${state.activeQuests}",
+                    stringResource(
+                        R.string.profile_streak_summary,
+                        state.streak.longestStreak,
+                        state.activeQuests,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -169,7 +178,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionHeader("Görünüm")
+            SectionHeader(stringResource(R.string.profile_section_appearance))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -184,7 +193,22 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionHeader("Bildirimler")
+            SectionHeader(stringResource(R.string.profile_section_language))
+            Spacer(Modifier.height(Spacing.md))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                AppLanguage.entries.forEach { language ->
+                    FilterChip(
+                        selected = state.language == language,
+                        onClick = { onEvent(ProfileEvent.LanguageChanged(language)) },
+                        label = { Text(language.label()) },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.xl))
+
+            SectionHeader(stringResource(R.string.profile_section_notifications))
             Spacer(Modifier.height(Spacing.md))
 
             QuestCard(
@@ -201,13 +225,15 @@ fun ProfileScreen(
                     Spacer(Modifier.width(Spacing.md))
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "Bildirim ayarları",
+                            stringResource(R.string.profile_notification_settings),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "Görev hatırlatıcıları ve seri uyarısı " +
-                                    "(her akşam ${ReminderScheduler.STREAK_HOUR}:00)",
+                            stringResource(
+                                R.string.profile_notification_settings_desc,
+                                ReminderScheduler.STREAK_HOUR,
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -233,7 +259,10 @@ fun ProfileScreen(
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
                 Spacer(Modifier.width(Spacing.sm))
-                Text("Çıkış Yap", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    stringResource(R.string.profile_sign_out),
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
 
             Spacer(Modifier.height(Spacing.sm))
@@ -243,7 +272,7 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    "Hesabımı sil",
+                    stringResource(R.string.profile_delete_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -252,7 +281,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(Spacing.lg))
 
             Text(
-                "Renown ${BuildConfig.VERSION_NAME}",
+                stringResource(R.string.profile_version, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -268,18 +297,17 @@ fun ProfileScreen(
             onDismissRequest = {
                 if (!state.isDeleting) onEvent(ProfileEvent.DeleteDialogToggled(false))
             },
-            title = { Text("Hesabını sil") },
+            title = { Text(stringResource(R.string.profile_delete_dialog_title)) },
             text = {
                 Column {
                     Text(
-                        "Bu geri alınamaz. Karakterin, tüm görevlerin, yol ilerlemelerin, " +
-                                "kanıt fotoğrafların ve ekip kaydın kalıcı olarak silinecek.",
+                        stringResource(R.string.profile_delete_dialog_body),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(Spacing.md))
                     if (state.isPasswordAccount) {
                         Text(
-                            "Onaylamak için parolanı gir.",
+                            stringResource(R.string.profile_delete_password_prompt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -287,27 +315,27 @@ fun ProfileScreen(
                         OutlinedTextField(
                             value = state.deletePassword,
                             onValueChange = { onEvent(ProfileEvent.DeletePasswordChanged(it)) },
-                            label = { Text("Parola") },
+                            label = { Text(stringResource(R.string.auth_password)) },
                             singleLine = true,
                             enabled = !state.isDeleting,
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             isError = state.deleteError != null,
                             supportingText = {
-                                state.deleteError?.let { Text(it) }
+                                state.deleteError?.let { Text(it.asString()) }
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     } else {
                         Text(
-                            "Onaylamak için Google hesabınla yeniden giriş yapman istenecek.",
+                            stringResource(R.string.profile_delete_google_prompt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         state.deleteError?.let {
                             Spacer(Modifier.height(Spacing.sm))
                             Text(
-                                text = it,
+                                text = it.asString(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                             )
@@ -324,7 +352,10 @@ fun ProfileScreen(
                     onClick = { onEvent(ProfileEvent.DeleteConfirmed) },
                     enabled = state.canDelete,
                 ) {
-                    Text("Kalıcı olarak sil", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.profile_delete_confirm),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
@@ -332,7 +363,7 @@ fun ProfileScreen(
                     onClick = { onEvent(ProfileEvent.DeleteDialogToggled(false)) },
                     enabled = !state.isDeleting,
                 ) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -341,16 +372,19 @@ fun ProfileScreen(
     if (state.showSignOutDialog) {
         AlertDialog(
             onDismissRequest = { onEvent(ProfileEvent.SignOutDialogToggled(false)) },
-            title = { Text("Çıkış yap") },
-            text = { Text("Oturumun kapatılacak. Kayıtların bulutta durur.") },
+            title = { Text(stringResource(R.string.profile_sign_out_dialog_title)) },
+            text = { Text(stringResource(R.string.profile_sign_out_dialog_body)) },
             confirmButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.SignOutConfirmed) }) {
-                    Text("Çıkış Yap", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.profile_sign_out),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.SignOutDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -395,7 +429,11 @@ private fun IdentityCard(state: ProfileState) {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "${state.level}. seviye ${state.title}",
+                    text = stringResource(
+                        R.string.profile_level_title,
+                        state.level,
+                        stringResource(state.titleRes),
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -423,8 +461,15 @@ private fun IdentityCard(state: ProfileState) {
 
         Row(Modifier.fillMaxWidth()) {
             Text(
-                text = if (state.isMaxLevel) "Maksimum seviye" else
-                    "Sonraki seviyeye ${(state.character?.xpToNextLevel ?: 0) - (state.character?.xpIntoLevel ?: 0)} XP",
+                text = if (state.isMaxLevel) {
+                    stringResource(R.string.profile_max_level)
+                } else {
+                    stringResource(
+                        R.string.profile_xp_to_next,
+                        (state.character?.xpToNextLevel ?: 0) -
+                            (state.character?.xpIntoLevel ?: 0),
+                    )
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -437,9 +482,13 @@ private fun IdentityCard(state: ProfileState) {
         }
 
         state.character?.createdAt?.let { created ->
+            val memberFormatter = rememberMemberFormatter()
             Spacer(Modifier.height(Spacing.sm))
             Text(
-                text = "Yola çıkış: ${memberFormatter.format(created.atZone(ZoneId.systemDefault()))}",
+                text = stringResource(
+                    R.string.profile_member_since,
+                    memberFormatter.format(created.atZone(ZoneId.systemDefault())),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -498,13 +547,26 @@ private fun SectionHeader(title: String) {
     }
 }
 
-private val memberFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("tr"))
+@Composable
+private fun rememberMemberFormatter(): DateTimeFormatter {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(locale) { DateTimeFormatter.ofPattern("d MMMM yyyy", locale) }
+}
 
-private fun ThemePreference.label(): String = when (this) {
-    ThemePreference.SYSTEM -> "Sistem"
-    ThemePreference.LIGHT -> "Aydınlık"
-    ThemePreference.DARK -> "Karanlık"
+@Composable
+private fun ThemePreference.label(): String = stringResource(
+    when (this) {
+        ThemePreference.SYSTEM -> R.string.theme_system
+        ThemePreference.LIGHT -> R.string.theme_light
+        ThemePreference.DARK -> R.string.theme_dark
+    }
+)
+
+@Composable
+private fun AppLanguage.label(): String = when (this) {
+    AppLanguage.SYSTEM -> stringResource(R.string.language_system)
+    AppLanguage.ENGLISH -> "English"
+    AppLanguage.TURKISH -> "Türkçe"
 }
 
 private fun Context.openNotificationSettings() {

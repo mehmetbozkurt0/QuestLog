@@ -15,6 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,11 +40,13 @@ fun CrewRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
-                is CrewEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
+                is CrewEffect.ShowMessage ->
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
                 is CrewEffect.CopyToClipboard ->
                     clipboard.setText(AnnotatedString(effect.text))
             }
@@ -66,7 +72,7 @@ fun CrewScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Ekip",
+                        stringResource(R.string.crew_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -74,7 +80,7 @@ fun CrewScreen(
                 actions = {
                     if (state.inCrew) {
                         IconButton(onClick = { onEvent(CrewEvent.LeaveDialogToggled(true)) }) {
-                            Icon(Icons.Default.Logout, contentDescription = "Ekipten ayrıl")
+                            Icon(Icons.Default.Logout, contentDescription = stringResource(R.string.crew_leave_action))
                         }
                     }
                 },
@@ -105,23 +111,27 @@ fun CrewScreen(
             ) {
                 EmptyState(
                     icon = Icons.Default.Groups,
-                    title = "Yalnız yolculuk zordur",
-                    body = "Bir ekip kur ya da arkadaşının davet koduyla katıl. " +
-                            "Ekip arkadaşlarının görevlerini görür, Mentor yeteneğiyle " +
-                            "onaylayıp ikinize de XP kazandırırsın.",
+                    title = stringResource(R.string.crew_empty_title),
+                    body = stringResource(R.string.crew_empty_body),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
                     OutlinedButton(
                         onClick = { onEvent(CrewEvent.JoinDialogToggled(true)) },
                         enabled = !state.isWorking,
                     ) {
-                        Text("Kodla Katıl", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.crew_join_with_code),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                     Button(
                         onClick = { onEvent(CrewEvent.CreateDialogToggled(true)) },
                         enabled = !state.isWorking,
                     ) {
-                        Text("Ekip Kur", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.crew_create),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
             }
@@ -151,14 +161,17 @@ fun CrewScreen(
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
-                                    "Davet kodu: ${state.crew?.inviteCode.orEmpty()}",
+                                    stringResource(
+                                        R.string.crew_invite_code_label,
+                                        state.crew?.inviteCode.orEmpty(),
+                                    ),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             Icon(
                                 Icons.Default.ContentCopy,
-                                contentDescription = "Kodu kopyala",
+                                contentDescription = stringResource(R.string.crew_copy_code),
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         }
@@ -166,7 +179,10 @@ fun CrewScreen(
                 }
 
                 item(key = "members_header") {
-                    CrewSectionHeader("Üyeler", "${state.members.size}")
+                    CrewSectionHeader(
+                        stringResource(R.string.crew_members_header),
+                        "${state.members.size}",
+                    )
                 }
 
                 items(state.members, key = { "m_${it.userId}" }) { member ->
@@ -179,15 +195,17 @@ fun CrewScreen(
 
                 item(key = "feed_header") {
                     CrewSectionHeader(
-                        "Son Görevler",
-                        if (state.hasMentorFeat) "${state.approvalsLeft} onay hakkı" else null,
+                        stringResource(R.string.crew_feed_header),
+                        if (state.hasMentorFeat)
+                            stringResource(R.string.crew_approvals_left, state.approvalsLeft)
+                        else null,
                     )
                 }
 
                 if (state.feed.isEmpty()) {
                     item(key = "feed_empty") {
                         Text(
-                            "Henüz kimse görev tamamlamadı. İlk sen ol.",
+                            stringResource(R.string.crew_feed_empty),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -213,11 +231,16 @@ fun CrewScreen(
     if (state.showCreateDialog) {
         AlertDialog(
             onDismissRequest = { onEvent(CrewEvent.CreateDialogToggled(false)) },
-            title = { Text("Ekip Kur", style = MaterialTheme.typography.titleLarge) },
+            title = {
+                Text(
+                    stringResource(R.string.crew_create),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
             text = {
                 Column {
                     Text(
-                        "Ekibine bir ad ver. Kurduktan sonra davet kodunu arkadaşlarınla paylaş.",
+                        stringResource(R.string.crew_create_dialog_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -225,7 +248,7 @@ fun CrewScreen(
                     OutlinedTextField(
                         value = state.crewNameInput,
                         onValueChange = { onEvent(CrewEvent.CrewNameChanged(it)) },
-                        label = { Text("Ekip adı") },
+                        label = { Text(stringResource(R.string.crew_name_label)) },
                         singleLine = true,
                         enabled = !state.isWorking,
                         modifier = Modifier.fillMaxWidth(),
@@ -237,12 +260,12 @@ fun CrewScreen(
                     onClick = { onEvent(CrewEvent.CreateConfirmed) },
                     enabled = state.canCreate,
                 ) {
-                    Text("Kur")
+                    Text(stringResource(R.string.crew_create_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(CrewEvent.CreateDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -251,11 +274,19 @@ fun CrewScreen(
     if (state.showJoinDialog) {
         AlertDialog(
             onDismissRequest = { onEvent(CrewEvent.JoinDialogToggled(false)) },
-            title = { Text("Kodla Katıl", style = MaterialTheme.typography.titleLarge) },
+            title = {
+                Text(
+                    stringResource(R.string.crew_join_with_code),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
             text = {
                 Column {
                     Text(
-                        "Arkadaşının paylaştığı ${CrewRules.INVITE_CODE_LENGTH} haneli davet kodunu gir.",
+                        stringResource(
+                            R.string.crew_join_dialog_body,
+                            CrewRules.INVITE_CODE_LENGTH,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -263,7 +294,7 @@ fun CrewScreen(
                     OutlinedTextField(
                         value = state.joinCodeInput,
                         onValueChange = { onEvent(CrewEvent.JoinCodeChanged(it)) },
-                        label = { Text("Davet kodu") },
+                        label = { Text(stringResource(R.string.crew_invite_code_field)) },
                         singleLine = true,
                         enabled = !state.isWorking,
                         modifier = Modifier.fillMaxWidth(),
@@ -275,12 +306,12 @@ fun CrewScreen(
                     onClick = { onEvent(CrewEvent.JoinConfirmed) },
                     enabled = state.canJoin,
                 ) {
-                    Text("Katıl")
+                    Text(stringResource(R.string.crew_join_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(CrewEvent.JoinDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -289,23 +320,30 @@ fun CrewScreen(
     if (state.showLeaveDialog) {
         AlertDialog(
             onDismissRequest = { onEvent(CrewEvent.LeaveDialogToggled(false)) },
-            title = { Text("Ekipten ayrıl", style = MaterialTheme.typography.titleLarge) },
+            title = {
+                Text(
+                    stringResource(R.string.crew_leave_dialog_title),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
             text = {
                 Text(
-                    "Ekipten ayrılırsan üyeler seni göremez, akışın silinir. " +
-                            "Kazandığın XP ve seviyen sende kalır.",
+                    stringResource(R.string.crew_leave_dialog_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
             confirmButton = {
                 TextButton(onClick = { onEvent(CrewEvent.LeaveConfirmed) }) {
-                    Text("Ayrıl", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.crew_leave_confirm),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(CrewEvent.LeaveDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )

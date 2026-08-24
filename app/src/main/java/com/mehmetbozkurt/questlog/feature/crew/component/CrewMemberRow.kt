@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
@@ -56,7 +58,8 @@ fun CrewMemberRow(
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    if (isSelf) "${member.displayName} (sen)" else member.displayName,
+                    if (isSelf) stringResource(R.string.crew_member_self, member.displayName)
+                    else member.displayName,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
@@ -72,7 +75,7 @@ fun CrewMemberRow(
             if (member.currentStreak > 0) {
                 Icon(
                     Icons.Default.LocalFireDepartment,
-                    contentDescription = "Seri",
+                    contentDescription = stringResource(R.string.character_streak),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
                 )

@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.character
 
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -52,5 +53,5 @@ sealed interface CharacterEvent: UiEvent {
 }
 
 sealed interface CharacterEffect: UiEffect {
-    data class ShowMessage(val text: String): CharacterEffect
+    data class ShowMessage(val text: UiText): CharacterEffect
 }

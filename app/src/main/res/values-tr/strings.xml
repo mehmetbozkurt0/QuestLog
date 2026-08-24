@@ -1,0 +1,409 @@
+<resources>
+    <string name="reminder_channel_name">Görev hatırlatıcıları</string>
+    <string name="reminder_channel_description">Hatırlatıcı kurduğun görevler için bildirim.</string>
+    <string name="streak_channel_name">Seri uyarıları</string>
+    <string name="streak_channel_description">Serin kırılmak üzereyken akşam uyarısı.</string>
+
+    <string name="error_weak_password">Parola çok zayıf. En az 6 karakter kullan.</string>
+    <string name="error_invalid_credentials">E-posta veya parola hatalı.</string>
+    <string name="error_email_in_use">Bu e-posta zaten kayıtlı.</string>
+    <string name="error_user_not_found">Böyle bir hesap bulunamadı.</string>
+    <string name="error_network">Bağlantı kurulamadı. İnternetini kontrol et.</string>
+    <string name="error_generic">Bir şeyler ters gitti. Tekrar dene.</string>
+
+    <string name="common_cancel">Vazgeç</string>
+
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Aydınlık</string>
+    <string name="theme_dark">Karanlık</string>
+    <string name="language_system">Sistem</string>
+
+    <string name="profile_title">Profil</string>
+    <string name="profile_section_journey">Yolculuk</string>
+    <string name="profile_section_appearance">Görünüm</string>
+    <string name="profile_section_language">Dil</string>
+    <string name="profile_section_notifications">Bildirimler</string>
+    <string name="profile_stat_completed">Tamamlanan</string>
+    <string name="profile_stat_streak">Günlük seri</string>
+    <string name="profile_stat_feats">Yetenek</string>
+    <string name="profile_no_crew">Ekip yok</string>
+    <string name="profile_streak_summary">En uzun serin: %1$d gün · Aktif görev: %2$d</string>
+    <string name="profile_notification_settings">Bildirim ayarları</string>
+    <string name="profile_notification_settings_desc">Görev hatırlatıcıları ve seri uyarısı (her akşam %1$d:00)</string>
+    <string name="profile_sign_out">Çıkış Yap</string>
+    <string name="profile_delete_account">Hesabımı sil</string>
+    <string name="profile_version">Renown %1$s</string>
+    <string name="profile_delete_dialog_title">Hesabını sil</string>
+    <string name="profile_delete_dialog_body">Bu geri alınamaz. Karakterin, tüm görevlerin, yol ilerlemelerin, kanıt fotoğrafların ve ekip kaydın kalıcı olarak silinecek.</string>
+    <string name="profile_delete_password_prompt">Onaylamak için parolanı gir.</string>
+    <string name="profile_delete_google_prompt">Onaylamak için Google hesabınla yeniden giriş yapman istenecek.</string>
+    <string name="profile_delete_confirm">Kalıcı olarak sil</string>
+    <string name="profile_sign_out_dialog_title">Çıkış yap</string>
+    <string name="profile_sign_out_dialog_body">Oturumun kapatılacak. Kayıtların bulutta durur.</string>
+    <string name="profile_level_title">%1$d. seviye %2$s</string>
+    <string name="profile_max_level">Maksimum seviye</string>
+    <string name="profile_xp_to_next">Sonraki seviyeye %1$d XP</string>
+    <string name="profile_member_since">Yola çıkış: %1$s</string>
+
+    <string name="rank_legendary">Efsanevi Maceracı</string>
+    <string name="rank_master">Usta Maceracı</string>
+    <string name="rank_veteran">Kıdemli Maceracı</string>
+    <string name="rank_wanderer">Gezgin</string>
+    <string name="rank_novice">Çaylak</string>
+
+    <string name="nav_logs">Görevler</string>
+    <string name="nav_pathways">Yollar</string>
+    <string name="nav_character">Karakter</string>
+    <string name="nav_crew">Ekip</string>
+    <string name="nav_profile">Profil</string>
+
+    <string name="notification_quest_reminder_title">Görev seni bekliyor</string>
+    <string name="notification_streak_title">%1$d günlük serin tehlikede</string>
+    <string name="notification_streak_body_resolute">Bugün henüz görev tamamlamadın. Kararlı seni bir kez affeder, ama riske atma.</string>
+    <string name="notification_streak_body">Bugün henüz görev tamamlamadın. Küçük bir görev bile seriyi ayakta tutar.</string>
+
+    <string name="auth_tagline_sign_up">Maceraya katıl</string>
+    <string name="auth_tagline_sign_in">Seyir defterine dön</string>
+    <string name="auth_hero_name">Kahraman adı</string>
+    <string name="auth_email">E-posta</string>
+    <string name="auth_email_invalid">Geçerli bir e-posta gir</string>
+    <string name="auth_password">Parola</string>
+    <string name="auth_sign_up">Kayıt Ol</string>
+    <string name="auth_sign_in">Giriş Yap</string>
+    <string name="auth_or">veya</string>
+    <string name="auth_continue_with_google">Google ile devam et</string>
+    <string name="auth_forgot_password">Şifremi unuttum</string>
+    <string name="auth_switch_to_sign_in">Zaten hesabın var mı? Giriş yap</string>
+    <string name="auth_switch_to_sign_up">Hesabın yok mu? Kayıt ol</string>
+    <string name="auth_email_required">Önce e-posta adresini gir.</string>
+    <string name="auth_reset_link_sent">Sıfırlama bağlantısı %1$s adresine gönderildi.</string>
+    <string name="google_error_no_credential">Cihazda kayıtlı Google hesabı bulunamadı.</string>
+    <string name="google_error_id_unreadable">Google kimliği okunamadı.</string>
+    <string name="google_error_generic">Google ile giriş yapılamadı.</string>
+
+    <string name="xp_reject_already_awarded_today">Bu görevden bugün zaten XP kazandın.</string>
+    <string name="xp_reject_daily_difficulty_limit">Bu zorlukta günlük sınıra ulaştın.</string>
+    <string name="xp_reject_daily_stat_cap">Bu yetenekte günlük XP tavanına ulaştın.</string>
+
+    <string name="crew_error_no_session">Oturum bulunamadı.</string>
+    <string name="crew_error_no_character">Karakter bulunamadı.</string>
+    <string name="crew_error_permission_denied">Firestore izin vermedi. Ekip güvenlik kuralları yayınlanmamış olabilir.</string>
+    <string name="crew_error_unknown">Bir şeyler ters gitti. Tekrar dene.</string>
+    <string name="crew_error_already_in_crew">Zaten bir ekiptesin. Önce ayrılman gerek.</string>
+    <string name="crew_error_code_not_found">Bu kodla bir ekip bulunamadı.</string>
+    <string name="crew_error_not_in_crew">Bir ekipte değilsin.</string>
+    <string name="crew_error_offline">Bağlantı yok. Ekip işlemleri çevrimiçi olmayı gerektirir.</string>
+    <string name="crew_left">Ekipten ayrıldın.</string>
+
+    <string name="crew_approve_error_entry_not_found">Kayıt bulunamadı.</string>
+    <string name="crew_approve_error_write_failed">Onay gönderilemedi.</string>
+    <string name="crew_approve_error_no_mentor_feat">Onaylamak için Mentor yeteneğine sahip olmalısın.</string>
+    <string name="crew_approve_error_daily_limit">Bugünlük onay hakkın doldu (%1$d).</string>
+    <string name="crew_approve_error_already_approved">Bunu zaten onayladın.</string>
+    <string name="crew_approve_error_own_quest">Kendi görevini onaylayamazsın.</string>
+    <string name="crew_approve_granted">Onayladın! Her ikinize de +%1$d XP.</string>
+    <string name="crew_approve_granted_leveled">Onayladın! Her ikinize de +%1$d XP. Seviye %2$d oldun!</string>
+
+    <string name="feat_acquired">%1$s kazanıldı!</string>
+
+    <string name="common_clear">Temizle</string>
+    <string name="common_all">Tümü</string>
+
+    <string name="common_completed">Tamamlandı</string>
+    <string name="common_locked">Kilitli</string>
+
+    <string name="pathway_list_title">Yollar</string>
+    <string name="pathway_list_active">Devam Eden Yollar</string>
+    <string name="pathway_list_open">Açık Yollar</string>
+    <string name="pathway_list_limit_reached">Sınıra ulaştın</string>
+    <string name="pathway_list_completed">Tamamlanan Yollar</string>
+    <string name="pathway_list_empty_title">Yol haritası boş</string>
+    <string name="pathway_list_empty_body">Yollar buluttan gelir. İnternet bağlantını kontrol edip tekrar dene.</string>
+    <string name="pathway_stats_tier">%1$s · Kademe %2$d</string>
+    <string name="pathway_stats_tier_secondary">%1$s + %2$s · Kademe %3$d</string>
+    <string name="pathway_prerequisite">Önce \"%1$s\" tamamlanmalı</string>
+    <string name="pathway_in_progress">Devam ediyor · %1$d XP emanette</string>
+
+    <string name="pathway_detail_abandon">Bırak</string>
+    <string name="pathway_detail_not_found">Yol bulunamadı</string>
+    <string name="pathway_detail_progress">%1$d / %2$d görev tamamlandı</string>
+    <string name="pathway_detail_escrow">%1$d XP emanette · Bitirince +%2$d bonus</string>
+    <string name="pathway_detail_done">Bu yolu tamamladın.</string>
+    <string name="pathway_detail_start">Bu Yola Gir</string>
+    <string name="pathway_detail_limit">Aktif yol sınırına ulaştın. Önce birini bitir veya bırak.</string>
+    <string name="pathway_detail_stage">Aşama %1$d</string>
+    <string name="pathway_detail_abandon_title">Yolu bırak</string>
+    <string name="pathway_detail_abandon_body">Emanetteki %1$d XP kaybolacak. Yeteneklerinde kazandıkların kalacak. Emin misin?</string>
+    <string name="pathway_quest_meta">%1$s · %2$s</string>
+    <string name="pathway_quest_completions">%1$d/%2$d</string>
+    <string name="pathway_escrow_short">%1$d XP emanette</string>
+    <string name="pathway_quest_count">%1$d/%2$d</string>
+
+    <string name="character_title">Karakter</string>
+    <string name="character_empty_title">Karakterin henüz uyanmadı</string>
+    <string name="character_empty_body">İlk görevini tamamladığında seviyen, yeteneklerin ve haftalık seyir defterin burada belirecek.</string>
+    <string name="character_level_caps">SEVİYE</string>
+    <string name="character_xp_progress">%1$d / %2$d XP</string>
+    <string name="character_total_xp">Toplam %1$d XP</string>
+    <string name="character_pending_feats_available">%1$d yetenek hakkın var</string>
+    <string name="character_tap_to_choose">Seçmek için dokun</string>
+    <string name="character_abilities">Yetenekler</string>
+    <string name="character_earned_feats">Kazanılan Yetenekler</string>
+    <string name="character_feat_focus">Odak: %1$s</string>
+    <string name="character_stat_max">MAX</string>
+    <string name="character_stat_progress">%1$d / %2$d</string>
+
+    <string name="celebration_escrowed">+%1$d XP emanette</string>
+    <string name="celebration_stat_up">%1$s %2$d oldu!</string>
+    <string name="celebration_stat_up_plain">%1$s %2$d oldu</string>
+    <string name="celebration_stage_done">Aşama tamamlandı!</string>
+    <string name="celebration_new_feat">Yeni yetenek hakkı!</string>
+    <string name="celebration_new_feat_long">Yeni yetenek hakkı kazandın</string>
+    <string name="celebration_streak">🔥 %1$d gün seri!</string>
+    <string name="celebration_xp">+%1$d XP</string>
+    <string name="celebration_pathway">YOL</string>
+    <string name="celebration_pathway_done">TAMAMLANDI</string>
+    <string name="celebration_xp_stat">+%1$d XP · %2$s</string>
+    <string name="celebration_escrow_bonus">Emanet + bonus: +%1$d XP</string>
+    <string name="celebration_pathway_too">Yol da tamamlandı!</string>
+    <string name="celebration_tap">Devam etmek için dokun</string>
+
+    <string name="feat_dialog_title">Yeni Yetenek Seç</string>
+    <string name="feat_dialog_body">Seviye atladın. Kalıcı bir yetenek kazanıyorsun.</string>
+    <string name="feat_dialog_owned">· sahipsin</string>
+    <string name="feat_dialog_stat_prompt">Hangi yetenekte uzmanlaşacaksın?</string>
+    <string name="feat_dialog_confirm">Seç</string>
+    <string name="feat_dialog_later">Sonra</string>
+
+    <string name="onboarding_skip">Atla</string>
+    <string name="onboarding_next">İleri</string>
+    <string name="onboarding_start">Maceraya Başla</string>
+    <string name="onboarding_1_title">Günlüğüne hoş geldin, maceracı</string>
+    <string name="onboarding_1_body">Bu bir yapılacaklar listesi değil. Burada gerçek hayatta yaptığın her iş karakterini inşa eder. Spor, kitap, ders, sosyalleşme... hepsi birer görev.</string>
+    <string name="onboarding_2_title">Görevler yetenek kazandırır</string>
+    <string name="onboarding_2_body">Görev oluştururken hangi yeteneği geliştirdiğini seçersin: spor Güç\'e, okumak Zeka\'ya işler. Zorluk XP\'yi belirler. Ama dikkat — sistem cömert değildir, günlük sınırlar vardır.</string>
+    <string name="onboarding_3_title">Yollar seni sınar</string>
+    <string name="onboarding_3_body">Yol, aşamalardan oluşan uzun bir maceradır. Yoldayken kazandığın XP\'nin bir kısmı emanete yazılır: bitirirsen emanet ve bonus senindir, yarıda bırakırsan emanet yanar.</string>
+    <string name="onboarding_4_title">Efsane olmak kolay değil</string>
+    <string name="onboarding_4_body">Seviye atladıkça yetenek hakları kazanırsın, her gün görev yaparsan alevin büyür. Seviye 20\'ye ulaşan henüz görülmedi. Belki ilk sen olursun.</string>
+
+    <string name="proof_title">Nasıl geçti?</string>
+    <string name="proof_hint" formatted="false">Kanıt bırakırsan daha fazla XP alırsın: not %15, fotoğraf %30. Fotoğrafı ekip arkadaşların görür ve onaylayabilir.</string>
+    <string name="proof_note_label">Kanıt notu</string>
+    <string name="proof_note_placeholder">5 km koştum, 32 dakika</string>
+    <string name="proof_photo">Kanıt fotoğrafı</string>
+    <string name="proof_remove_photo">Fotoğrafı kaldır</string>
+    <string name="proof_gallery">Galeri</string>
+    <string name="proof_camera">Kamera</string>
+    <string name="proof_bonus_photo" formatted="false">+%30</string>
+    <string name="proof_bonus_note" formatted="false">+%15</string>
+    <string name="proof_complete_with_bonus">Tamamla (%1$s XP)</string>
+    <string name="proof_complete">Tamamla</string>
+    <string name="proof_complete_without">Kanıtsız tamamla</string>
+
+    <string name="feed_author_self">Sen</string>
+    <string name="feed_approvals">%1$d onay</string>
+    <string name="feed_approved">Onayladın</string>
+    <string name="feed_approve">Onayla</string>
+    <string name="feed_time_now">az önce</string>
+    <string name="feed_time_minutes">%1$d dk önce</string>
+    <string name="feed_time_hours">%1$d sa önce</string>
+    <string name="feed_time_days">%1$d gün önce</string>
+    <string name="feed_time_weeks">%1$d hafta önce</string>
+    <string name="crew_member_self">%1$s (sen)</string>
+
+    <string name="logedit_error_no_session">Oturum bulunamadı</string>
+
+    <string name="common_back">Geri</string>
+    <string name="common_next">İleri</string>
+    <string name="common_dismiss">İptal</string>
+    <string name="common_ok">Tamam</string>
+    <string name="common_save">Kaydet</string>
+    <string name="common_delete">Sil</string>
+    <string name="common_edit">Düzenle</string>
+
+    <string name="logedit_title_edit">Kaydı Düzenle</string>
+    <string name="logedit_title_new">Yeni Kayıt</string>
+    <string name="logedit_field_title">Başlık</string>
+    <string name="logedit_stat_prompt">Hangi yeteneği geliştiriyor?</string>
+    <string name="logedit_difficulty">Zorluk</string>
+    <string name="logedit_field_description">Açıklama</string>
+    <string name="logedit_priority">Öncelik</string>
+    <string name="logedit_due_date">Son teslim tarihi</string>
+    <string name="logedit_reminder">Hatırlatma</string>
+    <string name="logedit_proof_hint" formatted="false">Kanıtı görevi tamamlarken ekleyeceksin — not %15, fotoğraf %30 bonus verir.</string>
+    <string name="logedit_picker_value">%1$s: %2$s</string>
+    <string name="logedit_picker_empty">%1$s seç</string>
+    <string name="logedit_time_picker_title">Saat seç</string>
+
+    <string name="logdetail_not_found">Kayıt bulunamadı</string>
+    <string name="logdetail_difficulty">Zorluk</string>
+    <string name="logdetail_priority">Öncelik</string>
+    <string name="logdetail_due">Son teslim</string>
+    <string name="logdetail_reminder">Hatırlatma</string>
+    <string name="logdetail_created">Oluşturulma</string>
+    <string name="logdetail_proof">Kanıt</string>
+    <string name="logdetail_proof_photo">Kanıt fotoğrafı</string>
+    <string name="logdetail_photo_pending">Fotoğraf yüklenmeyi bekliyor</string>
+    <string name="logdetail_proof_note">Kanıt notu</string>
+    <string name="logdetail_mark_incomplete">Tamamlanmadı olarak işaretle</string>
+    <string name="logdetail_mark_complete">Tamamlandı olarak işaretle</string>
+    <string name="logdetail_delete_title">Kaydı sil</string>
+    <string name="logdetail_delete_body">Bu kayıt kalıcı olarak silinecek. Emin misin?</string>
+
+    <string name="questlog_title">Yolculuk</string>
+    <string name="questlog_filter">Filtrele</string>
+    <string name="questlog_search_placeholder">Görevlerde ara…</string>
+    <string name="questlog_new_quest">Yeni görev</string>
+    <string name="questlog_active_pathways">Devam Eden Yollar</string>
+    <string name="questlog_pathway_cta_title">Bir yola gir</string>
+    <string name="questlog_pathway_cta_body">Yollar aşamalı görevlerden oluşan uzun maceralardır. Bitirene emanet XP ve bonus, bırakana hiçbir şey.</string>
+    <string name="questlog_empty_filtered_title">Eşleşen görev yok</string>
+    <string name="questlog_empty_filtered_body">Arama veya filtreleri değiştirmeyi dene.</string>
+    <string name="questlog_empty_filtered_action">Filtreleri temizle</string>
+    <string name="questlog_empty_title">Günlüğün bomboş, maceracı</string>
+    <string name="questlog_empty_body">+ ile ilk görevini yaz. Hangi yeteneği geliştirdiğini seç — Güç, Zeka, Karizma... Her tamamlanan görev XP getirir.</string>
+    <string name="questlog_empty_action">İlk görevini yaz</string>
+    <string name="questlog_results_header">Sonuçlar</string>
+    <string name="questlog_active_header">Görevlerim</string>
+    <string name="questlog_completed_header">Tamamlananlar</string>
+
+    <string name="sort_recent">Son eklenen</string>
+    <string name="sort_due_date">Son teslim tarihi</string>
+    <string name="sort_priority">Öncelik</string>
+    <string name="sort_alphabetical">Alfabetik</string>
+    <string name="completion_all">Tümü</string>
+    <string name="completion_completed">Tamamlananlar</string>
+    <string name="completion_active">Tamamlanmayanlar</string>
+
+    <string name="filter_sheet_title">Filtrele &amp; Sırala</string>
+    <string name="filter_section_status">Durum</string>
+    <string name="filter_section_stat">Yetenek</string>
+    <string name="filter_section_priority">Öncelik</string>
+    <string name="filter_section_sort">Sıralama</string>
+
+    <string name="log_proof_badge">Kanıtlı</string>
+    <string name="log_due_date">Son tarih: %1$s</string>
+    <string name="log_type_quest">GÖREV</string>
+    <string name="log_type_npc">NPC</string>
+    <string name="log_type_lore">LORE</string>
+    <string name="log_type_session_note">OTURUM</string>
+    <string name="priority_low">Düşük</string>
+    <string name="priority_medium">Orta</string>
+    <string name="priority_high">Yüksek</string>
+
+    <string name="weekly_title">Bu Hafta</string>
+    <string name="weekly_streak_days">%1$d gün</string>
+    <string name="weekly_longest_streak">En uzun seri: %1$d gün</string>
+    <string name="weekly_longest_streak_grace">En uzun seri: %1$d gün · Kararlı devrede</string>
+    <string name="weekly_summary">%1$d XP · %2$d görev</string>
+    <string name="weekly_summary_with_top">%1$d XP · %2$d görev · En çok: %3$s</string>
+
+    <string name="character_level">Seviye %1$d</string>
+    <string name="character_boons">· %1$d Kutsama</string>
+    <string name="character_streak">Seri</string>
+    <string name="character_resolute_active">Kararlı devrede</string>
+    <string name="character_pending_feats">%1$d yetenek hakkın bekliyor</string>
+
+    <string name="crew_title">Ekip</string>
+    <string name="crew_leave_action">Ekipten ayrıl</string>
+    <string name="crew_empty_title">Yalnız yolculuk zordur</string>
+    <string name="crew_empty_body">Bir ekip kur ya da arkadaşının davet koduyla katıl. Ekip arkadaşlarının görevlerini görür, Mentor yeteneğiyle onaylayıp ikinize de XP kazandırırsın.</string>
+    <string name="crew_join_with_code">Kodla Katıl</string>
+    <string name="crew_create">Ekip Kur</string>
+    <string name="crew_invite_code_label">Davet kodu: %1$s</string>
+    <string name="crew_copy_code">Kodu kopyala</string>
+    <string name="crew_members_header">Üyeler</string>
+    <string name="crew_feed_header">Son Görevler</string>
+    <string name="crew_approvals_left">%1$d onay hakkı</string>
+    <string name="crew_feed_empty">Henüz kimse görev tamamlamadı. İlk sen ol.</string>
+    <string name="crew_create_dialog_body">Ekibine bir ad ver. Kurduktan sonra davet kodunu arkadaşlarınla paylaş.</string>
+    <string name="crew_name_label">Ekip adı</string>
+    <string name="crew_create_confirm">Kur</string>
+    <string name="crew_join_dialog_body">Arkadaşının paylaştığı %1$d haneli davet kodunu gir.</string>
+    <string name="crew_invite_code_field">Davet kodu</string>
+    <string name="crew_join_confirm">Katıl</string>
+    <string name="crew_leave_dialog_title">Ekipten ayrıl</string>
+    <string name="crew_leave_dialog_body">Ekipten ayrılırsan üyeler seni göremez, akışın silinir. Kazandığın XP ve seviyen sende kalır.</string>
+    <string name="crew_leave_confirm">Ayrıl</string>
+
+    <string name="crew_invite_code_copied">Davet kodu kopyalandı.</string>
+    <string name="crew_created">Ekip kuruldu. Davet kodunu paylaş!</string>
+    <string name="crew_joined" formatted="false">Ekibe katıldın. İlk 7 gün %50 bonus!</string>
+
+    <string name="pathway_start_success">Yola girdin. Bol şans.</string>
+    <string name="pathway_start_too_many_active">Aynı anda en fazla %1$d yol sürdürebilirsin.</string>
+    <string name="pathway_start_prerequisite_missing">Önce gerekli yolu tamamlamalısın.</string>
+    <string name="pathway_start_already_started">Bu yolda zaten ilerliyorsun.</string>
+    <string name="pathway_abandoned">Yolu bıraktın. Emanetteki XP kayboldu.</string>
+
+    <string name="pathway_reject_no_session">Oturum bulunamadı.</string>
+    <string name="pathway_reject_quest_not_found">Görev bulunamadı.</string>
+    <string name="pathway_reject_not_enrolled">Bu yola henüz girmedin.</string>
+    <string name="pathway_reject_pathway_inactive">Bu yol aktif değil.</string>
+    <string name="pathway_reject_pathway_not_found">Yol bulunamadı.</string>
+    <string name="pathway_reject_stage_locked">Bu aşama henüz açılmadı.</string>
+    <string name="pathway_reject_already_completed">Bu görevi zaten tamamladın.</string>
+    <string name="pathway_reject_already_done_today">Bu görevi bugün zaten yaptın.</string>
+    <string name="pathway_reject_xp_not_awarded">XP verilemedi.</string>
+
+    <string name="account_error_wrong_password">Parola yanlış.</string>
+    <string name="account_error_reauth_failed">Kimlik doğrulanamadı.</string>
+    <string name="account_error_no_session">Oturum bulunamadı.</string>
+    <string name="account_error_delete_failed">Hesap silinemedi.</string>
+
+    <string name="stat_str_name">Güç</string>
+    <string name="stat_dex_name">Çeviklik</string>
+    <string name="stat_con_name">Dayanıklılık</string>
+    <string name="stat_int_name">Zeka</string>
+    <string name="stat_wis_name">Bilgelik</string>
+    <string name="stat_cha_name">Karizma</string>
+
+    <string name="stat_str_short">GÜÇ</string>
+    <string name="stat_dex_short">ÇEV</string>
+    <string name="stat_con_short">DAY</string>
+    <string name="stat_int_short">ZEK</string>
+    <string name="stat_wis_short">BİL</string>
+    <string name="stat_cha_short">KAR</string>
+
+    <string name="stat_str_description">Antrenman, kuvvet, fiziksel çaba</string>
+    <string name="stat_dex_description">Beceri, koordinasyon, el işi</string>
+    <string name="stat_con_description">Uyku, beslenme, sağlık</string>
+    <string name="stat_int_description">Öğrenme, okuma, çalışma</string>
+    <string name="stat_wis_description">Meditasyon, günlük, öz farkındalık</string>
+    <string name="stat_cha_description">Sosyal, iletişim, sunum</string>
+
+    <string name="difficulty_easy">Kolay</string>
+    <string name="difficulty_medium">Orta</string>
+    <string name="difficulty_hard">Zor</string>
+    <string name="difficulty_epic">Destansı</string>
+
+    <string name="difficulty_easy_hint">5-10 dakika</string>
+    <string name="difficulty_medium_hint">30-60 dakika</string>
+    <string name="difficulty_hard_hint">2+ saat</string>
+    <string name="difficulty_epic_hint">Bir günlük iş</string>
+
+    <string name="proof_level_none">Kanıtsız</string>
+    <string name="proof_level_note">Not</string>
+    <string name="proof_level_photo">Fotoğraf</string>
+
+    <string name="feat_resolute_name">Kararlı</string>
+    <string name="feat_resolute_description">Serin bozulduğunda bir günlük af hakkı kazanırsın.</string>
+    <string name="feat_specialist_name">Uzman</string>
+    <string name="feat_specialist_description" formatted="false">Seçtiğin yetenekte %25 fazla XP kazanırsın.</string>
+    <string name="feat_versatile_name">Çok Yönlü</string>
+    <string name="feat_versatile_description" formatted="false">Aynı gün 3 farklı yetenekte görev tamamlarsan %20 bonus.</string>
+    <string name="feat_early_riser_name">Erkenci</string>
+    <string name="feat_early_riser_description" formatted="false">Sabah 09:00\'dan önce tamamlanan görevlerde %20 bonus.</string>
+    <string name="feat_enduring_name">Dayanıklı</string>
+    <string name="feat_enduring_description" formatted="false">Zor ve destansı görevlerde %20 bonus.</string>
+    <string name="feat_mentor_name">Mentor</string>
+    <string name="feat_mentor_description">Grup arkadaşının görevini onayladığında ikiniz de XP alırsınız.</string>
+
+    <string name="xp_bonus_proof">Kanıt</string>
+    <string name="xp_bonus_specialist">Uzman</string>
+    <string name="xp_bonus_early_riser">Erkenci</string>
+    <string name="xp_bonus_enduring">Dayanıklı</string>
+    <string name="xp_bonus_versatile">Çok Yönlü</string>
+    <string name="xp_bonus_new_adventurer">Yeni Maceracı</string>
+</resources>

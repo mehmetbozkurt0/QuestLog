@@ -24,7 +24,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.Celebration
+import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
@@ -48,6 +52,7 @@ fun QuestLogListRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var celebration by remember { mutableStateOf<Celebration?>(null) }
 
     LaunchedEffect(Unit) {
@@ -60,7 +65,7 @@ fun QuestLogListRoute(
                     onNavigateToPathwayDetail(effect.pathwayId)
                 QuestLogListEffect.NavigateToCharacter -> onNavigateToCharacter()
                 is QuestLogListEffect.ShowXpMessage ->
-                    snackbarHostState.showSnackbar(effect.text)
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
                 is QuestLogListEffect.ShowCelebration ->
                     celebration = effect.celebration
             }
@@ -93,7 +98,7 @@ fun QuestLogListScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Yolculuk",
+                            stringResource(R.string.questlog_title),
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -109,7 +114,7 @@ fun QuestLogListScreen(
                             IconButton(onClick = {
                                 onEvent(QuestLogListEvent.FilterSheetToggled(true))
                             }) {
-                                Icon(Icons.Default.FilterList, contentDescription = "Filtrele")
+                                Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.questlog_filter))
                             }
                         }
                     },
@@ -121,7 +126,7 @@ fun QuestLogListScreen(
                 OutlinedTextField(
                     value = state.searchQuery,
                     onValueChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
-                    placeholder = { Text("Görevlerde ara...") },
+                    placeholder = { Text(stringResource(R.string.questlog_search_placeholder)) },
                     leadingIcon = {
                         Icon(
                             Icons.Default.FilterList,
@@ -134,7 +139,7 @@ fun QuestLogListScreen(
                             IconButton(onClick = {
                                 onEvent(QuestLogListEvent.SearchChanged(""))
                             }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Temizle")
+                                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.common_clear))
                             }
                         }
                     },
@@ -151,7 +156,7 @@ fun QuestLogListScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Yeni görev")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.questlog_new_quest))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -194,7 +199,7 @@ fun QuestLogListScreen(
 
             if (state.showHeaderSections && state.activePathways.isNotEmpty()) {
                 item(key = "pathway_header") {
-                    SectionHeader("Devam Eden Yollar")
+                    SectionHeader(stringResource(R.string.questlog_active_pathways))
                 }
                 items(state.activePathways, key = { "pw_${it.pathway.id}" }) { summary ->
                     ActivePathwayCard(
@@ -215,14 +220,13 @@ fun QuestLogListScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            "Bir yola gir",
+                            stringResource(R.string.questlog_pathway_cta_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(Modifier.height(Spacing.xs))
                         Text(
-                            "Yollar aşamalı görevlerden oluşan uzun maceralardır. " +
-                                    "Bitirene emanet XP ve bonus, bırakana hiçbir şey.",
+                            stringResource(R.string.questlog_pathway_cta_body),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -235,18 +239,17 @@ fun QuestLogListScreen(
                     if (state.isEmptyBecauseOfFilters) {
                         EmptyState(
                             icon = Icons.Default.SearchOff,
-                            title = "Eşleşen görev yok",
-                            body = "Arama veya filtreleri değiştirmeyi dene.",
-                            actionLabel = "Filtreleri temizle",
+                            title = stringResource(R.string.questlog_empty_filtered_title),
+                            body = stringResource(R.string.questlog_empty_filtered_body),
+                            actionLabel = stringResource(R.string.questlog_empty_filtered_action),
                             onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
                         )
                     } else {
                         EmptyState(
                             icon = Icons.AutoMirrored.Filled.MenuBook,
-                            title = "Günlüğün bomboş, maceracı",
-                            body = "+ ile ilk görevini yaz. Hangi yeteneği geliştirdiğini seç — " +
-                                    "Güç, Zeka, Karizma... Her tamamlanan görev XP getirir.",
-                            actionLabel = "İlk görevini yaz",
+                            title = stringResource(R.string.questlog_empty_title),
+                            body = stringResource(R.string.questlog_empty_body),
+                            actionLabel = stringResource(R.string.questlog_empty_action),
                             onAction = { onEvent(QuestLogListEvent.CreateClicked) },
                         )
                     }
@@ -255,7 +258,10 @@ fun QuestLogListScreen(
                 if (state.activeLogs.isNotEmpty()) {
                     item(key = "active_header") {
                         SectionHeader(
-                            if (state.isSearching) "Sonuçlar" else "Görevlerim",
+                            stringResource(
+                                if (state.isSearching) R.string.questlog_results_header
+                                else R.string.questlog_active_header
+                            ),
                             "${state.activeLogs.size}",
                         )
                     }
@@ -273,7 +279,10 @@ fun QuestLogListScreen(
 
                 if (state.completedLogs.isNotEmpty()) {
                     item(key = "completed_header") {
-                        SectionHeader("Tamamlananlar", "${state.completedLogs.size}")
+                        SectionHeader(
+                            stringResource(R.string.questlog_completed_header),
+                            "${state.completedLogs.size}",
+                        )
                     }
                     items(state.completedLogs, key = { it.id }) { log ->
                         QuestLogCard(

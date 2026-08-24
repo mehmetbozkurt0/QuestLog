@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.core.common
 
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.domain.repository.QuestCompletionResult
+import com.mehmetbozkurt.questlog.domain.progression.XpBonus
 import com.mehmetbozkurt.questlog.domain.repository.XpAward
 
 enum class CelebrationTier {MINOR, MAJOR, EPIC}
@@ -18,7 +19,7 @@ data class Celebration(
     val stageCompleted: Boolean = false,
     val pathwayCompleted: Boolean = false,
     val completionBonusXp: Int = 0,
-    val bonuses: List<String> = emptyList(),
+    val bonuses: List<XpBonus> = emptyList(),
     val streakMilestone: Int? = null
 ) {
     val tier: CelebrationTier

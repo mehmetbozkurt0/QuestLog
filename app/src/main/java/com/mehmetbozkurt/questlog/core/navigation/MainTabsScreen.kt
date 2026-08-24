@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.feature.character.CharacterRoute
 import com.mehmetbozkurt.questlog.feature.crew.CrewRoute
 import com.mehmetbozkurt.questlog.feature.pathway.PathwayListRoute
@@ -42,14 +43,15 @@ fun MainTabsScreen(
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 tabs.forEachIndexed { index, item ->
+                    val label = stringResource(item.labelRes)
                     NavigationBarItem(
                         selected = pagerState.currentPage == index,
                         onClick = {
                             scope.launch { pagerState.animateScrollToPage(index) }
                         },
-                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        icon = { Icon(item.icon, contentDescription = label) },
                         label = {
-                            Text(item.label, style = MaterialTheme.typography.labelMedium)
+                            Text(label, style = MaterialTheme.typography.labelMedium)
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,

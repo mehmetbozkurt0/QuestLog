@@ -1,7 +1,11 @@
 package com.mehmetbozkurt.questlog.feature.profile
 
 import androidx.lifecycle.viewModelScope
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toUiText
+import com.mehmetbozkurt.questlog.core.common.uiText
+import com.mehmetbozkurt.questlog.core.settings.AppLocaleManager
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.repository.AccountRepository
@@ -66,7 +70,12 @@ class ProfileViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
 
-        setState { copy(isPasswordAccount = accountRepository.isPasswordAccount()) }
+        setState {
+            copy(
+                isPasswordAccount = accountRepository.isPasswordAccount(),
+                language = AppLocaleManager.current(),
+            )
+        }
     }
 
     override fun onEvent(event: ProfileEvent) {
@@ -82,6 +91,11 @@ class ProfileViewModel @Inject constructor(
 
             is ProfileEvent.ThemeChanged -> viewModelScope.launch {
                 settingsRepository.setTheme(event.value)
+            }
+
+            is ProfileEvent.LanguageChanged -> {
+                setState { copy(language = event.value) }
+                AppLocaleManager.apply(event.value)
             }
 
             ProfileEvent.NotificationSettingsClicked ->
@@ -143,17 +157,22 @@ class ProfileViewModel @Inject constructor(
             DeleteAccountResult.WrongPassword -> setState {
                 copy(
                     isDeleting = false,
-                    deleteError = if (isPasswordAccount) "Parola yanlış."
-                    else "Kimlik doğrulanamadı.",
+                    deleteError = uiText(
+                        if (isPasswordAccount) R.string.account_error_wrong_password
+                        else R.string.account_error_reauth_failed
+                    ),
                 )
             }
 
             DeleteAccountResult.NoSession -> setState {
-                copy(isDeleting = false, deleteError = "Oturum bulunamadı.")
+                copy(
+                    isDeleting = false,
+                    deleteError = uiText(R.string.account_error_no_session),
+                )
             }
 
             is DeleteAccountResult.Failed -> setState {
-                copy(isDeleting = false, deleteError = result.message)
+                copy(isDeleting = false, deleteError = result.reason.toUiText())
             }
         }
     }

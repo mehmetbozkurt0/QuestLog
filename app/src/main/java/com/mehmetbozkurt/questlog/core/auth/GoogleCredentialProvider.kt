@@ -11,11 +11,13 @@ import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.UiText
+import com.mehmetbozkurt.questlog.core.common.uiText
 
 sealed interface GoogleIdTokenResult {
     data class Success(val idToken: String) : GoogleIdTokenResult
     data object Cancelled : GoogleIdTokenResult
-    data class Failed(val message: String) : GoogleIdTokenResult
+    data class Failed(val message: UiText) : GoogleIdTokenResult
 }
 
 object GoogleCredentialProvider {
@@ -37,16 +39,16 @@ object GoogleCredentialProvider {
                 val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 GoogleIdTokenResult.Success(googleCredential.idToken)
             } else {
-                GoogleIdTokenResult.Failed("Google kimliği okunamadı.")
+                GoogleIdTokenResult.Failed(uiText(R.string.google_error_id_unreadable))
             }
         } catch (e: GetCredentialCancellationException) {
             GoogleIdTokenResult.Cancelled
         } catch (e: NoCredentialException) {
             Log.e(TAG, "Cihazda Google hesabı yok", e)
-            GoogleIdTokenResult.Failed("Cihazda kayıtlı Google hesabı bulunamadı.")
+            GoogleIdTokenResult.Failed(uiText(R.string.google_error_no_credential))
         } catch (e: GetCredentialException) {
             Log.e(TAG, "Google kimliği alınamadı", e)
-            GoogleIdTokenResult.Failed("Google ile giriş yapılamadı.")
+            GoogleIdTokenResult.Failed(uiText(R.string.google_error_generic))
         }
     }
 

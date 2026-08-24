@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,6 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
+import com.mehmetbozkurt.questlog.core.common.asString
+import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import kotlinx.coroutines.flow.collectLatest
@@ -41,7 +44,8 @@ fun AuthRoute(
             when (effect) {
                 AuthEffect.NavigateToHome -> onNavigateToHome()
                 AuthEffect.NavigateToOnboarding -> onNavigateToOnboarding()
-                is AuthEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
+                is AuthEffect.ShowMessage ->
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
 
                 AuthEffect.LaunchGoogleSignIn -> scope.launch {
                     when (val result = GoogleCredentialProvider.requestIdToken(context)) {
@@ -93,7 +97,9 @@ fun AuthScreen(
         )
         Spacer(Modifier.height(Spacing.sm))
         Text(
-            text = if (isSignUp) "Maceraya katıl" else "Seyir defterine dön",
+            text = stringResource(
+                if (isSignUp) R.string.auth_tagline_sign_up else R.string.auth_tagline_sign_in
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -105,7 +111,7 @@ fun AuthScreen(
             OutlinedTextField(
                 value = state.displayName,
                 onValueChange = { onEvent(AuthEvent.DisplayNameChanged(it)) },
-                label = { Text("Kahraman adı") },
+                label = { Text(stringResource(R.string.auth_hero_name)) },
                 singleLine = true,
                 enabled = !state.isBusy,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -117,12 +123,12 @@ fun AuthScreen(
         OutlinedTextField(
             value = state.email,
             onValueChange = { onEvent(AuthEvent.EmailChanged(it)) },
-            label = { Text("E-posta") },
+            label = { Text(stringResource(R.string.auth_email)) },
             singleLine = true,
             enabled = !state.isBusy,
             isError = !state.isEmailValid,
             supportingText = {
-                if (!state.isEmailValid) Text("Geçerli bir e-posta gir")
+                if (!state.isEmailValid) Text(stringResource(R.string.auth_email_invalid))
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -136,7 +142,7 @@ fun AuthScreen(
         OutlinedTextField(
             value = state.password,
             onValueChange = { onEvent(AuthEvent.PasswordChanged(it)) },
-            label = { Text("Parola") },
+            label = { Text(stringResource(R.string.auth_password)) },
             singleLine = true,
             enabled = !state.isBusy,
             visualTransformation = PasswordVisualTransformation(),
@@ -156,7 +162,7 @@ fun AuthScreen(
         if (state.errorMessage != null) {
             Spacer(Modifier.height(Spacing.md))
             Text(
-                text = state.errorMessage,
+                text = state.errorMessage.asString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )
@@ -180,7 +186,9 @@ fun AuthScreen(
                 )
             } else {
                 Text(
-                    text = if (isSignUp) "Kayıt Ol" else "Giriş Yap",
+                    text = stringResource(
+                        if (isSignUp) R.string.auth_sign_up else R.string.auth_sign_in
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -191,7 +199,7 @@ fun AuthScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             HorizontalDivider(Modifier.weight(1f))
             Text(
-                text = "veya",
+                text = stringResource(R.string.auth_or),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = Spacing.md),
@@ -222,7 +230,7 @@ fun AuthScreen(
                 )
                 Spacer(Modifier.width(Spacing.md))
                 Text(
-                    text = "Google ile devam et",
+                    text = stringResource(R.string.auth_continue_with_google),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -234,7 +242,7 @@ fun AuthScreen(
                 enabled = !state.isBusy,
             ) {
                 Text(
-                    text = "Şifremi unuttum",
+                    text = stringResource(R.string.auth_forgot_password),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -247,8 +255,10 @@ fun AuthScreen(
             enabled = !state.isBusy,
         ) {
             Text(
-                text = if (isSignUp) "Zaten hesabın var mı? Giriş yap"
-                else "Hesabın yok mu? Kayıt ol",
+                text = stringResource(
+                    if (isSignUp) R.string.auth_switch_to_sign_in
+                    else R.string.auth_switch_to_sign_up
+                ),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }

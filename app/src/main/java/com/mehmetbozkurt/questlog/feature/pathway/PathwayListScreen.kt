@@ -23,8 +23,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import kotlinx.coroutines.flow.collectLatest
 
@@ -63,7 +65,7 @@ fun PathwayListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Yollar",
+                        stringResource(R.string.pathway_list_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -71,7 +73,7 @@ fun PathwayListScreen(
                 navigationIcon = {
                     if (onNavigateBack != null) {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     }
                 },
@@ -105,7 +107,7 @@ fun PathwayListScreen(
             if (state.activeItems.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        "Devam Eden Yollar",
+                        stringResource(R.string.pathway_list_active),
                         "${state.activeCount} / ${PathwayRules.MAX_ACTIVE_PATHWAYS}",
                     )
                 }
@@ -117,8 +119,8 @@ fun PathwayListScreen(
             if (state.availableItems.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        "Açık Yollar",
-                        if (!state.canStartMore) "Sınıra ulaştın" else null,
+                        stringResource(R.string.pathway_list_open),
+                        if (!state.canStartMore) stringResource(R.string.pathway_list_limit_reached) else null,
                     )
                 }
                 items(state.availableItems, key = { it.pathway.id }) { item ->
@@ -127,7 +129,7 @@ fun PathwayListScreen(
             }
 
             if (state.completedItems.isNotEmpty()) {
-                item { SectionHeader("Tamamlanan Yollar", null) }
+                item { SectionHeader(stringResource(R.string.pathway_list_completed), null) }
                 items(state.completedItems, key = { it.pathway.id }) { item ->
                     PathwayCard(item) { onEvent(PathwayListEvent.PathwayClicked(item.pathway.id)) }
                 }
@@ -137,8 +139,8 @@ fun PathwayListScreen(
                 item {
                     EmptyState(
                         icon = Icons.Default.CloudOff,
-                        title = "Yol haritası boş",
-                        body = "Yollar buluttan gelir. İnternet bağlantını kontrol edip tekrar dene.",
+                        title = stringResource(R.string.pathway_list_empty_title),
+                        body = stringResource(R.string.pathway_list_empty_body),
                     )
                 }
             }
@@ -188,12 +190,21 @@ private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).background(statColor, CircleShape))
                 Spacer(Modifier.width(Spacing.sm))
+                val primaryStatName = stringResource(pathway.primaryStat.nameRes())
+                val secondaryStatName = pathway.secondaryStat
+                    ?.let { stringResource(it.nameRes()) }
+
                 Text(
-                    buildString {
-                        append(pathway.primaryStat.displayName())
-                        pathway.secondaryStat?.let { append(" + ${it.displayName()}") }
-                        append(" · Kademe ${pathway.tier}")
-                    },
+                    if (secondaryStatName != null) stringResource(
+                        R.string.pathway_stats_tier_secondary,
+                        primaryStatName,
+                        secondaryStatName,
+                        pathway.tier,
+                    ) else stringResource(
+                        R.string.pathway_stats_tier,
+                        primaryStatName,
+                        pathway.tier,
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = statColor,
                 )
@@ -202,13 +213,13 @@ private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
                 when {
                     item.isCompleted -> Icon(
                         Icons.Default.Check,
-                        contentDescription = "Tamamlandı",
+                        contentDescription = stringResource(R.string.common_completed),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp),
                     )
                     item.isLocked -> Icon(
                         Icons.Default.Lock,
-                        contentDescription = "Kilitli",
+                        contentDescription = stringResource(R.string.common_locked),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp),
                     )
@@ -234,7 +245,7 @@ private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
             if (item.isLocked && item.requiredPathwayTitle != null) {
                 Spacer(Modifier.height(Spacing.sm))
                 Text(
-                    "Önce \"${item.requiredPathwayTitle}\" tamamlanmalı",
+                    stringResource(R.string.pathway_prerequisite, item.requiredPathwayTitle.orEmpty()),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -251,7 +262,7 @@ private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
                 )
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    "Devam ediyor · ${item.progress?.escrowedXp ?: 0} XP emanette",
+                    stringResource(R.string.pathway_in_progress, item.progress?.escrowedXp ?: 0),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

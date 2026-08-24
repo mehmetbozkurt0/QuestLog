@@ -15,6 +15,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,7 +59,7 @@ fun FeedEntryCard(
                 Spacer(Modifier.width(Spacing.xs))
             }
             Text(
-                if (isMine) "Sen" else item.authorName,
+                if (isMine) stringResource(R.string.feed_author_self) else item.authorName,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
@@ -93,7 +95,7 @@ fun FeedEntryCard(
             Spacer(Modifier.height(Spacing.sm))
             AsyncImage(
                 model = url,
-                contentDescription = "Kanıt fotoğrafı",
+                contentDescription = stringResource(R.string.proof_photo),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -114,7 +116,7 @@ fun FeedEntryCard(
                 )
                 Spacer(Modifier.width(Spacing.xs))
                 Text(
-                    "${item.approvalCount} onay",
+                    stringResource(R.string.feed_approvals, item.approvalCount),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -122,26 +124,31 @@ fun FeedEntryCard(
             Spacer(Modifier.weight(1f))
             when {
                 approvedByMe -> Text(
-                    "Onayladın",
+                    stringResource(R.string.feed_approved),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 canApprove -> TextButton(onClick = onApprove) {
-                    Text("Onayla", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        stringResource(R.string.feed_approve),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
                 }
             }
         }
     }
 }
 
+@Composable
 private fun Instant.relativeLabel(): String {
     val minutes = Duration.between(this, Instant.now()).toMinutes()
     return when {
-        minutes < 1 -> "az önce"
-        minutes < 60 -> "$minutes dk önce"
-        minutes < 60 * 24 -> "${minutes / 60} sa önce"
-        minutes < 60 * 24 * 7 -> "${minutes / (60 * 24)} gün önce"
-        else -> "${minutes / (60 * 24 * 7)} hafta önce"
+        minutes < 1 -> stringResource(R.string.feed_time_now)
+        minutes < 60 -> stringResource(R.string.feed_time_minutes, minutes)
+        minutes < 60 * 24 -> stringResource(R.string.feed_time_hours, minutes / 60)
+        minutes < 60 * 24 * 7 ->
+            stringResource(R.string.feed_time_days, minutes / (60 * 24))
+        else -> stringResource(R.string.feed_time_weeks, minutes / (60 * 24 * 7))
     }
 }

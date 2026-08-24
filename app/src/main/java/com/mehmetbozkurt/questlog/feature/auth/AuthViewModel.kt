@@ -3,7 +3,9 @@ package com.mehmetbozkurt.questlog.feature.auth
 import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.core.common.DataResult
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.toAuthMessage
+import com.mehmetbozkurt.questlog.core.common.uiText
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -68,7 +70,7 @@ class AuthViewModel @Inject constructor(
     private fun sendPasswordReset() {
         val state = currentState
         if (state.email.isBlank() || !state.isEmailValid) {
-            setState { copy(errorMessage = "Önce e-posta adresini gir.") }
+            setState { copy(errorMessage = uiText(R.string.auth_email_required)) }
             return
         }
 
@@ -84,7 +86,7 @@ class AuthViewModel @Inject constructor(
                     setState { copy(isLoading = false) }
                     sendEffect(
                         AuthEffect.ShowMessage(
-                            "Sıfırlama bağlantısı ${state.email.trim()} adresine gönderildi."
+                            uiText(R.string.auth_reset_link_sent, state.email.trim())
                         )
                     )
                 }

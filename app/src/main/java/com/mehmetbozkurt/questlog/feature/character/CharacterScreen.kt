@@ -26,8 +26,13 @@ import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
 import com.mehmetbozkurt.questlog.domain.model.StatProgress
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.descriptionRes
+import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.feature.character.component.FeatChoiceDialog
 import com.mehmetbozkurt.questlog.feature.character.component.WeeklySummaryCard
@@ -39,11 +44,12 @@ fun CharacterRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is CharacterEffect.ShowMessage ->
-                    snackbarHostState.showSnackbar(effect.text)
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
             }
         }
     }
@@ -62,7 +68,7 @@ fun CharacterScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Karakter",
+                        stringResource(R.string.character_title),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -91,9 +97,8 @@ fun CharacterScreen(
             ) {
                 EmptyState(
                     icon = Icons.Default.Shield,
-                    title = "Karakterin henüz uyanmadı",
-                    body = "İlk görevini tamamladığında seviyen, yeteneklerin ve " +
-                            "haftalık seyir defterin burada belirecek.",
+                    title = stringResource(R.string.character_empty_title),
+                    body = stringResource(R.string.character_empty_body),
                 )
             }
 
@@ -116,7 +121,7 @@ fun CharacterScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            "SEVİYE",
+                            stringResource(R.string.character_level_caps),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -140,16 +145,20 @@ fun CharacterScreen(
 
                         Text(
                             if (character.level >= XpCurve.MAX_LEVEL) {
-                                "Maksimum seviye"
+                                stringResource(R.string.profile_max_level)
                             } else {
-                                "${character.xpIntoLevel} / ${character.xpToNextLevel} XP"
+                                stringResource(
+                                    R.string.character_xp_progress,
+                                    character.xpIntoLevel,
+                                    character.xpToNextLevel,
+                                )
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
 
                         Text(
-                            "Toplam ${character.totalXp} XP",
+                            stringResource(R.string.character_total_xp, character.totalXp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -174,12 +183,15 @@ fun CharacterScreen(
                         ) {
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    "${character.pendingFeatChoices} yetenek hakkın var",
+                                    stringResource(
+                                        R.string.character_pending_feats_available,
+                                        character.pendingFeatChoices,
+                                    ),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
                                 Text(
-                                    "Seçmek için dokun",
+                                    stringResource(R.string.character_tap_to_choose),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
@@ -196,7 +208,7 @@ fun CharacterScreen(
                 Spacer(Modifier.height(Spacing.xl))
 
                 Text(
-                    "Yetenekler",
+                    stringResource(R.string.character_abilities),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -210,7 +222,7 @@ fun CharacterScreen(
                 if (state.feats.isNotEmpty()) {
                     Spacer(Modifier.height(Spacing.lg))
                     Text(
-                        "Kazanılan Yetenekler",
+                        stringResource(R.string.character_earned_feats),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -223,18 +235,21 @@ fun CharacterScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                def.name,
+                                stringResource(def.id.nameRes()),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                             )
                             Text(
-                                def.description,
+                                stringResource(def.id.descriptionRes()),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (feat.chosenStat != null) {
                                 Text(
-                                    "Odak: ${feat.chosenStat.displayName()}",
+                                    stringResource(
+                                        R.string.character_feat_focus,
+                                        stringResource(feat.chosenStat.nameRes()),
+                                    ),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
@@ -296,14 +311,19 @@ private fun StatRow(stat: StatProgress) {
                 )
                 Spacer(Modifier.width(Spacing.xs))
                 Text(
-                    stat.statType.displayName(),
+                    stringResource(stat.statType.nameRes()),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    if (stat.value >= XpCurve.MAX_STAT) "MAX"
-                    else "${stat.currentXp} / ${stat.xpToNext}",
+                    if (stat.value >= XpCurve.MAX_STAT)
+                        stringResource(R.string.character_stat_max)
+                    else stringResource(
+                        R.string.character_stat_progress,
+                        stat.currentXp,
+                        stat.xpToNext,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

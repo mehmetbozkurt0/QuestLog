@@ -41,7 +41,7 @@ class ReminderReceiver : BroadcastReceiver() {
                 context.notify(
                     id = logId.hashCode(),
                     channel = NotificationChannels.REMINDERS,
-                    title = "Görev seni bekliyor",
+                    title = context.getString(R.string.notification_quest_reminder_title),
                     body = title,
                     logId = logId,
                 )
@@ -79,12 +79,14 @@ class ReminderReceiver : BroadcastReceiver() {
         context.notify(
             id = STREAK_NOTIFICATION_ID,
             channel = NotificationChannels.STREAK,
-            title = "${streak.currentStreak} günlük serin tehlikede",
-            body = if (hasResolute && !streak.graceUsed) {
-                "Bugün henüz görev tamamlamadın. Kararlı seni bir kez affeder, ama riske atma."
-            } else {
-                "Bugün henüz görev tamamlamadın. Küçük bir görev bile seriyi ayakta tutar."
-            },
+            title = context.getString(
+                R.string.notification_streak_title,
+                streak.currentStreak,
+            ),
+            body = context.getString(
+                if (hasResolute && !streak.graceUsed) R.string.notification_streak_body_resolute
+                else R.string.notification_streak_body
+            ),
             logId = null,
         )
     }

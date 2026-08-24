@@ -10,11 +10,13 @@ import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import com.mehmetbozkurt.questlog.feature.questlog.CompletionFilter
 import com.mehmetbozkurt.questlog.feature.questlog.SortOption
-import com.mehmetbozkurt.questlog.feature.questlog.label
+import com.mehmetbozkurt.questlog.feature.questlog.labelRes
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -45,40 +47,40 @@ fun FilterSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    "Filtrele & Sırala",
+                    stringResource(R.string.filter_sheet_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                TextButton(onClick = onClear) { Text("Temizle") }
+                TextButton(onClick = onClear) { Text(stringResource(R.string.common_clear)) }
             }
 
             Spacer(Modifier.height(Spacing.md))
 
-            SectionLabel("Durum")
+            SectionLabel(stringResource(R.string.filter_section_status))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 CompletionFilter.entries.forEach { option ->
                     FilterChip(
                         selected = completionFilter == option,
                         onClick = { onCompletionChange(option) },
-                        label = { Text(option.label()) },
+                        label = { Text(stringResource(option.labelRes())) },
                     )
                 }
             }
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionLabel("Yetenek")
+            SectionLabel(stringResource(R.string.filter_section_stat))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 FilterChip(
                     selected = statFilter == null,
                     onClick = { onStatChange(null) },
-                    label = { Text("Tümü") },
+                    label = { Text(stringResource(R.string.common_all)) },
                 )
                 StatType.entries.forEach { stat ->
                     FilterChip(
                         selected = statFilter == stat,
                         onClick = { onStatChange(stat) },
-                        label = { Text(stat.displayName()) },
+                        label = { Text(stringResource(stat.nameRes())) },
                         leadingIcon = {
                             Icon(
                                 imageVector = stat.icon(),
@@ -93,31 +95,31 @@ fun FilterSheet(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionLabel("Öncelik")
+            SectionLabel(stringResource(R.string.filter_section_priority))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 FilterChip(
                     selected = priorityFilter == null,
                     onClick = { onPriorityChange(null) },
-                    label = { Text("Tümü") },
+                    label = { Text(stringResource(R.string.common_all)) },
                 )
                 Priority.entries.forEach { p ->
                     FilterChip(
                         selected = priorityFilter == p,
                         onClick = { onPriorityChange(p) },
-                        label = { Text(p.label()) },
+                        label = { Text(stringResource(p.labelRes())) },
                     )
                 }
             }
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionLabel("Sıralama")
+            SectionLabel(stringResource(R.string.filter_section_sort))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 SortOption.entries.forEach { option ->
                     FilterChip(
                         selected = sortOption == option,
                         onClick = { onSortChange(option) },
-                        label = { Text(option.label()) },
+                        label = { Text(stringResource(option.labelRes())) },
                     )
                 }
             }

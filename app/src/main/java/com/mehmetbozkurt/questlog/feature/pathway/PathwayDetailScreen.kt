@@ -27,8 +27,12 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -38,13 +42,14 @@ fun PathwayDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var celebration by remember { mutableStateOf<Celebration?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is PathwayDetailEffect.ShowMessage ->
-                    snackbarHostState.showSnackbar(effect.text)
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
                 is PathwayDetailEffect.ShowCelebration ->
                     celebration = effect.celebration
             }
@@ -81,7 +86,7 @@ fun PathwayDetailScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
@@ -89,7 +94,10 @@ fun PathwayDetailScreen(
                         TextButton(
                             onClick = { onEvent(PathwayDetailEvent.AbandonDialogToggled(true)) }
                         ) {
-                            Text("Bırak", color = MaterialTheme.colorScheme.error)
+                            Text(
+                                stringResource(R.string.pathway_detail_abandon),
+                                color = MaterialTheme.colorScheme.error,
+                            )
                         }
                     }
                 },
@@ -114,7 +122,7 @@ fun PathwayDetailScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "Yol bulunamadı",
+                    stringResource(R.string.pathway_detail_not_found),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -133,14 +141,22 @@ fun PathwayDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(10.dp).background(statColor, CircleShape))
                         Spacer(Modifier.width(Spacing.sm))
+                        val primaryStatName =
+                            stringResource(detail.pathway.primaryStat.nameRes())
+                        val secondaryStatName = detail.pathway.secondaryStat
+                            ?.let { stringResource(it.nameRes()) }
+
                         Text(
-                            buildString {
-                                append(detail.pathway.primaryStat.displayName())
-                                detail.pathway.secondaryStat?.let {
-                                    append(" + ${it.displayName()}")
-                                }
-                                append(" · Kademe ${detail.pathway.tier}")
-                            },
+                            if (secondaryStatName != null) stringResource(
+                                R.string.pathway_stats_tier_secondary,
+                                primaryStatName,
+                                secondaryStatName,
+                                detail.pathway.tier,
+                            ) else stringResource(
+                                R.string.pathway_stats_tier,
+                                primaryStatName,
+                                detail.pathway.tier,
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             color = statColor,
                         )
@@ -174,15 +190,22 @@ fun PathwayDetailScreen(
                         )
                         Spacer(Modifier.height(Spacing.sm))
                         Text(
-                            "${detail.completedQuests} / ${detail.totalQuests} görev tamamlandı",
+                            stringResource(
+                                R.string.pathway_detail_progress,
+                                detail.completedQuests,
+                                detail.totalQuests,
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
 
                         if (state.isActive) {
                             Text(
-                                "${detail.progress?.escrowedXp ?: 0} XP emanette · " +
-                                        "Bitirince +${detail.pathway.completionBonusXp} bonus",
+                                stringResource(
+                                    R.string.pathway_detail_escrow,
+                                    detail.progress?.escrowedXp ?: 0,
+                                    detail.pathway.completionBonusXp,
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary,
                             )
@@ -198,7 +221,7 @@ fun PathwayDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                "Bu yolu tamamladın.",
+                                stringResource(R.string.pathway_detail_done),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(Spacing.md),
@@ -220,13 +243,16 @@ fun PathwayDetailScreen(
                                     color = MaterialTheme.colorScheme.onPrimary,
                                 )
                             } else {
-                                Text("Bu Yola Gir", style = MaterialTheme.typography.labelLarge)
+                                Text(
+                                    stringResource(R.string.pathway_detail_start),
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
                             }
                         }
                         if (!state.canStartMore) {
                             Spacer(Modifier.height(Spacing.xs))
                             Text(
-                                "Aktif yol sınırına ulaştın. Önce birini bitir veya bırak.",
+                                stringResource(R.string.pathway_detail_limit),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                             )
@@ -240,7 +266,7 @@ fun PathwayDetailScreen(
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Aşama $stage",
+                                stringResource(R.string.pathway_detail_stage, stage),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = if (unlocked)
                                     MaterialTheme.colorScheme.onSurface
@@ -251,7 +277,7 @@ fun PathwayDetailScreen(
                                 Spacer(Modifier.width(Spacing.sm))
                                 Icon(
                                     Icons.Default.Lock,
-                                    contentDescription = "Kilitli",
+                                    contentDescription = stringResource(R.string.common_locked),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp),
                                 )
@@ -284,21 +310,23 @@ fun PathwayDetailScreen(
         val escrow = state.detail?.progress?.escrowedXp ?: 0
         AlertDialog(
             onDismissRequest = { onEvent(PathwayDetailEvent.AbandonDialogToggled(false)) },
-            title = { Text("Yolu bırak") },
+            title = { Text(stringResource(R.string.pathway_detail_abandon_title)) },
             text = {
                 Text(
-                    "Emanetteki $escrow XP kaybolacak. " +
-                            "Yeteneklerinde kazandıkların kalacak. Emin misin?"
+                    stringResource(R.string.pathway_detail_abandon_body, escrow)
                 )
             },
             confirmButton = {
                 TextButton(onClick = { onEvent(PathwayDetailEvent.AbandonConfirmed) }) {
-                    Text("Bırak", color = MaterialTheme.colorScheme.error)
+                    Text(
+                                stringResource(R.string.pathway_detail_abandon),
+                                color = MaterialTheme.colorScheme.error,
+                            )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(PathwayDetailEvent.AbandonDialogToggled(false)) }) {
-                    Text("Vazgeç")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -337,7 +365,11 @@ private fun QuestRow(
                     )
                     Spacer(Modifier.width(Spacing.sm))
                     Text(
-                        "${quest.statType.displayName()} · ${quest.difficulty.displayName()}",
+                        stringResource(
+                            R.string.pathway_quest_meta,
+                            stringResource(quest.statType.nameRes()),
+                            stringResource(quest.difficulty.nameRes()),
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = statColor.copy(alpha = alpha),
                     )
@@ -375,12 +407,16 @@ private fun QuestRow(
             if (questProgress.isComplete) {
                 Icon(
                     Icons.Default.Check,
-                    contentDescription = "Tamamlandı",
+                    contentDescription = stringResource(R.string.common_completed),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             } else {
                 Text(
-                    "${questProgress.completions}/${quest.requiredCompletions}",
+                    stringResource(
+                        R.string.pathway_quest_completions,
+                        questProgress.completions,
+                        quest.requiredCompletions,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
                 )

@@ -1,7 +1,412 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
     <string name="app_name">Renown</string>
-    <string name="reminder_channel_name">Görev hatırlatıcıları</string>
-    <string name="reminder_channel_description">Hatırlatıcı kurduğun görevler için bildirim.</string>
-    <string name="streak_channel_name">Seri uyarıları</string>
-    <string name="streak_channel_description">Serin kırılmak üzereyken akşam uyarısı.</string>
+
+    <string name="reminder_channel_name">Quest reminders</string>
+    <string name="reminder_channel_description">Notifications for quests you set a reminder on.</string>
+    <string name="streak_channel_name">Streak alerts</string>
+    <string name="streak_channel_description">An evening warning when your streak is about to break.</string>
+
+    <string name="error_weak_password">Password is too weak. Use at least 6 characters.</string>
+    <string name="error_invalid_credentials">E-mail or password is incorrect.</string>
+    <string name="error_email_in_use">This e-mail is already registered.</string>
+    <string name="error_user_not_found">No account was found.</string>
+    <string name="error_network">Couldn\'t connect. Check your internet.</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
+
+    <string name="common_cancel">Cancel</string>
+
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="language_system">System</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="profile_section_journey">Journey</string>
+    <string name="profile_section_appearance">Appearance</string>
+    <string name="profile_section_language">Language</string>
+    <string name="profile_section_notifications">Notifications</string>
+    <string name="profile_stat_completed">Completed</string>
+    <string name="profile_stat_streak">Daily streak</string>
+    <string name="profile_stat_feats">Feats</string>
+    <string name="profile_no_crew">No crew</string>
+    <string name="profile_streak_summary">Longest streak: %1$d days · Active quests: %2$d</string>
+    <string name="profile_notification_settings">Notification settings</string>
+    <string name="profile_notification_settings_desc">Quest reminders and the streak alert (every evening at %1$d:00)</string>
+    <string name="profile_sign_out">Sign Out</string>
+    <string name="profile_delete_account">Delete my account</string>
+    <string name="profile_version">Renown %1$s</string>
+    <string name="profile_delete_dialog_title">Delete your account</string>
+    <string name="profile_delete_dialog_body">This cannot be undone. Your character, every quest, your pathway progress, your proof photos and your crew record will be permanently deleted.</string>
+    <string name="profile_delete_password_prompt">Enter your password to confirm.</string>
+    <string name="profile_delete_google_prompt">You will be asked to sign in with your Google account to confirm.</string>
+    <string name="profile_delete_confirm">Delete permanently</string>
+    <string name="profile_sign_out_dialog_title">Sign out</string>
+    <string name="profile_sign_out_dialog_body">Your session will be closed. Your records stay in the cloud.</string>
+    <string name="profile_level_title">Level %1$d %2$s</string>
+    <string name="profile_max_level">Maximum level</string>
+    <string name="profile_xp_to_next">%1$d XP to the next level</string>
+    <string name="profile_member_since">Set out: %1$s</string>
+
+    <string name="rank_legendary">Legendary Adventurer</string>
+    <string name="rank_master">Master Adventurer</string>
+    <string name="rank_veteran">Seasoned Adventurer</string>
+    <string name="rank_wanderer">Wanderer</string>
+    <string name="rank_novice">Novice</string>
+
+    <string name="nav_logs">Quests</string>
+    <string name="nav_pathways">Pathways</string>
+    <string name="nav_character">Character</string>
+    <string name="nav_crew">Crew</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="notification_quest_reminder_title">A quest is waiting for you</string>
+    <string name="notification_streak_title">Your %1$d-day streak is at risk</string>
+    <string name="notification_streak_body_resolute">You haven\'t completed a quest today. Resolute forgives you once, but don\'t risk it.</string>
+    <string name="notification_streak_body">You haven\'t completed a quest today. Even a small quest keeps the streak alive.</string>
+
+    <string name="auth_tagline_sign_up">Join the adventure</string>
+    <string name="auth_tagline_sign_in">Return to your logbook</string>
+    <string name="auth_hero_name">Hero name</string>
+    <string name="auth_email">E-mail</string>
+    <string name="auth_email_invalid">Enter a valid e-mail</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_sign_up">Sign Up</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_or">or</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_forgot_password">I forgot my password</string>
+    <string name="auth_switch_to_sign_in">Already have an account? Sign in</string>
+    <string name="auth_switch_to_sign_up">No account yet? Sign up</string>
+    <string name="auth_email_required">Enter your e-mail address first.</string>
+    <string name="auth_reset_link_sent">A reset link was sent to %1$s.</string>
+    <string name="google_error_no_credential">No Google account is saved on this device.</string>
+    <string name="google_error_id_unreadable">Couldn\'t read the Google credential.</string>
+    <string name="google_error_generic">Couldn\'t sign in with Google.</string>
+
+    <string name="xp_reject_already_awarded_today">You already earned XP from this quest today.</string>
+    <string name="xp_reject_daily_difficulty_limit">You reached today\'s limit for this difficulty.</string>
+    <string name="xp_reject_daily_stat_cap">You reached today\'s XP cap for this ability.</string>
+
+    <string name="crew_error_no_session">No session found.</string>
+    <string name="crew_error_no_character">No character found.</string>
+    <string name="crew_error_permission_denied">Firestore denied the request. Crew security rules may not be published.</string>
+    <string name="crew_error_unknown">Something went wrong. Try again.</string>
+    <string name="crew_error_already_in_crew">You are already in a crew. Leave it first.</string>
+    <string name="crew_error_code_not_found">No crew was found with that code.</string>
+    <string name="crew_error_not_in_crew">You are not in a crew.</string>
+    <string name="crew_error_offline">No connection. Crew actions require you to be online.</string>
+    <string name="crew_left">You left the crew.</string>
+
+    <string name="crew_approve_error_entry_not_found">Entry not found.</string>
+    <string name="crew_approve_error_write_failed">Approval could not be sent.</string>
+    <string name="crew_approve_error_no_mentor_feat">You need the Mentor feat to approve.</string>
+    <string name="crew_approve_error_daily_limit">You are out of approvals for today (%1$d).</string>
+    <string name="crew_approve_error_already_approved">You already approved this.</string>
+    <string name="crew_approve_error_own_quest">You can\'t approve your own quest.</string>
+    <string name="crew_approve_granted">Approved! +%1$d XP for both of you.</string>
+    <string name="crew_approve_granted_leveled">Approved! +%1$d XP for both of you. You reached level %2$d!</string>
+
+    <string name="feat_acquired">%1$s acquired!</string>
+
+    <string name="common_clear">Clear</string>
+    <string name="common_all">All</string>
+
+    <string name="common_completed">Completed</string>
+    <string name="common_locked">Locked</string>
+
+    <string name="pathway_list_title">Pathways</string>
+    <string name="pathway_list_active">Active Pathways</string>
+    <string name="pathway_list_open">Open Pathways</string>
+    <string name="pathway_list_limit_reached">You reached the limit</string>
+    <string name="pathway_list_completed">Completed Pathways</string>
+    <string name="pathway_list_empty_title">The map is empty</string>
+    <string name="pathway_list_empty_body">Pathways come from the cloud. Check your connection and try again.</string>
+    <string name="pathway_stats_tier">%1$s · Tier %2$d</string>
+    <string name="pathway_stats_tier_secondary">%1$s + %2$s · Tier %3$d</string>
+    <string name="pathway_prerequisite">Finish \"%1$s\" first</string>
+    <string name="pathway_in_progress">In progress · %1$d XP in escrow</string>
+
+    <string name="pathway_detail_abandon">Abandon</string>
+    <string name="pathway_detail_not_found">Pathway not found</string>
+    <string name="pathway_detail_progress">%1$d / %2$d quests completed</string>
+    <string name="pathway_detail_escrow">%1$d XP in escrow · +%2$d bonus on completion</string>
+    <string name="pathway_detail_done">You completed this pathway.</string>
+    <string name="pathway_detail_start">Enter This Pathway</string>
+    <string name="pathway_detail_limit">You reached the active pathway limit. Finish or abandon one first.</string>
+    <string name="pathway_detail_stage">Stage %1$d</string>
+    <string name="pathway_detail_abandon_title">Abandon the pathway</string>
+    <string name="pathway_detail_abandon_body">The %1$d XP in escrow will be lost. What you gained in your abilities stays. Are you sure?</string>
+    <string name="pathway_quest_meta">%1$s · %2$s</string>
+    <string name="pathway_quest_completions">%1$d/%2$d</string>
+    <string name="pathway_escrow_short">%1$d XP in escrow</string>
+    <string name="pathway_quest_count">%1$d/%2$d</string>
+
+    <string name="character_title">Character</string>
+    <string name="character_empty_title">Your character has not woken yet</string>
+    <string name="character_empty_body">When you complete your first quest, your level, abilities and weekly logbook will appear here.</string>
+    <string name="character_level_caps">LEVEL</string>
+    <string name="character_xp_progress">%1$d / %2$d XP</string>
+    <string name="character_total_xp">Total %1$d XP</string>
+    <string name="character_pending_feats_available">You have %1$d feat choices</string>
+    <string name="character_tap_to_choose">Tap to choose</string>
+    <string name="character_abilities">Abilities</string>
+    <string name="character_earned_feats">Earned Feats</string>
+    <string name="character_feat_focus">Focus: %1$s</string>
+    <string name="character_stat_max">MAX</string>
+    <string name="character_stat_progress">%1$d / %2$d</string>
+
+    <string name="celebration_escrowed">+%1$d XP in escrow</string>
+    <string name="celebration_stat_up">%1$s reached %2$d!</string>
+    <string name="celebration_stat_up_plain">%1$s reached %2$d</string>
+    <string name="celebration_stage_done">Stage complete!</string>
+    <string name="celebration_new_feat">A new feat choice!</string>
+    <string name="celebration_new_feat_long">You earned a new feat choice</string>
+    <string name="celebration_streak">🔥 %1$d day streak!</string>
+    <string name="celebration_xp">+%1$d XP</string>
+    <string name="celebration_pathway">PATHWAY</string>
+    <string name="celebration_pathway_done">COMPLETE</string>
+    <string name="celebration_xp_stat">+%1$d XP · %2$s</string>
+    <string name="celebration_escrow_bonus">Escrow + bonus: +%1$d XP</string>
+    <string name="celebration_pathway_too">The pathway is complete too!</string>
+    <string name="celebration_tap">Tap to continue</string>
+
+    <string name="feat_dialog_title">Choose a New Feat</string>
+    <string name="feat_dialog_body">You levelled up. You are gaining a permanent feat.</string>
+    <string name="feat_dialog_owned">· owned</string>
+    <string name="feat_dialog_stat_prompt">Which ability will you specialise in?</string>
+    <string name="feat_dialog_confirm">Choose</string>
+    <string name="feat_dialog_later">Later</string>
+
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Begin the Adventure</string>
+    <string name="onboarding_1_title">Welcome to your logbook, adventurer</string>
+    <string name="onboarding_1_body">This is not a to-do list. Here, everything you do in real life builds your character. Exercise, books, study, socialising… each one is a quest.</string>
+    <string name="onboarding_2_title">Quests earn abilities</string>
+    <string name="onboarding_2_body">When you create a quest you pick the ability it trains: exercise feeds Strength, reading feeds Intelligence. Difficulty sets the XP. But be warned — the system is not generous, and there are daily limits.</string>
+    <string name="onboarding_3_title">Pathways test you</string>
+    <string name="onboarding_3_body">A pathway is a long adventure made of stages. While you are on one, part of the XP you earn is held in escrow: finish it and the escrow plus a bonus is yours, abandon it and the escrow burns.</string>
+    <string name="onboarding_4_title">Becoming a legend is not easy</string>
+    <string name="onboarding_4_body">Every level grants feat choices, and your flame grows while you quest daily. Nobody has reached level 20 yet. Maybe you will be the first.</string>
+
+    <string name="proof_title">How did it go?</string>
+    <string name="proof_hint" formatted="false">Leave proof and you earn more XP: a note gives 15%, a photo 30%. Your crewmates can see the photo and approve it.</string>
+    <string name="proof_note_label">Proof note</string>
+    <string name="proof_note_placeholder">Ran 5 km in 32 minutes</string>
+    <string name="proof_photo">Proof photo</string>
+    <string name="proof_remove_photo">Remove the photo</string>
+    <string name="proof_gallery">Gallery</string>
+    <string name="proof_camera">Camera</string>
+    <string name="proof_bonus_photo" formatted="false">+30%</string>
+    <string name="proof_bonus_note" formatted="false">+15%</string>
+    <string name="proof_complete_with_bonus">Complete (%1$s XP)</string>
+    <string name="proof_complete">Complete</string>
+    <string name="proof_complete_without">Complete without proof</string>
+
+    <string name="feed_author_self">You</string>
+    <string name="feed_approvals">%1$d approvals</string>
+    <string name="feed_approved">Approved</string>
+    <string name="feed_approve">Approve</string>
+    <string name="feed_time_now">just now</string>
+    <string name="feed_time_minutes">%1$d min ago</string>
+    <string name="feed_time_hours">%1$d h ago</string>
+    <string name="feed_time_days">%1$d d ago</string>
+    <string name="feed_time_weeks">%1$d w ago</string>
+    <string name="crew_member_self">%1$s (you)</string>
+
+    <string name="logedit_error_no_session">No session found</string>
+
+    <string name="common_back">Back</string>
+    <string name="common_next">Next</string>
+    <string name="common_dismiss">Dismiss</string>
+    <string name="common_ok">OK</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+
+    <string name="logedit_title_edit">Edit Entry</string>
+    <string name="logedit_title_new">New Entry</string>
+    <string name="logedit_field_title">Title</string>
+    <string name="logedit_stat_prompt">Which ability does this train?</string>
+    <string name="logedit_difficulty">Difficulty</string>
+    <string name="logedit_field_description">Description</string>
+    <string name="logedit_priority">Priority</string>
+    <string name="logedit_due_date">Due date</string>
+    <string name="logedit_reminder">Reminder</string>
+    <string name="logedit_proof_hint" formatted="false">You add proof when you complete the quest — a note gives a 15% bonus, a photo 30%.</string>
+    <string name="logedit_picker_value">%1$s: %2$s</string>
+    <string name="logedit_picker_empty">Pick %1$s</string>
+    <string name="logedit_time_picker_title">Pick a time</string>
+
+    <string name="logdetail_not_found">Entry not found</string>
+    <string name="logdetail_difficulty">Difficulty</string>
+    <string name="logdetail_priority">Priority</string>
+    <string name="logdetail_due">Due</string>
+    <string name="logdetail_reminder">Reminder</string>
+    <string name="logdetail_created">Created</string>
+    <string name="logdetail_proof">Proof</string>
+    <string name="logdetail_proof_photo">Proof photo</string>
+    <string name="logdetail_photo_pending">Photo is waiting to upload</string>
+    <string name="logdetail_proof_note">Proof note</string>
+    <string name="logdetail_mark_incomplete">Mark as not completed</string>
+    <string name="logdetail_mark_complete">Mark as completed</string>
+    <string name="logdetail_delete_title">Delete entry</string>
+    <string name="logdetail_delete_body">This entry will be permanently deleted. Are you sure?</string>
+
+    <string name="questlog_title">Journey</string>
+    <string name="questlog_filter">Filter</string>
+    <string name="questlog_search_placeholder">Search quests…</string>
+    <string name="questlog_new_quest">New quest</string>
+    <string name="questlog_active_pathways">Active Pathways</string>
+    <string name="questlog_pathway_cta_title">Set out on a pathway</string>
+    <string name="questlog_pathway_cta_body">Pathways are long adventures made of staged quests. Finish one for escrowed XP and a bonus; abandon it and you get nothing.</string>
+    <string name="questlog_empty_filtered_title">No matching quests</string>
+    <string name="questlog_empty_filtered_body">Try changing your search or filters.</string>
+    <string name="questlog_empty_filtered_action">Clear filters</string>
+    <string name="questlog_empty_title">Your logbook is empty, adventurer</string>
+    <string name="questlog_empty_body">Tap + to write your first quest. Pick the ability you are training — Strength, Intelligence, Charisma… Every completed quest earns XP.</string>
+    <string name="questlog_empty_action">Write your first quest</string>
+    <string name="questlog_results_header">Results</string>
+    <string name="questlog_active_header">My Quests</string>
+    <string name="questlog_completed_header">Completed</string>
+
+    <string name="sort_recent">Recently added</string>
+    <string name="sort_due_date">Due date</string>
+    <string name="sort_priority">Priority</string>
+    <string name="sort_alphabetical">Alphabetical</string>
+    <string name="completion_all">All</string>
+    <string name="completion_completed">Completed</string>
+    <string name="completion_active">Not completed</string>
+
+    <string name="filter_sheet_title">Filter &amp; Sort</string>
+    <string name="filter_section_status">Status</string>
+    <string name="filter_section_stat">Ability</string>
+    <string name="filter_section_priority">Priority</string>
+    <string name="filter_section_sort">Sorting</string>
+
+    <string name="log_proof_badge">Has proof</string>
+    <string name="log_due_date">Due: %1$s</string>
+    <string name="log_type_quest">QUEST</string>
+    <string name="log_type_npc">NPC</string>
+    <string name="log_type_lore">LORE</string>
+    <string name="log_type_session_note">SESSION</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+
+    <string name="weekly_title">This Week</string>
+    <string name="weekly_streak_days">%1$d days</string>
+    <string name="weekly_longest_streak">Longest streak: %1$d days</string>
+    <string name="weekly_longest_streak_grace">Longest streak: %1$d days · Resolute is active</string>
+    <string name="weekly_summary">%1$d XP · %2$d quests</string>
+    <string name="weekly_summary_with_top">%1$d XP · %2$d quests · Most: %3$s</string>
+
+    <string name="character_level">Level %1$d</string>
+    <string name="character_boons">· %1$d Boons</string>
+    <string name="character_streak">Streak</string>
+    <string name="character_resolute_active">Resolute is active</string>
+    <string name="character_pending_feats">%1$d feat choices waiting</string>
+
+    <string name="crew_title">Crew</string>
+    <string name="crew_leave_action">Leave the crew</string>
+    <string name="crew_empty_title">Travelling alone is hard</string>
+    <string name="crew_empty_body">Start a crew or join a friend with their invite code. You will see your crewmates\' quests, and with the Mentor feat you can approve them and earn XP for both of you.</string>
+    <string name="crew_join_with_code">Join With Code</string>
+    <string name="crew_create">Start a Crew</string>
+    <string name="crew_invite_code_label">Invite code: %1$s</string>
+    <string name="crew_copy_code">Copy the code</string>
+    <string name="crew_members_header">Members</string>
+    <string name="crew_feed_header">Recent Quests</string>
+    <string name="crew_approvals_left">%1$d approvals left</string>
+    <string name="crew_feed_empty">Nobody has completed a quest yet. Be the first.</string>
+    <string name="crew_create_dialog_body">Give your crew a name. Once it exists, share the invite code with your friends.</string>
+    <string name="crew_name_label">Crew name</string>
+    <string name="crew_create_confirm">Create</string>
+    <string name="crew_join_dialog_body">Enter the %1$d-character invite code your friend shared.</string>
+    <string name="crew_invite_code_field">Invite code</string>
+    <string name="crew_join_confirm">Join</string>
+    <string name="crew_leave_dialog_title">Leave the crew</string>
+    <string name="crew_leave_dialog_body">If you leave, members can no longer see you and your feed is deleted. The XP and level you earned stay with you.</string>
+    <string name="crew_leave_confirm">Leave</string>
+
+    <string name="crew_invite_code_copied">Invite code copied.</string>
+    <string name="crew_created">Crew created. Share the invite code!</string>
+    <string name="crew_joined" formatted="false">You joined the crew. 50% bonus for the first 7 days!</string>
+
+    <string name="pathway_start_success">You set out on the pathway. Good luck.</string>
+    <string name="pathway_start_too_many_active">You can pursue at most %1$d pathways at once.</string>
+    <string name="pathway_start_prerequisite_missing">You need to complete the required pathway first.</string>
+    <string name="pathway_start_already_started">You are already progressing on this pathway.</string>
+    <string name="pathway_abandoned">You abandoned the pathway. The escrowed XP is gone.</string>
+
+    <string name="pathway_reject_no_session">No session found.</string>
+    <string name="pathway_reject_quest_not_found">Quest not found.</string>
+    <string name="pathway_reject_not_enrolled">You haven\'t started this pathway yet.</string>
+    <string name="pathway_reject_pathway_inactive">This pathway is not active.</string>
+    <string name="pathway_reject_pathway_not_found">Pathway not found.</string>
+    <string name="pathway_reject_stage_locked">This stage isn\'t unlocked yet.</string>
+    <string name="pathway_reject_already_completed">You already completed this quest.</string>
+    <string name="pathway_reject_already_done_today">You already did this quest today.</string>
+    <string name="pathway_reject_xp_not_awarded">XP could not be granted.</string>
+
+    <string name="account_error_wrong_password">Password is incorrect.</string>
+    <string name="account_error_reauth_failed">Could not verify your identity.</string>
+    <string name="account_error_no_session">No session found.</string>
+    <string name="account_error_delete_failed">Account could not be deleted.</string>
+
+    <string name="stat_str_name">Strength</string>
+    <string name="stat_dex_name">Dexterity</string>
+    <string name="stat_con_name">Constitution</string>
+    <string name="stat_int_name">Intelligence</string>
+    <string name="stat_wis_name">Wisdom</string>
+    <string name="stat_cha_name">Charisma</string>
+
+    <string name="stat_str_short">STR</string>
+    <string name="stat_dex_short">DEX</string>
+    <string name="stat_con_short">CON</string>
+    <string name="stat_int_short">INT</string>
+    <string name="stat_wis_short">WIS</string>
+    <string name="stat_cha_short">CHA</string>
+
+    <string name="stat_str_description">Training, strength, physical effort</string>
+    <string name="stat_dex_description">Skill, coordination, handiwork</string>
+    <string name="stat_con_description">Sleep, nutrition, health</string>
+    <string name="stat_int_description">Learning, reading, studying</string>
+    <string name="stat_wis_description">Meditation, journaling, self-awareness</string>
+    <string name="stat_cha_description">Social life, communication, presenting</string>
+
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_medium">Medium</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="difficulty_epic">Epic</string>
+
+    <string name="difficulty_easy_hint">5–10 minutes</string>
+    <string name="difficulty_medium_hint">30–60 minutes</string>
+    <string name="difficulty_hard_hint">2+ hours</string>
+    <string name="difficulty_epic_hint">A full day\'s work</string>
+
+    <string name="proof_level_none">No proof</string>
+    <string name="proof_level_note">Note</string>
+    <string name="proof_level_photo">Photo</string>
+
+    <string name="feat_resolute_name">Resolute</string>
+    <string name="feat_resolute_description">Earn a one-day grace period when your streak breaks.</string>
+    <string name="feat_specialist_name">Specialist</string>
+    <string name="feat_specialist_description" formatted="false">Earn 25% more XP in the ability you choose.</string>
+    <string name="feat_versatile_name">Versatile</string>
+    <string name="feat_versatile_description" formatted="false">20% bonus if you complete quests in 3 different abilities on the same day.</string>
+    <string name="feat_early_riser_name">Early Riser</string>
+    <string name="feat_early_riser_description" formatted="false">20% bonus on quests completed before 09:00.</string>
+    <string name="feat_enduring_name">Enduring</string>
+    <string name="feat_enduring_description" formatted="false">20% bonus on hard and epic quests.</string>
+    <string name="feat_mentor_name">Mentor</string>
+    <string name="feat_mentor_description">When you approve a crewmate\'s quest, you both gain XP.</string>
+
+    <string name="xp_bonus_format">%1$s +%2$d%%</string>
+    <string name="xp_bonus_proof">Proof</string>
+    <string name="xp_bonus_specialist">Specialist</string>
+    <string name="xp_bonus_early_riser">Early Riser</string>
+    <string name="xp_bonus_enduring">Enduring</string>
+    <string name="xp_bonus_versatile">Versatile</string>
+    <string name="xp_bonus_new_adventurer">New Adventurer</string>
 </resources>

@@ -1,8 +1,10 @@
 package com.mehmetbozkurt.questlog.feature.character
 
 import androidx.lifecycle.viewModelScope
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
-import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -79,7 +81,10 @@ class CharacterViewModel @Inject constructor(
             }
             sendEffect(
                 CharacterEffect.ShowMessage(
-                    "${FeatCatalog.byId(featId).name} kazanıldı!"
+                    UiText.Res(
+                        R.string.feat_acquired,
+                        listOf(UiText.Res(featId.nameRes())),
+                    )
                 )
             )
         }

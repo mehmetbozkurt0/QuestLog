@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.crew
 
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -55,6 +56,6 @@ sealed interface CrewEvent : UiEvent {
 }
 
 sealed interface CrewEffect : UiEffect {
-    data class ShowMessage(val text: String) : CrewEffect
+    data class ShowMessage(val text: UiText) : CrewEffect
     data class CopyToClipboard(val text: String) : CrewEffect
 }

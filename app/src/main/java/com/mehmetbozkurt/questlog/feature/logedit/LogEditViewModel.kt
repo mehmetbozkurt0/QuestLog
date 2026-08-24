@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.uiText
 import com.mehmetbozkurt.questlog.core.navigation.LogEditRouteKey
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
@@ -90,7 +92,7 @@ class LogEditViewModel @Inject constructor(
             val user = authRepository.currentUserSync()
             if (user == null) {
                 setState { copy(isSaving = false) }
-                sendEffect(LogEditEffect.ShowError("Oturum bulunamadı"))
+                sendEffect(LogEditEffect.ShowError(uiText(R.string.logedit_error_no_session)))
                 return@launch
             }
 

@@ -18,6 +18,7 @@ import com.mehmetbozkurt.questlog.data.remote.ProofPhotoRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
 import com.mehmetbozkurt.questlog.domain.repository.AccountRepository
 import com.mehmetbozkurt.questlog.domain.repository.DeleteAccountResult
+import com.mehmetbozkurt.questlog.domain.repository.DeleteFailure
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -54,9 +55,7 @@ class AccountRepositoryImpl @Inject constructor(
                 return@withContext DeleteAccountResult.WrongPassword
             } catch (e: Exception) {
                 Log.e(TAG, "Yeniden kimlik doğrulama başarısız", e)
-                return@withContext DeleteAccountResult.Failed(
-                    e.message ?: "Kimlik doğrulanamadı."
-                )
+                return@withContext DeleteAccountResult.Failed(DeleteFailure.REAUTH_FAILED)
             }
 
             wipeAndDelete(user)
@@ -73,9 +72,7 @@ class AccountRepositoryImpl @Inject constructor(
                 return@withContext DeleteAccountResult.WrongPassword
             } catch (e: Exception) {
                 Log.e(TAG, "Google yeniden kimlik doğrulaması başarısız", e)
-                return@withContext DeleteAccountResult.Failed(
-                    e.message ?: "Kimlik doğrulanamadı."
-                )
+                return@withContext DeleteAccountResult.Failed(DeleteFailure.REAUTH_FAILED)
             }
 
             wipeAndDelete(user)
@@ -94,7 +91,7 @@ class AccountRepositoryImpl @Inject constructor(
             DeleteAccountResult.Success
         } catch (e: Exception) {
             Log.e(TAG, "Hesap silinemedi", e)
-            DeleteAccountResult.Failed(e.message ?: "Hesap silinemedi.")
+            DeleteAccountResult.Failed(DeleteFailure.DELETE_FAILED)
         }
     }
 

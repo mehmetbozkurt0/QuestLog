@@ -10,5 +10,10 @@ sealed interface DeleteAccountResult {
     data object Success : DeleteAccountResult
     data object WrongPassword : DeleteAccountResult
     data object NoSession : DeleteAccountResult
-    data class Failed(val message: String) : DeleteAccountResult
+    data class Failed(val reason: DeleteFailure) : DeleteAccountResult
+}
+
+enum class DeleteFailure {
+    REAUTH_FAILED,
+    DELETE_FAILED,
 }

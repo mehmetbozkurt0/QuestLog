@@ -18,6 +18,7 @@ import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestCompletionResult
+import com.mehmetbozkurt.questlog.domain.repository.QuestRejection
 import com.mehmetbozkurt.questlog.domain.repository.StartResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -206,20 +207,20 @@ class PathwayRepositoryImpl @Inject constructor(
         withContext(io){
             completionMutex.withLock{
                 val user = authRepository.currentUserSync()
-                    ?: return@withLock QuestCompletionResult.Rejected("Oturum bulunamadı")
+                    ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.NO_SESSION)
 
                 val quest = dao.getQuest(questId)?.toDomain()
-                    ?: return@withLock QuestCompletionResult.Rejected("Görev bulunamadı")
+                    ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.QUEST_NOT_FOUND)
 
                 val progress = dao.getProgress(user.uid, quest.pathwayId)
-                    ?: return@withLock QuestCompletionResult.Rejected("Bu yola henüz girmedin")
+                    ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.NOT_ENROLLED)
 
                 if (!progress.isActive()) {
-                    return@withLock QuestCompletionResult.Rejected("Bu yol aktif değil")
+                    return@withLock QuestCompletionResult.Rejected(QuestRejection.PATHWAY_INACTIVE)
                 }
 
                 val pathwayEntity = dao.getPathway(quest.pathwayId)
-                    ?: return@withLock QuestCompletionResult.Rejected("Yol bulunamadı")
+                    ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.PATHWAY_NOT_FOUND)
 
                 val allQuestEntities = dao.getQuestsFor(quest.pathwayId)
                 val completionMap = dao.getCompletionsSnapshot(user.uid).associateBy { it.questId }
@@ -235,18 +236,18 @@ class PathwayRepositoryImpl @Inject constructor(
                     }?.key ?: quest.stage
 
                 if (quest.stage > unlockedStage) {
-                    return@withLock QuestCompletionResult.Rejected("Bu aşama henüz açılmadı")
+                    return@withLock QuestCompletionResult.Rejected(QuestRejection.STAGE_LOCKED)
                 }
 
                 val currentCount = completionMap[questId]?.completions ?: 0
                 if (currentCount >= quest.requiredCompletions) {
-                    return@withLock QuestCompletionResult.Rejected("Bu görevi zaten tamamladın")
+                    return@withLock QuestCompletionResult.Rejected(QuestRejection.ALREADY_COMPLETED)
                 }
 
                 val todayStart = startOfTodayMillis()
                 val lastCompleted = completionMap[questId]?.lastCompletedAtMillis ?: 0L
                 if (lastCompleted >= todayStart) {
-                    return@withLock QuestCompletionResult.Rejected("Bu görevi bugün zaten yaptın")
+                    return@withLock QuestCompletionResult.Rejected(QuestRejection.ALREADY_DONE_TODAY)
                 }
 
                 val now = System.currentTimeMillis()
@@ -259,7 +260,7 @@ class PathwayRepositoryImpl @Inject constructor(
                     logId = questId,
                     immediateCharacterXp = split.immediate,
                     fullStatXp = baseXp,
-                ) ?: return@withLock QuestCompletionResult.Rejected("XP verilemedi")
+                ) ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.XP_NOT_AWARDED)
 
                 val newCount = currentCount + 1
                 dao.upsertCompletion(

@@ -3,8 +3,11 @@ package com.mehmetbozkurt.questlog.feature.pathway
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.common.toCelebration
+import com.mehmetbozkurt.questlog.core.common.toUiText
+import com.mehmetbozkurt.questlog.core.common.uiText
 import com.mehmetbozkurt.questlog.core.navigation.PathwayDetailRouteKey
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
@@ -66,11 +69,16 @@ class PathwayDetailViewModel @Inject constructor(
             setState { copy(isWorking = false) }
 
             val message = when (result) {
-                StartResult.Success -> "Yola girdin. Bol şans."
-                StartResult.TooManyActive ->
-                    "Aynı anda en fazla ${PathwayRules.MAX_ACTIVE_PATHWAYS} yol sürdürebilirsin."
-                StartResult.PrerequisiteMissing -> "Önce gerekli yolu tamamlamalısın."
-                StartResult.AlreadyStarted -> "Bu yolda zaten ilerliyorsun."
+                StartResult.Success -> uiText(R.string.pathway_start_success)
+                StartResult.TooManyActive -> uiText(
+                    R.string.pathway_start_too_many_active,
+                    PathwayRules.MAX_ACTIVE_PATHWAYS,
+                )
+
+                StartResult.PrerequisiteMissing ->
+                    uiText(R.string.pathway_start_prerequisite_missing)
+
+                StartResult.AlreadyStarted -> uiText(R.string.pathway_start_already_started)
             }
             sendEffect(PathwayDetailEffect.ShowMessage(message))
         }
@@ -82,7 +90,7 @@ class PathwayDetailViewModel @Inject constructor(
         viewModelScope.launch {
             repository.abandonPathway(pathwayId)
             setState { copy(isWorking = false) }
-            sendEffect(PathwayDetailEffect.ShowMessage("Yolu bıraktın. Emanetteki XP kayboldu."))
+            sendEffect(PathwayDetailEffect.ShowMessage(uiText(R.string.pathway_abandoned)))
         }
     }
 
@@ -97,7 +105,7 @@ class PathwayDetailViewModel @Inject constructor(
                 is QuestCompletionResult.Success ->
                     sendEffect(PathwayDetailEffect.ShowCelebration(result.toCelebration()))
                 is QuestCompletionResult.Rejected ->
-                    sendEffect(PathwayDetailEffect.ShowMessage(result.reason))
+                    sendEffect(PathwayDetailEffect.ShowMessage(result.reason.toUiText()))
             }
         }
     }

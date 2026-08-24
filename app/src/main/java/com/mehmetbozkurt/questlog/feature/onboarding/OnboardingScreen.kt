@@ -28,7 +28,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.annotation.StringRes
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,36 +40,30 @@ import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
     val icon: ImageVector,
-    val title: String,
-    val body: String,
+    @StringRes val titleRes: Int,
+    @StringRes val bodyRes: Int,
 )
 
 private val pages = listOf(
     OnboardingPage(
         Icons.AutoMirrored.Filled.MenuBook,
-        "Günlüğüne hoş geldin, maceracı",
-        "Bu bir yapılacaklar listesi değil. Burada gerçek hayatta yaptığın her iş " +
-                "karakterini inşa eder. Spor, kitap, ders, sosyalleşme... hepsi birer görev.",
+        R.string.onboarding_1_title,
+        R.string.onboarding_1_body,
     ),
     OnboardingPage(
         Icons.Default.FitnessCenter,
-        "Görevler yetenek kazandırır",
-        "Görev oluştururken hangi yeteneği geliştirdiğini seçersin: spor Güç'e, " +
-                "okumak Zeka'ya işler. Zorluk XP'yi belirler. Ama dikkat — sistem cömert " +
-                "değildir, günlük sınırlar vardır.",
+        R.string.onboarding_2_title,
+        R.string.onboarding_2_body,
     ),
     OnboardingPage(
         Icons.Default.Map,
-        "Yollar seni sınar",
-        "Yol, aşamalardan oluşan uzun bir maceradır. Yoldayken kazandığın XP'nin bir " +
-                "kısmı emanete yazılır: bitirirsen emanet ve bonus senindir, yarıda " +
-                "bırakırsan emanet yanar.",
+        R.string.onboarding_3_title,
+        R.string.onboarding_3_body,
     ),
     OnboardingPage(
         Icons.Default.LocalFireDepartment,
-        "Efsane olmak kolay değil",
-        "Seviye atladıkça yetenek hakları kazanırsın, her gün görev yaparsan alevin " +
-                "büyür. Seviye 20'ye ulaşan henüz görülmedi. Belki ilk sen olursun.",
+        R.string.onboarding_4_title,
+        R.string.onboarding_4_body,
     ),
 )
 
@@ -87,7 +84,10 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.md)) {
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = onFinished) {
-                    Text("Atla", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(R.string.onboarding_skip),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
@@ -116,14 +116,14 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     }
                     Spacer(Modifier.height(Spacing.xl))
                     Text(
-                        page.title,
+                        stringResource(page.titleRes),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(Spacing.md))
                     Text(
-                        page.body,
+                        stringResource(page.bodyRes),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
@@ -158,7 +158,12 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                         }
                     }
                 ) {
-                    Text(if (isLastPage) "Maceraya Başla" else "İleri")
+                    Text(
+                        stringResource(
+                            if (isLastPage) R.string.onboarding_start
+                            else R.string.onboarding_next
+                        )
+                    )
                 }
             }
         }

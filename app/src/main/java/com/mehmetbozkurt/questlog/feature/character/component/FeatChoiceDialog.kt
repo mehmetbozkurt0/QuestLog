@@ -17,8 +17,11 @@ import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.StatType
+import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.descriptionRes
+import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.domain.model.colorHex
-import com.mehmetbozkurt.questlog.domain.model.displayName
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -41,7 +44,7 @@ fun FeatChoiceDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
         title = {
             Text(
-                "Yeni Yetenek Seç",
+                stringResource(R.string.feat_dialog_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -54,7 +57,7 @@ fun FeatChoiceDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    "Seviye atladın. Kalıcı bir yetenek kazanıyorsun.",
+                    stringResource(R.string.feat_dialog_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -81,7 +84,7 @@ fun FeatChoiceDialog(
                         Column(Modifier.padding(Spacing.md)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    def.name,
+                                    stringResource(def.id.nameRes()),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (selected)
                                         MaterialTheme.colorScheme.onPrimaryContainer
@@ -91,7 +94,7 @@ fun FeatChoiceDialog(
                                 if (owned) {
                                     Spacer(Modifier.width(Spacing.sm))
                                     Text(
-                                        "· sahipsin",
+                                        stringResource(R.string.feat_dialog_owned),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -99,7 +102,7 @@ fun FeatChoiceDialog(
                             }
                             Spacer(Modifier.height(Spacing.xs))
                             Text(
-                                def.description,
+                                stringResource(def.id.descriptionRes()),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (selected)
                                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -113,7 +116,7 @@ fun FeatChoiceDialog(
                 if (needsStat) {
                     Spacer(Modifier.height(Spacing.md))
                     Text(
-                        "Hangi yetenekte uzmanlaşacaksın?",
+                        stringResource(R.string.feat_dialog_stat_prompt),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -125,7 +128,7 @@ fun FeatChoiceDialog(
                                 selected = selectedStat == stat,
                                 onClick = { if (!isSaving) onStatSelected(stat) },
                                 enabled = !isSaving,
-                                label = { Text(stat.displayName()) },
+                                label = { Text(stringResource(stat.nameRes())) },
                                 leadingIcon = {
                                     Box(
                                         Modifier
@@ -144,12 +147,12 @@ fun FeatChoiceDialog(
         },
         confirmButton = {
             TextButton(onClick = onConfirm, enabled = canConfirm) {
-                Text("Seç")
+                Text(stringResource(R.string.feat_dialog_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !isSaving) {
-                Text("Sonra")
+                Text(stringResource(R.string.feat_dialog_later))
             }
         },
     )

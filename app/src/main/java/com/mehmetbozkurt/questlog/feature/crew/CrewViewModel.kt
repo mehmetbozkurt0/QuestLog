@@ -1,7 +1,11 @@
 package com.mehmetbozkurt.questlog.feature.crew
 
 import androidx.lifecycle.viewModelScope
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.toUiText
+import com.mehmetbozkurt.questlog.core.common.uiText
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.ApproveResult
@@ -77,7 +81,7 @@ class CrewViewModel @Inject constructor(
             CrewEvent.InviteCodeCopied -> {
                 val code = currentState.crew?.inviteCode ?: return
                 sendEffect(CrewEffect.CopyToClipboard(code))
-                sendEffect(CrewEffect.ShowMessage("Davet kodu kopyalandı."))
+                sendEffect(CrewEffect.ShowMessage(uiText(R.string.crew_invite_code_copied)))
             }
         }
     }
@@ -89,7 +93,7 @@ class CrewViewModel @Inject constructor(
         viewModelScope.launch {
             val result = crewRepository.createCrew(name)
             setState { copy(isWorking = false, showCreateDialog = result !is CrewActionResult.Success) }
-            sendEffect(CrewEffect.ShowMessage(result.message("Ekip kuruldu. Davet kodunu paylaş!")))
+            sendEffect(CrewEffect.ShowMessage(result.message(R.string.crew_created)))
         }
     }
 
@@ -100,7 +104,7 @@ class CrewViewModel @Inject constructor(
         viewModelScope.launch {
             val result = crewRepository.joinByCode(code)
             setState { copy(isWorking = false, showJoinDialog = result !is CrewActionResult.Success) }
-            sendEffect(CrewEffect.ShowMessage(result.message("Ekibe katıldın. İlk 7 gün %50 bonus!")))
+            sendEffect(CrewEffect.ShowMessage(result.message(R.string.crew_joined)))
         }
     }
 
@@ -109,7 +113,7 @@ class CrewViewModel @Inject constructor(
         viewModelScope.launch {
             val result = crewRepository.leaveCrew()
             setState { copy(isWorking = false) }
-            sendEffect(CrewEffect.ShowMessage(result.message("Ekipten ayrıldın.")))
+            sendEffect(CrewEffect.ShowMessage(result.message(R.string.crew_left)))
         }
     }
 
@@ -125,25 +129,26 @@ class CrewViewModel @Inject constructor(
         }
     }
 
-    private fun CrewActionResult.message(success: String): String = when (this) {
-        CrewActionResult.Success -> success
-        CrewActionResult.AlreadyInCrew -> "Zaten bir ekiptesin. Önce ayrılman gerek."
-        CrewActionResult.CodeNotFound -> "Bu kodla bir ekip bulunamadı."
-        CrewActionResult.NotInCrew -> "Bir ekipte değilsin."
-        CrewActionResult.Offline -> "Bağlantı yok. Ekip işlemleri çevrimiçi olmayı gerektirir."
-        is CrewActionResult.Failed -> message
+    private fun CrewActionResult.message(successRes: Int): UiText = when (this) {
+        CrewActionResult.Success -> uiText(successRes)
+        CrewActionResult.AlreadyInCrew -> uiText(R.string.crew_error_already_in_crew)
+        CrewActionResult.CodeNotFound -> uiText(R.string.crew_error_code_not_found)
+        CrewActionResult.NotInCrew -> uiText(R.string.crew_error_not_in_crew)
+        CrewActionResult.Offline -> uiText(R.string.crew_error_offline)
+        is CrewActionResult.Failed -> reason.toUiText()
     }
 
-    private fun ApproveResult.message(): String = when (this) {
-        is ApproveResult.Granted -> {
-            val base = "Onayladın! Her ikinize de +$xp XP."
-            if (leveledUp) "$base Seviye $newLevel oldun!" else base
-        }
-        ApproveResult.NoMentorFeat -> "Onaylamak için Mentor yeteneğine sahip olmalısın."
+    private fun ApproveResult.message(): UiText = when (this) {
+        is ApproveResult.Granted ->
+            if (leveledUp) uiText(R.string.crew_approve_granted_leveled, xp, newLevel)
+            else uiText(R.string.crew_approve_granted, xp)
+
+        ApproveResult.NoMentorFeat -> uiText(R.string.crew_approve_error_no_mentor_feat)
         ApproveResult.DailyLimitReached ->
-            "Bugünlük onay hakkın doldu (${CrewRules.DAILY_APPROVAL_LIMIT})."
-        ApproveResult.AlreadyApproved -> "Bunu zaten onayladın."
-        ApproveResult.OwnQuest -> "Kendi görevini onaylayamazsın."
-        is ApproveResult.Failed -> message
+            uiText(R.string.crew_approve_error_daily_limit, CrewRules.DAILY_APPROVAL_LIMIT)
+
+        ApproveResult.AlreadyApproved -> uiText(R.string.crew_approve_error_already_approved)
+        ApproveResult.OwnQuest -> uiText(R.string.crew_approve_error_own_quest)
+        is ApproveResult.Failed -> reason.toUiText()
     }
 }

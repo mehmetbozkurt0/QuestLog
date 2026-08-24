@@ -6,7 +6,7 @@
         <item name="postSplashScreenTheme">@style/Theme.QuestLog</item>
     </style>
 
-    <style name="Theme.QuestLog" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.QuestLog" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/splash_background</item>
     </style>
 </resources>
