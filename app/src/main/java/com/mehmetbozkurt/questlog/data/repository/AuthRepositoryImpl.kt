@@ -2,13 +2,16 @@ package com.mehmetbozkurt.questlog.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.mehmetbozkurt.questlog.core.common.DataResult
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.common.runCatchingResult
 import com.mehmetbozkurt.questlog.domain.model.AppUser
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.GoogleAuthResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -82,6 +85,32 @@ class AuthRepositoryImpl @Inject constructor(
             runCatchingResult {
                 auth.sendPasswordResetEmail(email.trim()).await()
                 Unit
+            }
+        }
+
+    override suspend fun signInWithGoogle(idToken: String): DataResult<GoogleAuthResult> =
+        withContext(io) {
+            runCatchingResult {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                val result = auth.signInWithCredential(credential).await()
+                val firebaseUser = result.user ?: error("Kullanıcı bilgisi alınamadı.")
+                val isNewUser = result.additionalUserInfo?.isNewUser == true
+                val user = firebaseUser.toAppUser()
+
+                val document = mutableMapOf<String, Any>(
+                    "uid" to user.uid,
+                    "email" to user.email,
+                    "displayName" to user.displayName,
+                )
+                if (isNewUser) {
+                    document["createdAt"] = System.currentTimeMillis()
+                }
+
+                firestore.collection("users").document(user.uid)
+                    .set(document, SetOptions.merge())
+                    .await()
+
+                GoogleAuthResult(user = user, isNewUser = isNewUser)
             }
         }
 

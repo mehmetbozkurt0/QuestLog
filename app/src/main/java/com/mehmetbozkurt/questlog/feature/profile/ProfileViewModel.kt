@@ -65,6 +65,8 @@ class ProfileViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+
+        setState { copy(isPasswordAccount = accountRepository.isPasswordAccount()) }
     }
 
     override fun onEvent(event: ProfileEvent) {
@@ -97,7 +99,20 @@ class ProfileViewModel @Inject constructor(
                 copy(deletePassword = event.value, deleteError = null)
             }
 
-            ProfileEvent.DeleteConfirmed -> deleteAccount()
+            ProfileEvent.DeleteConfirmed -> {
+                if (currentState.isPasswordAccount) {
+                    deleteAccount()
+                } else {
+                    setState { copy(isDeleting = true, deleteError = null) }
+                    sendEffect(ProfileEffect.LaunchGoogleReauth)
+                }
+            }
+
+            is ProfileEvent.GoogleReauthToken -> deleteAccountWithGoogle(event.idToken)
+
+            is ProfileEvent.GoogleReauthFailed -> setState {
+                copy(isDeleting = false, deleteError = event.message)
+            }
         }
     }
 
@@ -108,23 +123,37 @@ class ProfileViewModel @Inject constructor(
         setState { copy(isDeleting = true, deleteError = null) }
 
         viewModelScope.launch {
-            when (val result = accountRepository.deleteAccount(password)) {
-                DeleteAccountResult.Success -> {
-                    setState { copy(isDeleting = false, showDeleteDialog = false) }
-                    sendEffect(ProfileEffect.NavigateToAuth)
-                }
+            handleDeleteResult(accountRepository.deleteAccount(password))
+        }
+    }
 
-                DeleteAccountResult.WrongPassword -> setState {
-                    copy(isDeleting = false, deleteError = "Parola yanlış.")
-                }
+    private fun deleteAccountWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            handleDeleteResult(accountRepository.deleteAccountWithGoogle(idToken))
+        }
+    }
 
-                DeleteAccountResult.NoSession -> setState {
-                    copy(isDeleting = false, deleteError = "Oturum bulunamadı.")
-                }
+    private fun handleDeleteResult(result: DeleteAccountResult) {
+        when (result) {
+            DeleteAccountResult.Success -> {
+                setState { copy(isDeleting = false, showDeleteDialog = false) }
+                sendEffect(ProfileEffect.NavigateToAuth)
+            }
 
-                is DeleteAccountResult.Failed -> setState {
-                    copy(isDeleting = false, deleteError = result.message)
-                }
+            DeleteAccountResult.WrongPassword -> setState {
+                copy(
+                    isDeleting = false,
+                    deleteError = if (isPasswordAccount) "Parola yanlış."
+                    else "Kimlik doğrulanamadı.",
+                )
+            }
+
+            DeleteAccountResult.NoSession -> setState {
+                copy(isDeleting = false, deleteError = "Oturum bulunamadı.")
+            }
+
+            is DeleteAccountResult.Failed -> setState {
+                copy(isDeleting = false, deleteError = result.message)
             }
         }
     }

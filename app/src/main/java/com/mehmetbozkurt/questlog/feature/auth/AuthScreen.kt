@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -15,8 +18,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
+import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthRoute(
@@ -26,6 +33,8 @@ fun AuthRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -33,6 +42,19 @@ fun AuthRoute(
                 AuthEffect.NavigateToHome -> onNavigateToHome()
                 AuthEffect.NavigateToOnboarding -> onNavigateToOnboarding()
                 is AuthEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
+
+                AuthEffect.LaunchGoogleSignIn -> scope.launch {
+                    when (val result = GoogleCredentialProvider.requestIdToken(context)) {
+                        is GoogleIdTokenResult.Success ->
+                            viewModel.onEvent(AuthEvent.GoogleIdTokenReceived(result.idToken))
+
+                        GoogleIdTokenResult.Cancelled ->
+                            viewModel.onEvent(AuthEvent.GoogleSignInFailed(null))
+
+                        is GoogleIdTokenResult.Failed ->
+                            viewModel.onEvent(AuthEvent.GoogleSignInFailed(result.message))
+                    }
+                }
             }
         }
     }
@@ -85,7 +107,7 @@ fun AuthScreen(
                 onValueChange = { onEvent(AuthEvent.DisplayNameChanged(it)) },
                 label = { Text("Kahraman adı") },
                 singleLine = true,
-                enabled = !state.isLoading,
+                enabled = !state.isBusy,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -97,7 +119,7 @@ fun AuthScreen(
             onValueChange = { onEvent(AuthEvent.EmailChanged(it)) },
             label = { Text("E-posta") },
             singleLine = true,
-            enabled = !state.isLoading,
+            enabled = !state.isBusy,
             isError = !state.isEmailValid,
             supportingText = {
                 if (!state.isEmailValid) Text("Geçerli bir e-posta gir")
@@ -116,7 +138,7 @@ fun AuthScreen(
             onValueChange = { onEvent(AuthEvent.PasswordChanged(it)) },
             label = { Text("Parola") },
             singleLine = true,
-            enabled = !state.isLoading,
+            enabled = !state.isBusy,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -164,10 +186,52 @@ fun AuthScreen(
             }
         }
 
+        Spacer(Modifier.height(Spacing.lg))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            HorizontalDivider(Modifier.weight(1f))
+            Text(
+                text = "veya",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = Spacing.md),
+            )
+            HorizontalDivider(Modifier.weight(1f))
+        }
+
+        Spacer(Modifier.height(Spacing.lg))
+
+        OutlinedButton(
+            onClick = {
+                keyboard?.hide()
+                onEvent(AuthEvent.GoogleSignInClicked)
+            },
+            enabled = !state.isBusy,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) {
+            if (state.isGoogleLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.ic_google),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(Spacing.md))
+                Text(
+                    text = "Google ile devam et",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        }
+
         if (!isSignUp) {
             TextButton(
                 onClick = { onEvent(AuthEvent.ForgotPasswordClicked) },
-                enabled = !state.isLoading,
+                enabled = !state.isBusy,
             ) {
                 Text(
                     text = "Şifremi unuttum",
@@ -180,7 +244,7 @@ fun AuthScreen(
 
         TextButton(
             onClick = { onEvent(AuthEvent.ModeToggled) },
-            enabled = !state.isLoading,
+            enabled = !state.isBusy,
         ) {
             Text(
                 text = if (isSignUp) "Zaten hesabın var mı? Giriş yap"

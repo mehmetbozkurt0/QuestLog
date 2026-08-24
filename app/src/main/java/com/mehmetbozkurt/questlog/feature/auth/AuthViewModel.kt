@@ -33,6 +33,35 @@ class AuthViewModel @Inject constructor(
             }
 
             AuthEvent.ForgotPasswordClicked -> sendPasswordReset()
+
+            AuthEvent.GoogleSignInClicked -> {
+                setState { copy(isGoogleLoading = true, errorMessage = null) }
+                sendEffect(AuthEffect.LaunchGoogleSignIn)
+            }
+
+            is AuthEvent.GoogleIdTokenReceived -> signInWithGoogle(event.idToken)
+
+            is AuthEvent.GoogleSignInFailed -> setState {
+                copy(isGoogleLoading = false, errorMessage = event.message)
+            }
+        }
+    }
+
+    private fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            when (val result = authRepository.signInWithGoogle(idToken)) {
+                is DataResult.Error -> setState {
+                    copy(isGoogleLoading = false, errorMessage = result.exception.toAuthMessage())
+                }
+
+                is DataResult.Success -> {
+                    setState { copy(isGoogleLoading = false) }
+                    sendEffect(
+                        if (result.data.isNewUser) AuthEffect.NavigateToOnboarding
+                        else AuthEffect.NavigateToHome
+                    )
+                }
+            }
         }
     }
 

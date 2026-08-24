@@ -10,5 +10,11 @@ interface AuthRepository {
     suspend fun signIn(email: String, password: String): DataResult<AppUser>
     suspend fun signUp(email: String, password: String, displayName: String): DataResult<AppUser>
     suspend fun sendPasswordReset(email: String): DataResult<Unit>
+    suspend fun signInWithGoogle(idToken: String): DataResult<GoogleAuthResult>
     fun signOut()
 }
+
+data class GoogleAuthResult(
+    val user: AppUser,
+    val isNewUser: Boolean,
+)

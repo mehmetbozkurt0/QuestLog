@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -34,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.BuildConfig
+import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
+import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
@@ -41,6 +44,7 @@ import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -52,12 +56,26 @@ fun ProfileRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 ProfileEffect.NavigateToAuth -> onNavigateToAuth()
                 ProfileEffect.OpenNotificationSettings -> context.openNotificationSettings()
+
+                ProfileEffect.LaunchGoogleReauth -> scope.launch {
+                    when (val result = GoogleCredentialProvider.requestIdToken(context)) {
+                        is GoogleIdTokenResult.Success ->
+                            viewModel.onEvent(ProfileEvent.GoogleReauthToken(result.idToken))
+
+                        GoogleIdTokenResult.Cancelled ->
+                            viewModel.onEvent(ProfileEvent.GoogleReauthFailed(null))
+
+                        is GoogleIdTokenResult.Failed ->
+                            viewModel.onEvent(ProfileEvent.GoogleReauthFailed(result.message))
+                    }
+                }
             }
         }
     }
@@ -259,26 +277,42 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(Spacing.md))
-                    Text(
-                        "Onaylamak için parolanı gir.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(Spacing.sm))
-                    OutlinedTextField(
-                        value = state.deletePassword,
-                        onValueChange = { onEvent(ProfileEvent.DeletePasswordChanged(it)) },
-                        label = { Text("Parola") },
-                        singleLine = true,
-                        enabled = !state.isDeleting,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        isError = state.deleteError != null,
-                        supportingText = {
-                            state.deleteError?.let { Text(it) }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    if (state.isPasswordAccount) {
+                        Text(
+                            "Onaylamak için parolanı gir.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(Spacing.sm))
+                        OutlinedTextField(
+                            value = state.deletePassword,
+                            onValueChange = { onEvent(ProfileEvent.DeletePasswordChanged(it)) },
+                            label = { Text("Parola") },
+                            singleLine = true,
+                            enabled = !state.isDeleting,
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = state.deleteError != null,
+                            supportingText = {
+                                state.deleteError?.let { Text(it) }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        Text(
+                            "Onaylamak için Google hesabınla yeniden giriş yapman istenecek.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        state.deleteError?.let {
+                            Spacer(Modifier.height(Spacing.sm))
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
                     if (state.isDeleting) {
                         Spacer(Modifier.height(Spacing.sm))
                         LinearProgressIndicator(Modifier.fillMaxWidth())

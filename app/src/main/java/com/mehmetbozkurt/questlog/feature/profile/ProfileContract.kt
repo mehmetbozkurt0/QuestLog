@@ -23,9 +23,11 @@ data class ProfileState(
     val deletePassword: String = "",
     val isDeleting: Boolean = false,
     val deleteError: String? = null,
+    val isPasswordAccount: Boolean = true,
     val theme: ThemePreference = ThemePreference.SYSTEM,
 ) : UiState {
-    val canDelete: Boolean get() = !isDeleting && deletePassword.length >= 6
+    val canDelete: Boolean
+        get() = !isDeleting && (!isPasswordAccount || deletePassword.length >= 6)
 
     val level: Int get() = character?.level ?: 1
 
@@ -58,9 +60,12 @@ sealed interface ProfileEvent : UiEvent {
     data class DeleteDialogToggled(val show: Boolean) : ProfileEvent
     data class DeletePasswordChanged(val value: String) : ProfileEvent
     data object DeleteConfirmed : ProfileEvent
+    data class GoogleReauthToken(val idToken: String) : ProfileEvent
+    data class GoogleReauthFailed(val message: String?) : ProfileEvent
 }
 
 sealed interface ProfileEffect : UiEffect {
     data object NavigateToAuth : ProfileEffect
     data object OpenNotificationSettings : ProfileEffect
+    data object LaunchGoogleReauth : ProfileEffect
 }

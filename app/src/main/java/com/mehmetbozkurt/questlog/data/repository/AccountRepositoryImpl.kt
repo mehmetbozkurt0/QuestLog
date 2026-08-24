@@ -4,6 +4,8 @@ import android.util.Log
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
@@ -37,11 +39,13 @@ class AccountRepositoryImpl @Inject constructor(
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : AccountRepository {
 
+    override fun isPasswordAccount(): Boolean =
+        auth.currentUser?.providerData?.any { it.providerId == "password" } == true
+
     override suspend fun deleteAccount(password: String): DeleteAccountResult =
         withContext(io) {
             val user = auth.currentUser ?: return@withContext DeleteAccountResult.NoSession
             val email = user.email ?: return@withContext DeleteAccountResult.NoSession
-            val uid = user.uid
 
             try {
                 user.reauthenticate(EmailAuthProvider.getCredential(email, password)).await()
@@ -55,20 +59,44 @@ class AccountRepositoryImpl @Inject constructor(
                 )
             }
 
-            try {
-                deleteProofPhotos(uid)
-                deleteCrewTraces(uid)
-                questLogRemote.deleteAllOwnedBy(uid)
-                pathwayRemote.deleteProgressForUser(uid)
-                characterRemote.deleteUserDocument(uid)
-                database.clearAllTables()
-                user.delete().await()
-                DeleteAccountResult.Success
-            } catch (e: Exception) {
-                Log.e(TAG, "Hesap silinemedi", e)
-                DeleteAccountResult.Failed(e.message ?: "Hesap silinemedi.")
-            }
+            wipeAndDelete(user)
         }
+
+    override suspend fun deleteAccountWithGoogle(idToken: String): DeleteAccountResult =
+        withContext(io) {
+            val user = auth.currentUser ?: return@withContext DeleteAccountResult.NoSession
+
+            try {
+                user.reauthenticate(GoogleAuthProvider.getCredential(idToken, null)).await()
+            } catch (e: FirebaseAuthInvalidCredentialsException) {
+                Log.e(TAG, "Google yeniden kimlik doğrulaması reddedildi", e)
+                return@withContext DeleteAccountResult.WrongPassword
+            } catch (e: Exception) {
+                Log.e(TAG, "Google yeniden kimlik doğrulaması başarısız", e)
+                return@withContext DeleteAccountResult.Failed(
+                    e.message ?: "Kimlik doğrulanamadı."
+                )
+            }
+
+            wipeAndDelete(user)
+        }
+
+    private suspend fun wipeAndDelete(user: FirebaseUser): DeleteAccountResult {
+        val uid = user.uid
+        return try {
+            deleteProofPhotos(uid)
+            deleteCrewTraces(uid)
+            questLogRemote.deleteAllOwnedBy(uid)
+            pathwayRemote.deleteProgressForUser(uid)
+            characterRemote.deleteUserDocument(uid)
+            database.clearAllTables()
+            user.delete().await()
+            DeleteAccountResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Hesap silinemedi", e)
+            DeleteAccountResult.Failed(e.message ?: "Hesap silinemedi.")
+        }
+    }
 
     private suspend fun deleteProofPhotos(uid: String) {
         questLogDao.getAllForOwner(uid).forEach { log ->
