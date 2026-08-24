@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.feature.questlog.component
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.border
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
@@ -24,13 +25,16 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
 import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
@@ -57,6 +61,7 @@ fun QuestLogCard(
     QuestCard(
         onClick = onClick,
         accent = statColor,
+        accentWidth = log.difficulty.accentWidth(),
         seed = log.id.hashCode(),
         modifier = modifier
             .fillMaxWidth()
@@ -81,7 +86,9 @@ fun QuestLogCard(
                     Text(
                         text = log.difficulty.pips(),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (log.difficulty >= Difficulty.HARD)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (log.proofLevel != ProofLevel.NONE) {
@@ -101,6 +108,9 @@ fun QuestLogCard(
                     text = stringResource(log.priority.labelRes()),
                     style = MaterialTheme.typography.labelMedium,
                     color = priorityColor,
+                    modifier = Modifier
+                        .border(1.dp, priorityColor.copy(alpha = 0.6f), MaterialTheme.shapes.extraSmall)
+                        .padding(horizontal = Spacing.sm, vertical = 1.dp),
                 )
             }
         }

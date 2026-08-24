@@ -62,6 +62,15 @@ fun ProofLevel.nameRes(): Int = when (this) {
 }
 
 @StringRes
+fun levelRankRes(level: Int): Int = when {
+    level >= 16 -> R.string.rank_legendary
+    level >= 12 -> R.string.rank_master
+    level >= 8 -> R.string.rank_veteran
+    level >= 4 -> R.string.rank_wanderer
+    else -> R.string.rank_novice
+}
+
+@StringRes
 fun XpBonus.Kind.nameRes(): Int = when (this) {
     XpBonus.Kind.PROOF -> R.string.xp_bonus_proof
     XpBonus.Kind.SPECIALIST -> R.string.xp_bonus_specialist

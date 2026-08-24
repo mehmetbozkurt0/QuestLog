@@ -1,9 +1,7 @@
 package com.mehmetbozkurt.questlog.feature.character
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -15,24 +13,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.CharacterCrest
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
-import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
-import com.mehmetbozkurt.questlog.domain.model.StatProgress
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.descriptionRes
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.common.nameRes
-import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.feature.character.component.FeatChoiceDialog
 import com.mehmetbozkurt.questlog.feature.character.component.WeeklySummaryCard
@@ -111,66 +105,37 @@ fun CharacterScreen(
             ) {
                 Spacer(Modifier.height(Spacing.md))
 
-                QuestCard(
-                    seed = 11,
-                    contentPadding = PaddingValues(Spacing.lg),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            stringResource(R.string.character_level_caps),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            "${character.level}",
-                            style = MaterialTheme.typography.displayLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                CharacterCrest(
+                    character = character,
+                    levelProgress = state.levelProgress,
+                )
 
-                        Spacer(Modifier.height(Spacing.md))
+                Spacer(Modifier.height(Spacing.sm))
 
-                        LinearProgressIndicator(
-                            progress = { state.levelProgress },
-                            modifier = Modifier.fillMaxWidth().height(10.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            strokeCap = StrokeCap.Round,
-                        )
-
-                        Spacer(Modifier.height(Spacing.sm))
-
-                        Text(
-                            if (character.level >= XpCurve.MAX_LEVEL) {
-                                stringResource(R.string.profile_max_level)
-                            } else {
-                                stringResource(
-                                    R.string.character_xp_progress,
-                                    character.xpIntoLevel,
-                                    character.xpToNextLevel,
-                                )
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-
-                        Text(
-                            stringResource(R.string.character_total_xp, character.totalXp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                Row(Modifier.fillMaxWidth()) {
+                    Text(
+                        if (character.level >= XpCurve.MAX_LEVEL) {
+                            stringResource(R.string.profile_max_level)
+                        } else {
+                            stringResource(
+                                R.string.character_xp_progress,
+                                character.xpIntoLevel,
+                                character.xpToNextLevel,
+                            )
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        stringResource(R.string.character_total_xp, character.totalXp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
 
-                Spacer(Modifier.height(Spacing.md))
-
-                WeeklySummaryCard(streak = state.streak, weekly = state.weekly)
-
                 if (character.pendingFeatChoices > 0) {
-                    Spacer(Modifier.height(Spacing.md))
+                    Spacer(Modifier.height(Spacing.lg))
                     QuestCard(
                         onClick = { onEvent(CharacterEvent.FeatDialogToggled(true)) },
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -205,42 +170,27 @@ fun CharacterScreen(
                     }
                 }
 
-                Spacer(Modifier.height(Spacing.xl))
+                Spacer(Modifier.height(Spacing.lg))
 
-                Text(
-                    stringResource(R.string.character_abilities),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.height(Spacing.md))
-
-                character.stats.forEach { stat ->
-                    StatRow(stat)
-                    Spacer(Modifier.height(Spacing.md))
-                }
+                WeeklySummaryCard(streak = state.streak, weekly = state.weekly)
 
                 if (state.feats.isNotEmpty()) {
-                    Spacer(Modifier.height(Spacing.lg))
-                    Text(
-                        stringResource(R.string.character_earned_feats),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    Spacer(Modifier.height(Spacing.xl))
+                    SectionEyebrow(stringResource(R.string.character_earned_feats))
                     Spacer(Modifier.height(Spacing.md))
 
                     state.feats.forEach { feat ->
-                        val def = FeatCatalog.byId(feat.featId)
                         QuestCard(
                             seed = feat.featId.hashCode(),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                stringResource(def.id.nameRes()),
+                                stringResource(feat.featId.nameRes()),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                             )
                             Text(
-                                stringResource(def.id.descriptionRes()),
+                                stringResource(feat.featId.descriptionRes()),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -276,66 +226,5 @@ fun CharacterScreen(
             onConfirm = { onEvent(CharacterEvent.FeatConfirmed) },
             onDismiss = { onEvent(CharacterEvent.FeatDialogToggled(false)) },
         )
-    }
-}
-
-@Composable
-private fun StatRow(stat: StatProgress) {
-    val statColor = stat.statType.colorHex().toComposeColor()
-    val progress = if (stat.value >= XpCurve.MAX_STAT) 1f
-    else (stat.currentXp.toFloat() / stat.xpToNext).coerceIn(0f, 1f)
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(statColor.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "${stat.value}",
-                style = MaterialTheme.typography.titleLarge,
-                color = statColor,
-            )
-        }
-
-        Spacer(Modifier.width(Spacing.md))
-
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = stat.statType.icon(),
-                    contentDescription = null,
-                    tint = statColor,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.width(Spacing.xs))
-                Text(
-                    stringResource(stat.statType.nameRes()),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    if (stat.value >= XpCurve.MAX_STAT)
-                        stringResource(R.string.character_stat_max)
-                    else stringResource(
-                        R.string.character_stat_progress,
-                        stat.currentXp,
-                        stat.xpToNext,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Spacer(Modifier.height(Spacing.xs))
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(6.dp),
-                color = statColor,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = StrokeCap.Round,
-            )
-        }
     }
 }

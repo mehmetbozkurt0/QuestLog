@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.text.AnnotatedString
@@ -26,7 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.feature.crew.component.CrewMemberRow
@@ -80,7 +86,7 @@ fun CrewScreen(
                 actions = {
                     if (state.inCrew) {
                         IconButton(onClick = { onEvent(CrewEvent.LeaveDialogToggled(true)) }) {
-                            Icon(Icons.Default.Logout, contentDescription = stringResource(R.string.crew_leave_action))
+                            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.crew_leave_action))
                         }
                     }
                 },
@@ -160,14 +166,14 @@ fun CrewScreen(
                                     style = MaterialTheme.typography.titleLarge,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
+                                Spacer(Modifier.height(Spacing.sm))
                                 Text(
-                                    stringResource(
-                                        R.string.crew_invite_code_label,
-                                        state.crew?.inviteCode.orEmpty(),
-                                    ),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    stringResource(R.string.crew_invite_code_field).uppercaseLocalized(),
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                Spacer(Modifier.height(Spacing.xs))
+                                InviteCodeStamp(state.crew?.inviteCode.orEmpty())
                             }
                             Icon(
                                 Icons.Default.ContentCopy,
@@ -179,9 +185,9 @@ fun CrewScreen(
                 }
 
                 item(key = "members_header") {
-                    CrewSectionHeader(
+                    SectionEyebrow(
                         stringResource(R.string.crew_members_header),
-                        "${state.members.size}",
+                        trailing = "${state.members.size}",
                     )
                 }
 
@@ -194,9 +200,9 @@ fun CrewScreen(
                 }
 
                 item(key = "feed_header") {
-                    CrewSectionHeader(
+                    SectionEyebrow(
                         stringResource(R.string.crew_feed_header),
-                        if (state.hasMentorFeat)
+                        trailing = if (state.hasMentorFeat)
                             stringResource(R.string.crew_approvals_left, state.approvalsLeft)
                         else null,
                     )
@@ -351,25 +357,30 @@ fun CrewScreen(
 }
 
 @Composable
-private fun CrewSectionHeader(title: String, trailing: String?) {
-    Row(
-        Modifier.fillMaxWidth().padding(top = Spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+private fun InviteCodeStamp(code: String) {
+    val border = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+    val radius = MaterialTheme.shapes.small
+
+    Box(
+        modifier = Modifier
+            .drawBehind {
+                drawRoundRect(
+                    color = border,
+                    cornerRadius = CornerRadius(5.dp.toPx()),
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(4.dp.toPx(), 3.dp.toPx())
+                        ),
+                    ),
+                )
+            }
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
     ) {
         Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            text = code,
+            style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 6.sp),
+            color = MaterialTheme.colorScheme.primary,
         )
-        Spacer(Modifier.width(Spacing.md))
-        SectionRule(Modifier.weight(1f))
-        if (trailing != null) {
-            Spacer(Modifier.width(Spacing.md))
-            Text(
-                trailing,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }

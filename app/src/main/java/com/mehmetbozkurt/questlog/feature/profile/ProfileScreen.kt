@@ -43,7 +43,9 @@ import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
 import com.mehmetbozkurt.questlog.core.common.asString
 import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
+import com.mehmetbozkurt.questlog.core.designsystem.component.ProgressRing
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.settings.AppLanguage
@@ -128,7 +130,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionHeader(stringResource(R.string.profile_section_journey))
+            SectionEyebrow(stringResource(R.string.profile_section_journey))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
@@ -178,7 +180,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionHeader(stringResource(R.string.profile_section_appearance))
+            SectionEyebrow(stringResource(R.string.profile_section_appearance))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -193,7 +195,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionHeader(stringResource(R.string.profile_section_language))
+            SectionEyebrow(stringResource(R.string.profile_section_language))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -208,7 +210,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionHeader(stringResource(R.string.profile_section_notifications))
+            SectionEyebrow(stringResource(R.string.profile_section_notifications))
             Spacer(Modifier.height(Spacing.md))
 
             QuestCard(
@@ -399,24 +401,15 @@ private fun IdentityCard(state: ProfileState) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        CircleShape,
-                    )
-                    .border(
-                        1.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                        CircleShape,
-                    ),
-                contentAlignment = Alignment.Center,
+            ProgressRing(
+                progress = state.levelProgress,
+                diameter = 76.dp,
             ) {
                 Text(
-                    text = state.user?.displayName?.firstOrNull()?.uppercase() ?: "?",
+                    text = state.user?.displayName?.take(1)?.uppercaseLocalized() ?: "?",
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
                 )
             }
 
@@ -446,18 +439,6 @@ private fun IdentityCard(state: ProfileState) {
         }
 
         Spacer(Modifier.height(Spacing.md))
-
-        LinearProgressIndicator(
-            progress = { state.levelProgress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            strokeCap = StrokeCap.Round,
-        )
-
-        Spacer(Modifier.height(Spacing.xs))
 
         Row(Modifier.fillMaxWidth()) {
             Text(
@@ -528,22 +509,6 @@ private fun MetricCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String) {
-    Row(
-        Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.width(Spacing.md))
-        SectionRule(Modifier.weight(1f))
     }
 }
 

@@ -7,6 +7,8 @@ data class StatProgress(
     val xpToNext: Int,
 )
 
+fun StatProgress.abilityModifier(): Int = (value - 10).floorDiv(2)
+
 data class CharacterSheet(
     val userId: String,
     val level: Int,

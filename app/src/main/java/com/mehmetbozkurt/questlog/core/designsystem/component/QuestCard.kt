@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import kotlin.random.Random
@@ -46,7 +47,9 @@ fun Modifier.parchmentGrain(color: Color, seed: Int): Modifier = drawWithCache {
 fun QuestCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
     accent: Color? = null,
+    accentWidth: Dp = 4.dp,
     seed: Int = 0,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentPadding: PaddingValues = PaddingValues(Spacing.md),
@@ -60,12 +63,13 @@ fun QuestCard(
     if (onClick != null) {
         Card(
             onClick = onClick,
+            enabled = enabled,
             shape = shape,
             colors = colors,
             border = border,
             modifier = modifier,
         ) {
-            QuestCardBody(accent, grain, seed, contentPadding, content)
+            QuestCardBody(accent, accentWidth, grain, seed, contentPadding, content)
         }
     } else {
         Card(
@@ -74,7 +78,7 @@ fun QuestCard(
             border = border,
             modifier = modifier,
         ) {
-            QuestCardBody(accent, grain, seed, contentPadding, content)
+            QuestCardBody(accent, accentWidth, grain, seed, contentPadding, content)
         }
     }
 }
@@ -82,6 +86,7 @@ fun QuestCard(
 @Composable
 private fun QuestCardBody(
     accent: Color?,
+    accentWidth: Dp,
     grain: Color,
     seed: Int,
     contentPadding: PaddingValues,
@@ -96,7 +101,7 @@ private fun QuestCardBody(
         if (accent != null) {
             Box(
                 Modifier
-                    .width(4.dp)
+                    .width(accentWidth)
                     .fillMaxHeight()
                     .background(accent)
             )

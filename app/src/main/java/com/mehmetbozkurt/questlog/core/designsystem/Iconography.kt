@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.StatType
 
@@ -18,6 +20,14 @@ fun StatType.icon(): ImageVector = when (this) {
     StatType.INT -> Icons.Default.Psychology
     StatType.WIS -> Icons.Default.AutoStories
     StatType.CHA -> Icons.Default.RecordVoiceOver
+}
+
+fun Difficulty?.accentWidth(): Dp = when (this) {
+    Difficulty.EASY -> 3.dp
+    Difficulty.MEDIUM -> 4.dp
+    Difficulty.HARD -> 6.dp
+    Difficulty.EPIC -> 8.dp
+    null -> 4.dp
 }
 
 fun Difficulty.pips(): String = when (this) {

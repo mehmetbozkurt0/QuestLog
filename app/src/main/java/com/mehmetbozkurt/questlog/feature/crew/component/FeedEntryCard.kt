@@ -27,7 +27,9 @@ import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.colorHex
 import java.time.Duration
 import java.time.Instant
@@ -45,6 +47,7 @@ fun FeedEntryCard(
 
     QuestCard(
         accent = statColor,
+        accentWidth = item.difficulty.accentWidth(),
         seed = item.id.hashCode(),
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -70,7 +73,9 @@ fun FeedEntryCard(
                 Text(
                     item.difficulty.pips(),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (item.difficulty >= Difficulty.HARD)
+                        MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Spacer(Modifier.weight(1f))

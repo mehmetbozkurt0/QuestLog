@@ -147,7 +147,6 @@
     <string name="character_total_xp">Toplam %1$d XP</string>
     <string name="character_pending_feats_available">%1$d yetenek hakkın var</string>
     <string name="character_tap_to_choose">Seçmek için dokun</string>
-    <string name="character_abilities">Yetenekler</string>
     <string name="character_earned_feats">Kazanılan Yetenekler</string>
     <string name="character_feat_focus">Odak: %1$s</string>
     <string name="character_stat_max">MAX</string>
@@ -231,11 +230,14 @@
     <string name="logedit_priority">Öncelik</string>
     <string name="logedit_due_date">Son teslim tarihi</string>
     <string name="logedit_reminder">Hatırlatma</string>
+    <string name="logedit_difficulty_hint">%1$s · %2$d XP</string>
+    <string name="logedit_section_timing">Zamanlama</string>
     <string name="logedit_proof_hint" formatted="false">Kanıtı görevi tamamlarken ekleyeceksin — not %15, fotoğraf %30 bonus verir.</string>
     <string name="logedit_picker_value">%1$s: %2$s</string>
     <string name="logedit_picker_empty">%1$s seç</string>
     <string name="logedit_time_picker_title">Saat seç</string>
 
+    <string name="logdetail_section_details">Ayrıntılar</string>
     <string name="logdetail_not_found">Kayıt bulunamadı</string>
     <string name="logdetail_difficulty">Zorluk</string>
     <string name="logdetail_priority">Öncelik</string>
@@ -311,7 +313,6 @@
     <string name="crew_empty_body">Bir ekip kur ya da arkadaşının davet koduyla katıl. Ekip arkadaşlarının görevlerini görür, Mentor yeteneğiyle onaylayıp ikinize de XP kazandırırsın.</string>
     <string name="crew_join_with_code">Kodla Katıl</string>
     <string name="crew_create">Ekip Kur</string>
-    <string name="crew_invite_code_label">Davet kodu: %1$s</string>
     <string name="crew_copy_code">Kodu kopyala</string>
     <string name="crew_members_header">Üyeler</string>
     <string name="crew_feed_header">Son Görevler</string>

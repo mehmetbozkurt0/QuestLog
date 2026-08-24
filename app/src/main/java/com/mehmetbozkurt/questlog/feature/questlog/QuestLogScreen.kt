@@ -32,7 +32,7 @@ import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.feature.questlog.component.ActivePathwayCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.CharacterSummaryCard
@@ -199,7 +199,7 @@ fun QuestLogListScreen(
 
             if (state.showHeaderSections && state.activePathways.isNotEmpty()) {
                 item(key = "pathway_header") {
-                    SectionHeader(stringResource(R.string.questlog_active_pathways))
+                    SectionEyebrow(stringResource(R.string.questlog_active_pathways))
                 }
                 items(state.activePathways, key = { "pw_${it.pathway.id}" }) { summary ->
                     ActivePathwayCard(
@@ -257,12 +257,12 @@ fun QuestLogListScreen(
             } else {
                 if (state.activeLogs.isNotEmpty()) {
                     item(key = "active_header") {
-                        SectionHeader(
+                        SectionEyebrow(
                             stringResource(
                                 if (state.isSearching) R.string.questlog_results_header
                                 else R.string.questlog_active_header
                             ),
-                            "${state.activeLogs.size}",
+                            trailing = "${state.activeLogs.size}",
                         )
                     }
                     items(state.activeLogs, key = { it.id }) { log ->
@@ -279,9 +279,9 @@ fun QuestLogListScreen(
 
                 if (state.completedLogs.isNotEmpty()) {
                     item(key = "completed_header") {
-                        SectionHeader(
+                        SectionEyebrow(
                             stringResource(R.string.questlog_completed_header),
-                            "${state.completedLogs.size}",
+                            trailing = "${state.completedLogs.size}",
                         )
                     }
                     items(state.completedLogs, key = { it.id }) { log ->
@@ -329,29 +329,5 @@ fun QuestLogListScreen(
             onClear = { onEvent(QuestLogListEvent.FiltersCleared) },
             onDismiss = { onEvent(QuestLogListEvent.FilterSheetToggled(false)) },
         )
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String, trailing: String? = null) {
-    Row(
-        Modifier.fillMaxWidth().padding(top = Spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.width(Spacing.md))
-        SectionRule(Modifier.weight(1f))
-        if (trailing != null) {
-            Spacer(Modifier.width(Spacing.md))
-            Text(
-                trailing,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }

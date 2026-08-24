@@ -1,8 +1,8 @@
 package com.mehmetbozkurt.questlog.feature.profile
 
 import androidx.annotation.StringRes
-import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.UiText
+import com.mehmetbozkurt.questlog.core.common.levelRankRes
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
@@ -49,13 +49,7 @@ data class ProfileState(
 
     @get:StringRes
     val titleRes: Int
-        get() = when {
-            level >= 16 -> R.string.rank_legendary
-            level >= 12 -> R.string.rank_master
-            level >= 8 -> R.string.rank_veteran
-            level >= 4 -> R.string.rank_wanderer
-            else -> R.string.rank_novice
-        }
+        get() = levelRankRes(level)
 }
 
 sealed interface ProfileEvent : UiEvent {

@@ -149,7 +149,6 @@
     <string name="character_total_xp">Total %1$d XP</string>
     <string name="character_pending_feats_available">You have %1$d feat choices</string>
     <string name="character_tap_to_choose">Tap to choose</string>
-    <string name="character_abilities">Abilities</string>
     <string name="character_earned_feats">Earned Feats</string>
     <string name="character_feat_focus">Focus: %1$s</string>
     <string name="character_stat_max">MAX</string>
@@ -233,11 +232,14 @@
     <string name="logedit_priority">Priority</string>
     <string name="logedit_due_date">Due date</string>
     <string name="logedit_reminder">Reminder</string>
+    <string name="logedit_difficulty_hint">%1$s · %2$d XP</string>
+    <string name="logedit_section_timing">Timing</string>
     <string name="logedit_proof_hint" formatted="false">You add proof when you complete the quest — a note gives a 15% bonus, a photo 30%.</string>
     <string name="logedit_picker_value">%1$s: %2$s</string>
     <string name="logedit_picker_empty">Pick %1$s</string>
     <string name="logedit_time_picker_title">Pick a time</string>
 
+    <string name="logdetail_section_details">Details</string>
     <string name="logdetail_not_found">Entry not found</string>
     <string name="logdetail_difficulty">Difficulty</string>
     <string name="logdetail_priority">Priority</string>
@@ -313,7 +315,6 @@
     <string name="crew_empty_body">Start a crew or join a friend with their invite code. You will see your crewmates\' quests, and with the Mentor feat you can approve them and earn XP for both of you.</string>
     <string name="crew_join_with_code">Join With Code</string>
     <string name="crew_create">Start a Crew</string>
-    <string name="crew_invite_code_label">Invite code: %1$s</string>
     <string name="crew_copy_code">Copy the code</string>
     <string name="crew_members_header">Members</string>
     <string name="crew_feed_header">Recent Quests</string>

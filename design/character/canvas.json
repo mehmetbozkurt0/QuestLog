@@ -1,0 +1,63 @@
+{
+  "pages": [
+    { "id": "secilen", "name": "Seçilen" },
+    { "id": "yonler", "name": "İlk üç yön" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Mühür + Petek", "page": "secilen", "x": 0, "y": 0, "w": 390, "h": 1060 },
+    { "file": "Foy.dc.html", "title": "A — Föy", "page": "yonler", "x": 0, "y": 0, "w": 390, "h": 1400 },
+    { "file": "Muhur.dc.html", "title": "B — Mühür", "page": "yonler", "x": 470, "y": 0, "w": 390, "h": 1260 },
+    { "file": "Vitray.dc.html", "title": "C — Vitray", "page": "yonler", "x": 940, "y": 0, "w": 390, "h": 1140 }
+  ],
+  "annotations": [
+    {
+      "id": "secim",
+      "page": "secilen",
+      "x": 430,
+      "y": 0,
+      "w": 420,
+      "text": "MÜHÜR + PETEK\nB'nin mührü, C'nin peteğinin merkezine oturdu.\n\nMühür (merkez): dış halka seviye XP yayı (%46), iç halkadaki 20 çentik seviye yolu — 7'si yanmış. Ortada seviye.\n\nPetek (çevre): altı stat hücresi. Her hücre kendi rengiyle AŞAĞIDAN YUKARI doluyor — dolum yüksekliği o statın currentXp/xpToNext oranı. İçinde etiket + modifier üstte, puan ortada, kesin XP altta.\n\nÇözülen sorun: radar sadece puanı gösteriyordu. Petek hem puanı hem ayrı ayrı XP ilerlemesini gösteriyor; kesin sayı da hücrenin içinde.\n\nTek blokta: seviye, seviye XP'si, 6 puan, 6 modifier, 6 ayrı XP. Radar versiyonunda bunun için ayrıca 6 satırlık liste gerekiyordu."
+    },
+    {
+      "id": "hex-notu",
+      "page": "secilen",
+      "x": 430,
+      "y": 420,
+      "w": 420,
+      "text": "DİKKAT EDİLECEK\n• Petek 6 stata kilitli. 7. stat eklenirse düzen bozulur — StatType'a yeni değer eklemek düşünülüyorsa bu tasarım engel.\n• Hücre içi üç satır (etiket / puan / XP) 90dp yüksekliğe sığıyor ama dar. Çok büyük yazı tipi ölçeğinde (erişilebilirlik ayarı) taşabilir; Compose'da hücre içi metinleri ölçeğe göre kısaltmak gerekebilir.\n• Dolum %5'in altındayken neredeyse görünmez. Minimum 3dp dolum tabanı koymak lazım."
+    },
+    {
+      "id": "yon-a",
+      "page": "yonler",
+      "x": 0,
+      "y": -196,
+      "w": 390,
+      "text": "A — FÖY\nGerçek bir D&D karakter föyü. Statlar 5e anatomisiyle: etiket, iri puan, altında modifier madalyonu kutunun kenarını kesiyor.\n\nArtı: 6 stat da tek bakışta okunuyor, currentXp/xpToNext kayboluyor değil.\nEksi: en uzun ekran. Duygusal değil, envanter gibi."
+    },
+    {
+      "id": "yon-b",
+      "page": "yonler",
+      "x": 470,
+      "y": -196,
+      "w": 390,
+      "text": "B — MÜHÜR  ← seçilen yön\nMühür kahraman. Dış halka XP yayı, iç halkadaki 20 çentik seviye yolu. Statlar altıgen radar — karakterin ŞEKLİ görünüyor.\n\nEksi (ve düzeltilen): radar statların ayrı XP ilerlemesini göstermiyor. Bu yüzden radar bırakılıp yerine C'nin peteği kondu."
+    },
+    {
+      "id": "yon-c",
+      "page": "yonler",
+      "x": 940,
+      "y": -196,
+      "w": 390,
+      "text": "C — VİTRAY\nAltıgen petek. Merkez seviye, çevresinde 6 stat; her hücre kendi rengiyle aşağıdan yukarı doluyor.\n\nPetek fikri seçilen tasarıma taşındı; merkezdeki seviye hücresi yerine B'nin mührü geçti."
+    },
+    {
+      "id": "veri-notu",
+      "page": "yonler",
+      "x": 0,
+      "y": 1460,
+      "w": 560,
+      "text": "Veri gerçek modelden: seviye 7 · 1.240/2.700 XP · toplam 18.450 · 1 bekleyen yetenek hakkı · statlar 10-20 (GÜÇ 14, ÇEV 11, DAY 13, ZEK 16, BİL 12, KAR 10) · seri 12/23 gün · hafta 640 XP / 9 görev.\n\nModifier D&D kuralı: (puan - 10) / 2, aşağı yuvarlanır. Statların zaten 10-20 aralığında olması bunu bedava veriyor — kodda yeni alan gerekmiyor.\n\nHepsi karanlık tema. Aydınlık tema aynı tokenlardan türüyor (PaperBase/PaperSurface), ayrıca çizilmedi."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "secilen" }
+}

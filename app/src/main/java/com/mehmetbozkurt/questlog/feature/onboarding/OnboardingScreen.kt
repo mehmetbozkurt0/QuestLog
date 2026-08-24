@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.annotation.StringRes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.core.designsystem.component.SealFrame
 import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -101,16 +102,11 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Box(
-                        Modifier
-                            .size(96.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    SealFrame(diameter = 104.dp) {
                         Icon(
                             page.icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(44.dp),
                         )
                     }

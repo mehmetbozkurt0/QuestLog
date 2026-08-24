@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import androidx.compose.ui.res.stringResource
@@ -106,9 +108,9 @@ fun PathwayListScreen(
         ) {
             if (state.activeItems.isNotEmpty()) {
                 item {
-                    SectionHeader(
+                    SectionEyebrow(
                         stringResource(R.string.pathway_list_active),
-                        "${state.activeCount} / ${PathwayRules.MAX_ACTIVE_PATHWAYS}",
+                        trailing = "${state.activeCount} / ${PathwayRules.MAX_ACTIVE_PATHWAYS}",
                     )
                 }
                 items(state.activeItems, key = { it.pathway.id }) { item ->
@@ -118,9 +120,11 @@ fun PathwayListScreen(
 
             if (state.availableItems.isNotEmpty()) {
                 item {
-                    SectionHeader(
+                    SectionEyebrow(
                         stringResource(R.string.pathway_list_open),
-                        if (!state.canStartMore) stringResource(R.string.pathway_list_limit_reached) else null,
+                        trailing = if (!state.canStartMore)
+                            stringResource(R.string.pathway_list_limit_reached)
+                        else null,
                     )
                 }
                 items(state.availableItems, key = { it.pathway.id }) { item ->
@@ -129,7 +133,7 @@ fun PathwayListScreen(
             }
 
             if (state.completedItems.isNotEmpty()) {
-                item { SectionHeader(stringResource(R.string.pathway_list_completed), null) }
+                item { SectionEyebrow(stringResource(R.string.pathway_list_completed)) }
                 items(state.completedItems, key = { it.pathway.id }) { item ->
                     PathwayCard(item) { onEvent(PathwayListEvent.PathwayClicked(item.pathway.id)) }
                 }
@@ -149,43 +153,21 @@ fun PathwayListScreen(
 }
 
 @Composable
-private fun SectionHeader(title: String, trailing: String?) {
-    Row(
-        Modifier.fillMaxWidth().padding(top = Spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.weight(1f))
-        if (trailing != null) {
-            Text(
-                trailing,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
 private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
     val pathway = item.pathway
     val statColor = pathway.primaryStat.colorHex().toComposeColor()
 
-    Card(
+    QuestCard(
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = if (item.isActive)
-                MaterialTheme.colorScheme.surfaceVariant
-            else
-                MaterialTheme.colorScheme.surface
-        ),
+        accent = statColor,
+        seed = pathway.id.hashCode(),
+        containerColor = if (item.isActive)
+            MaterialTheme.colorScheme.surfaceVariant
+        else
+            MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(Spacing.md)) {
+        Column {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).background(statColor, CircleShape))
@@ -254,7 +236,7 @@ private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
             if (item.isActive) {
                 Spacer(Modifier.height(Spacing.md))
                 LinearProgressIndicator(
-                    progress = { 0f },
+                    progress = { item.fraction },
                     modifier = Modifier.fillMaxWidth().height(6.dp),
                     color = statColor,
                     trackColor = MaterialTheme.colorScheme.surface,

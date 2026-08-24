@@ -24,6 +24,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
@@ -214,17 +222,15 @@ fun PathwayDetailScreen(
 
                     if (state.isCompleted) {
                         Spacer(Modifier.height(Spacing.md))
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
+                        QuestCard(
+                            seed = 23,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
                                 stringResource(R.string.pathway_detail_done),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(Spacing.md),
                             )
                         }
                     }
@@ -261,43 +267,36 @@ fun PathwayDetailScreen(
 
                     Spacer(Modifier.height(Spacing.xl))
 
-                    detail.stages.forEach { (stage, quests) ->
+                    val stageEntries = detail.stages.entries.toList()
+                    stageEntries.forEachIndexed { index, entry ->
+                        val stage = entry.key
+                        val quests = entry.value
                         val unlocked = detail.isStageUnlocked(stage)
+                        val stageComplete = quests.isNotEmpty() && quests.all { it.isComplete }
+                        val nextUnlocked = stageEntries.getOrNull(index + 1)
+                            ?.let { detail.isStageUnlocked(it.key) } == true
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                stringResource(R.string.pathway_detail_stage, stage),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = if (unlocked)
-                                    MaterialTheme.colorScheme.onSurface
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (!unlocked) {
-                                Spacer(Modifier.width(Spacing.sm))
-                                Icon(
-                                    Icons.Default.Lock,
-                                    contentDescription = stringResource(R.string.common_locked),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp),
+                        StageNode(
+                            stage = stage,
+                            unlocked = unlocked,
+                            complete = stageComplete,
+                            spineLit = stageComplete || nextUnlocked,
+                            isLast = index == stageEntries.lastIndex,
+                            accent = statColor,
+                        ) {
+                            quests.forEach { qp ->
+                                QuestRow(
+                                    questProgress = qp,
+                                    statColor = qp.quest.statType.colorHex().toComposeColor(),
+                                    unlocked = unlocked,
+                                    enabled = state.isActive && !state.isWorking,
+                                    onClick = {
+                                        onEvent(PathwayDetailEvent.QuestClicked(qp.quest.id))
+                                    },
                                 )
+                                Spacer(Modifier.height(Spacing.sm))
                             }
                         }
-
-                        Spacer(Modifier.height(Spacing.sm))
-
-                        quests.forEach { qp ->
-                            QuestRow(
-                                questProgress = qp,
-                                statColor = qp.quest.statType.colorHex().toComposeColor(),
-                                unlocked = unlocked,
-                                enabled = state.isActive && !state.isWorking,
-                                onClick = { onEvent(PathwayDetailEvent.QuestClicked(qp.quest.id)) },
-                            )
-                            Spacer(Modifier.height(Spacing.sm))
-                        }
-
-                        Spacer(Modifier.height(Spacing.md))
                     }
 
                     Spacer(Modifier.height(Spacing.xxl))
@@ -336,7 +335,7 @@ fun PathwayDetailScreen(
 @Composable
 private fun QuestRow(
     questProgress: PathwayQuestProgress,
-    statColor: androidx.compose.ui.graphics.Color,
+    statColor: Color,
     unlocked: Boolean,
     enabled: Boolean,
     onClick: () -> Unit
@@ -345,16 +344,15 @@ private fun QuestRow(
     val alpha = if (unlocked) 1f else 0.4f
     val clickable = unlocked && enabled && !questProgress.isComplete
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        onClick = onClick,
-        enabled = clickable,
+    QuestCard(
+        onClick = if (clickable) onClick else null,
+        accent = statColor.copy(alpha = alpha),
+        accentWidth = quest.difficulty.accentWidth(),
+        seed = quest.id.hashCode(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(Spacing.md),
+            Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
@@ -422,5 +420,94 @@ private fun QuestRow(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun StageNode(
+    stage: Int,
+    unlocked: Boolean,
+    complete: Boolean,
+    spineLit: Boolean,
+    isLast: Boolean,
+    accent: Color,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val gutter = 30.dp
+    val nodeCenterX = 11.dp
+    val nodeCenterY = 13.dp
+    val nodeRadius = 7.dp
+
+    val dim = MaterialTheme.colorScheme.outline
+    val spineColor = if (spineLit) accent else dim
+    val nodeColor = if (unlocked) accent else dim
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = if (isLast) Spacing.sm else Spacing.lg)
+            .drawBehind {
+                val cx = nodeCenterX.toPx()
+                val cy = nodeCenterY.toPx()
+                val r = nodeRadius.toPx()
+
+                if (!isLast) {
+                    drawLine(
+                        color = spineColor,
+                        start = Offset(cx, cy + r + 3.dp.toPx()),
+                        end = Offset(cx, size.height),
+                        strokeWidth = 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                    )
+                }
+
+                if (complete) {
+                    drawCircle(color = nodeColor, radius = r, center = Offset(cx, cy))
+                } else {
+                    drawCircle(
+                        color = nodeColor,
+                        radius = r,
+                        center = Offset(cx, cy),
+                        style = Stroke(width = 2.dp.toPx()),
+                    )
+                    if (unlocked) {
+                        drawCircle(
+                            color = nodeColor,
+                            radius = r * 0.38f,
+                            center = Offset(cx, cy),
+                        )
+                    }
+                }
+            },
+    ) {
+        Row(
+            modifier = Modifier.padding(start = gutter),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.pathway_detail_stage, stage).uppercaseLocalized(),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (unlocked)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (!unlocked) {
+                Spacer(Modifier.width(Spacing.sm))
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = stringResource(R.string.common_locked),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
+        }
+
+        Spacer(Modifier.height(Spacing.sm))
+
+        Column(
+            modifier = Modifier.padding(start = gutter),
+            content = content,
+        )
     }
 }

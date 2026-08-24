@@ -1,6 +1,8 @@
 package com.mehmetbozkurt.questlog.feature.auth
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -85,13 +87,23 @@ fun AuthScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.xl)
+            .padding(vertical = Spacing.xxl)
             .imePadding(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Image(
+            painter = painterResource(R.drawable.splash_icon),
+            contentDescription = null,
+            modifier = Modifier.size(88.dp),
+        )
+
+        Spacer(Modifier.height(Spacing.md))
+
         Text(
-            text = "Renown",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.primary,
         )

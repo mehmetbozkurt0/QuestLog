@@ -1,14 +1,11 @@
 package com.mehmetbozkurt.questlog.feature.crew.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Icon
@@ -21,7 +18,10 @@ import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import com.mehmetbozkurt.questlog.core.designsystem.component.LevelMedallion
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.model.CrewMember
 
@@ -37,22 +37,18 @@ fun CrewMemberRow(
         else MaterialTheme.colorScheme.surface,
         modifier = modifier.fillMaxWidth(),
     ) {
+        val levelInfo = remember(member.totalXp) {
+            XpCurve.levelFromTotalXp(member.totalXp)
+        }
+        val fraction = if (levelInfo.xpToNextLevel <= 0) 1f
+        else (levelInfo.xpIntoLevel.toFloat() / levelInfo.xpToNextLevel).coerceIn(0f, 1f)
+
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        CircleShape,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    "${member.level}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+            LevelMedallion(
+                level = member.level,
+                progress = fraction,
+                diameter = 44.dp,
+            )
 
             Spacer(Modifier.width(Spacing.md))
 

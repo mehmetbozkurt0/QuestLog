@@ -39,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.common.descriptionRes
 import com.mehmetbozkurt.questlog.core.common.hintRes
 import com.mehmetbozkurt.questlog.core.common.nameRes
@@ -223,7 +225,11 @@ fun LogEditScreen(
 
             Spacer(Modifier.height(Spacing.xs))
             Text(
-                stringResource(state.difficulty.hintRes()),
+                stringResource(
+                    R.string.logedit_difficulty_hint,
+                    stringResource(state.difficulty.hintRes()),
+                    state.difficulty.baseXp,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -265,7 +271,11 @@ fun LogEditScreen(
                     }
                 }
 
-                Spacer(Modifier.height(Spacing.lg))
+                Spacer(Modifier.height(Spacing.xl))
+
+                SectionEyebrow(stringResource(R.string.logedit_section_timing))
+
+                Spacer(Modifier.height(Spacing.md))
 
                 DateField(
                     label = stringResource(R.string.logedit_due_date),
@@ -288,11 +298,17 @@ fun LogEditScreen(
 
                 Spacer(Modifier.height(Spacing.md))
 
-                Text(
-                    stringResource(R.string.logedit_proof_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                QuestCard(
+                    seed = 17,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.logedit_proof_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             Spacer(Modifier.height(Spacing.xl))

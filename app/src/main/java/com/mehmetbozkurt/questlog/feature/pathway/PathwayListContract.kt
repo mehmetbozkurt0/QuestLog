@@ -12,9 +12,15 @@ data class PathwayListItem(
     val progress: PathwayProgress?,
     val isLocked: Boolean,
     val requiredPathwayTitle: String?,
+    val completedQuests: Int = 0,
+    val totalQuests: Int = 0,
 ) {
     val isActive: Boolean get() = progress?.isActive == true
     val isCompleted: Boolean get() = progress?.isCompleted == true
+
+    val fraction: Float
+        get() = if (totalQuests == 0) 0f
+        else completedQuests.toFloat() / totalQuests
 }
 
 data class PathwayListState(

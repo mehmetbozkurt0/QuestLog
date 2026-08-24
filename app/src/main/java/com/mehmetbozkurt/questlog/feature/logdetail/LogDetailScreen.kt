@@ -27,7 +27,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import androidx.compose.ui.graphics.Color
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
@@ -183,84 +186,122 @@ fun LogDetailScreen(
                 }
 
                 Spacer(Modifier.height(Spacing.xl))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(Modifier.height(Spacing.lg))
 
-                if (log.difficulty != null) {
-                    DetailRow(
-                        stringResource(R.string.logdetail_difficulty),
-                        stringResource(log.difficulty.nameRes()),
-                    )
-                }
-
-                if (log.priority != null) {
-                    val priorityColor = when (log.priority) {
-                        Priority.LOW -> MaterialTheme.extendedColors.priorityLow
-                        Priority.MEDIUM -> MaterialTheme.extendedColors.priorityMedium
-                        Priority.HIGH -> MaterialTheme.extendedColors.priorityHigh
-                    }
-                    DetailRow(
-                        stringResource(R.string.logdetail_priority),
-                        stringResource(log.priority.labelRes()),
-                        priorityColor,
-                    )
-                }
-
-                log.dueAt?.let {
-                    DetailRow(stringResource(R.string.logdetail_due), it.formatted())
-                }
-
-                log.remindAt?.let {
-                    DetailRow(stringResource(R.string.logdetail_reminder), it.formattedWithTime())
-                }
-
-                DetailRow(stringResource(R.string.logdetail_created), log.createdAt.formatted())
-
-                if (log.proofLevel != ProofLevel.NONE) {
-                    DetailRow(
-                        stringResource(R.string.logdetail_proof),
-                        "${stringResource(log.proofLevel.nameRes())} · +%${
-                            ((log.proofLevel.multiplier - 1) * 100).roundToInt()
-                        }",
-                        MaterialTheme.colorScheme.primary,
-                    )
-                }
-
-                (log.proofPhotoLocalPath ?: log.proofPhotoUrl)?.let { source ->
-                    Spacer(Modifier.height(Spacing.md))
-                    AsyncImage(
-                        model = source,
-                        contentDescription = stringResource(R.string.logdetail_proof_photo),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                            .clip(MaterialTheme.shapes.medium),
-                    )
-                    if (log.proofPhotoUrl == null) {
-                        Spacer(Modifier.height(Spacing.xs))
-                        Text(
-                            stringResource(R.string.logdetail_photo_pending),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                val rows = buildList {
+                    if (log.difficulty != null) {
+                        add(
+                            DetailEntry(
+                                stringResource(R.string.logdetail_difficulty),
+                                stringResource(log.difficulty.nameRes()),
+                            )
                         )
+                    }
+                    if (log.priority != null) {
+                        add(
+                            DetailEntry(
+                                stringResource(R.string.logdetail_priority),
+                                stringResource(log.priority.labelRes()),
+                                when (log.priority) {
+                                    Priority.LOW -> MaterialTheme.extendedColors.priorityLow
+                                    Priority.MEDIUM -> MaterialTheme.extendedColors.priorityMedium
+                                    Priority.HIGH -> MaterialTheme.extendedColors.priorityHigh
+                                },
+                            )
+                        )
+                    }
+                    log.dueAt?.let {
+                        add(DetailEntry(stringResource(R.string.logdetail_due), it.formatted()))
+                    }
+                    log.remindAt?.let {
+                        add(
+                            DetailEntry(
+                                stringResource(R.string.logdetail_reminder),
+                                it.formattedWithTime(),
+                            )
+                        )
+                    }
+                    add(
+                        DetailEntry(
+                            stringResource(R.string.logdetail_created),
+                            log.createdAt.formatted(),
+                        )
+                    )
+                }
+
+                SectionEyebrow(stringResource(R.string.logdetail_section_details))
+                Spacer(Modifier.height(Spacing.md))
+
+                QuestCard(seed = log.id.hashCode(), modifier = Modifier.fillMaxWidth()) {
+                    rows.forEachIndexed { index, entry ->
+                        if (index > 0) {
+                            Spacer(Modifier.height(Spacing.sm))
+                            SectionRule()
+                            Spacer(Modifier.height(Spacing.sm))
+                        }
+                        DetailRow(entry.label, entry.value, entry.color)
                     }
                 }
 
-                if (!log.proofNote.isNullOrBlank()) {
+                val proofPhoto = log.proofPhotoLocalPath ?: log.proofPhotoUrl
+                val hasProof = log.proofLevel != ProofLevel.NONE ||
+                        proofPhoto != null ||
+                        !log.proofNote.isNullOrBlank()
+
+                if (hasProof) {
+                    Spacer(Modifier.height(Spacing.xl))
+                    SectionEyebrow(stringResource(R.string.logdetail_proof))
                     Spacer(Modifier.height(Spacing.md))
-                    QuestCard(seed = log.id.hashCode() + 1, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            stringResource(R.string.logdetail_proof_note),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(Modifier.height(Spacing.xs))
-                        Text(
-                            log.proofNote,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+
+                    QuestCard(
+                        seed = log.id.hashCode() + 1,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        if (log.proofLevel != ProofLevel.NONE) {
+                            Text(
+                                "${stringResource(log.proofLevel.nameRes())} · +%${
+                                    ((log.proofLevel.multiplier - 1) * 100).roundToInt()
+                                }",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+
+                        proofPhoto?.let { source ->
+                            Spacer(Modifier.height(Spacing.md))
+                            AsyncImage(
+                                model = source,
+                                contentDescription =
+                                    stringResource(R.string.logdetail_proof_photo),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .clip(MaterialTheme.shapes.small),
+                            )
+                            if (log.proofPhotoUrl == null) {
+                                Spacer(Modifier.height(Spacing.xs))
+                                Text(
+                                    stringResource(R.string.logdetail_photo_pending),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+
+                        if (!log.proofNote.isNullOrBlank()) {
+                            Spacer(Modifier.height(Spacing.md))
+                            Text(
+                                stringResource(R.string.logdetail_proof_note),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(Modifier.height(Spacing.xs))
+                            Text(
+                                log.proofNote,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                 }
 
@@ -348,3 +389,9 @@ private fun DetailRow(
         )
     }
 }
+
+private data class DetailEntry(
+    val label: String,
+    val value: String,
+    val color: Color? = null,
+)
