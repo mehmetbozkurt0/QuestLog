@@ -32,6 +32,7 @@ fun QuestLogEntity.toDomain(): QuestLog = QuestLog(
     proofPhotoLocalPath = proofPhotoLocalPath,
     completedAt = completedAtMillis?.let(Instant::ofEpochMilli),
     pathwayQuestId = pathwayQuestId,
+    slotIndex = slotIndex,
 )
 
 fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity =
@@ -58,4 +59,5 @@ fun QuestLog.toEntity(syncState: SyncState = SyncState.PENDING): QuestLogEntity 
         completedAtMillis = completedAt?.toEpochMilli(),
         syncState = syncState.name,
         pathwayQuestId = pathwayQuestId,
+        slotIndex = slotIndex,
     )

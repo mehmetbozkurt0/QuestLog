@@ -19,7 +19,7 @@ interface CharacterRepository {
 
     suspend fun ensureCharacter()
     suspend fun awardXpFor(log: QuestLog): XpAward?
-    suspend fun revokeXpFor(logId: String)
+    suspend fun revokeXpFor(logId: String, sinceMillis: Long? = null)
     suspend fun chooseFeat(featId: FeatId, chosenStat: StatType?)
 
     suspend fun awardSplitXp(

@@ -39,5 +39,6 @@ data class QuestLogEntity(
     val proofPhotoUrl: String? = null,
     val proofPhotoLocalPath: String? = null,
     val pathwayQuestId: String? = null,
-    val completedAtMillis: Long? = null
+    val completedAtMillis: Long? = null,
+    val slotIndex: Int? = null
 )

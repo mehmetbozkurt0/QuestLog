@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.logdetail.LogDetailRoute
+import com.mehmetbozkurt.questlog.feature.catalog.CatalogRoute
 import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
 import com.mehmetbozkurt.questlog.feature.onboarding.OnboardingRoute
 import com.mehmetbozkurt.questlog.feature.pathway.PathwayDetailRoute
@@ -87,7 +88,10 @@ fun QuestLogNavHost(
                 openCrewChat = openCrewChat,
                 onCrewChatHandled = onCrewChatHandled,
                 onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
-                onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
+                onNavigateToCatalog = { navController.navigate(CatalogRouteKey) },
+                onNavigateToCreate = { slot ->
+                    navController.navigate(LogEditRouteKey(slotIndex = slot))
+                },
                 onNavigateToPathwayDetail = { id ->
                     navController.navigate(PathwayDetailRouteKey(id))
                 },
@@ -97,6 +101,10 @@ fun QuestLogNavHost(
                     }
                 },
             )
+        }
+
+        composable<CatalogRouteKey> {
+            CatalogRoute(onNavigateBack = { navController.popBackStack() })
         }
 
         composable<LogEditRouteKey> {

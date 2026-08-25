@@ -27,6 +27,10 @@ class QuestLogListViewModel @Inject constructor(
         repository.observeAll().onEach { logs -> setState { copy(allLogs = logs, isLoading = false) } }
             .launchIn(viewModelScope)
 
+        repository.observeHabitSlots().onEach { slots ->
+            setState { copy(habitSlots = slots) }
+        }.launchIn(viewModelScope)
+
         characterRepository.observeCharacter().onEach { sheet ->
             setState { copy(character = sheet) }
         }.launchIn(viewModelScope)
@@ -51,6 +55,7 @@ class QuestLogListViewModel @Inject constructor(
         }.onEach { summaries -> loadPathwayCounts(summaries) }.launchIn(viewModelScope)
     }
 
+
     private fun loadPathwayCounts(summaries: List<ActivePathwaySummary>) {
         if (summaries.isEmpty()) {
             setState { copy(activePathways = emptyList()) }
@@ -74,8 +79,29 @@ class QuestLogListViewModel @Inject constructor(
             is QuestLogListEvent.LogClicked ->
                 sendEffect(QuestLogListEffect.NavigateToDetail(event.id))
 
-            QuestLogListEvent.CreateClicked ->
-                sendEffect(QuestLogListEffect.NavigateToCreate)
+            QuestLogListEvent.CatalogClicked ->
+                sendEffect(QuestLogListEffect.NavigateToCatalog)
+
+            is QuestLogListEvent.HabitSlotClicked -> {
+                val slot = currentState.habitSlots.getOrNull(event.index)
+                val quest = slot?.quest
+                if (quest == null) {
+                    sendEffect(QuestLogListEffect.NavigateToCreate(event.index))
+                } else {
+                    sendEffect(QuestLogListEffect.NavigateToDetail(quest.id))
+                }
+            }
+
+            is QuestLogListEvent.HabitClearRequested ->
+                setState { copy(slotPendingClear = event.index) }
+
+            QuestLogListEvent.HabitClearConfirmed -> {
+                val index = currentState.slotPendingClear
+                setState { copy(slotPendingClear = null) }
+                if (index != null) {
+                    viewModelScope.launch { repository.clearHabitSlot(index) }
+                }
+            }
 
             is QuestLogListEvent.CompletionToggled -> {
                 val log = currentState.allLogs.firstOrNull { it.id == event.id }

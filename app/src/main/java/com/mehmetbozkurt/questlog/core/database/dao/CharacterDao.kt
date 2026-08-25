@@ -112,6 +112,16 @@ interface CharacterDao {
     @Query("SELECT * FROM xp_ledger WHERE userId = :userId AND logId = :logId")
     suspend fun ledgerEntriesForLog(userId: String, logId: String): List<XpLedgerEntity>
 
+    @Query("""
+        SELECT * FROM xp_ledger
+        WHERE userId = :userId AND logId = :logId AND earnedAtMillis >= :sinceMillis
+    """)
+    suspend fun ledgerEntriesForLogSince(
+        userId: String,
+        logId: String,
+        sinceMillis: Long,
+    ): List<XpLedgerEntity>
+
     @Query("SELECT * FROM xp_ledger WHERE syncState != 'SYNCED'")
     suspend fun getPendingLedger(): List<XpLedgerEntity>
 

@@ -250,3 +250,49 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_crew_messages_sentAtMillis` ON `crew_messages` (`sentAtMillis`)")
     }
 }
+
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE quest_logs ADD COLUMN slotIndex INTEGER")
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `habit_slots` (
+                `userId` TEXT NOT NULL,
+                `slotIndex` INTEGER NOT NULL,
+                `lastCompletedDayMillis` INTEGER NOT NULL,
+                `updatedAtMillis` INTEGER NOT NULL,
+                `syncState` TEXT NOT NULL,
+                PRIMARY KEY(`userId`, `slotIndex`)
+            )
+        """)
+    }
+}
+
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `catalog_tasks` (
+                `id` TEXT NOT NULL,
+                `title` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `titleEn` TEXT,
+                `descriptionEn` TEXT,
+                `statType` TEXT NOT NULL,
+                `difficulty` TEXT NOT NULL,
+                `sortOrder` INTEGER NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+        """)
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `catalog_completions` (
+                `userId` TEXT NOT NULL,
+                `taskId` TEXT NOT NULL,
+                `completions` INTEGER NOT NULL,
+                `lastCompletedAtMillis` INTEGER NOT NULL,
+                `syncState` TEXT NOT NULL,
+                PRIMARY KEY(`userId`, `taskId`)
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_catalog_completions_userId` ON `catalog_completions` (`userId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_catalog_completions_taskId` ON `catalog_completions` (`taskId`)")
+    }
+}

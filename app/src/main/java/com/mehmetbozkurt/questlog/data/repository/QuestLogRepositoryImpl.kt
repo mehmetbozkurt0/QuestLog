@@ -1,19 +1,25 @@
 package com.mehmetbozkurt.questlog.data.repository
 
 import com.mehmetbozkurt.questlog.core.common.IoDispatcher
+import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
 import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
+import com.mehmetbozkurt.questlog.core.database.entity.HabitSlotEntity
+import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.mapper.toDomain
 import com.mehmetbozkurt.questlog.data.mapper.toEntity
+import com.mehmetbozkurt.questlog.domain.model.HabitSlot
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
 import com.mehmetbozkurt.questlog.domain.model.QuestLog
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
+import com.mehmetbozkurt.questlog.domain.progression.HabitRules
 import com.mehmetbozkurt.questlog.domain.repository.XpAward
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -37,6 +43,47 @@ class QuestLogRepositoryImpl @Inject constructor(
             if (user == null) flowOf(emptyList())
             else dao.observeAll(user.uid).map { list -> list.map { it.toDomain() } }
         }
+
+    override fun observeHabitSlots(): Flow<List<HabitSlot>> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) {
+                flowOf(emptySlots())
+            } else {
+                combine(
+                    dao.observeHabits(user.uid),
+                    dao.observeSlots(user.uid),
+                ) { habits, slots ->
+                    val todayStart = startOfTodayMillis()
+                    val questBySlot = habits.associateBy { it.slotIndex }
+                    val stateBySlot = slots.associateBy { it.slotIndex }
+                    HabitRules.slotRange.map { index ->
+                        HabitSlot(
+                            index = index,
+                            quest = questBySlot[index]?.toDomain(),
+                            burnedToday = HabitRules.isBurnedToday(
+                                stateBySlot[index]?.lastCompletedDayMillis ?: 0L,
+                                todayStart,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+
+    override suspend fun clearHabitSlot(slotIndex: Int) = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext
+        if (!HabitRules.isValidSlot(slotIndex)) return@withContext
+
+        dao.getHabitInSlot(user.uid, slotIndex)?.let { habit ->
+            dao.softDelete(habit.id, System.currentTimeMillis())
+            reminderScheduler.cancelQuestReminder(habit.id)
+        }
+        dao.clearSlotAssignment(user.uid, slotIndex, System.currentTimeMillis())
+        syncScheduler.requestSync()
+    }
+
+    private fun emptySlots(): List<HabitSlot> =
+        HabitRules.slotRange.map { HabitSlot(it, null, false) }
 
     override fun observeById(id: String): Flow<QuestLog?> =
         dao.observeById(id).map { it?.toDomain() }
@@ -70,12 +117,23 @@ class QuestLogRepositoryImpl @Inject constructor(
                 }
             }
 
-            if (completed) {
-                characterRepository.awardXpFor(log)
-            } else {
-                characterRepository.revokeXpFor(id)
-                null
+            val slotIndex = log.slotIndex
+            if (!completed) {
+                characterRepository.revokeXpFor(
+                    logId = id,
+                    sinceMillis = if (slotIndex != null) startOfTodayMillis() else null,
+                )
+                if (slotIndex != null) unburnSlotForToday(slotIndex)
+                return@withContext null
             }
+
+            if (slotIndex != null && isSlotBurnedToday(slotIndex)) {
+                return@withContext XpAward.Rejected(XpAward.RejectReason.ALREADY_AWARDED_TODAY)
+            }
+
+            val award = characterRepository.awardXpFor(log)
+            if (slotIndex != null && award is XpAward.Granted) burnSlotForToday(slotIndex)
+            award
         }
     }
 
@@ -102,6 +160,40 @@ class QuestLogRepositoryImpl @Inject constructor(
     override suspend fun delete(id: String) = withContext(io) {
         dao.softDelete(id, System.currentTimeMillis())
         reminderScheduler.cancelQuestReminder(id)
+        syncScheduler.requestSync()
+    }
+
+
+    private suspend fun isSlotBurnedToday(slotIndex: Int): Boolean {
+        val user = authRepository.currentUserSync() ?: return false
+        val slot = dao.getSlot(user.uid, slotIndex) ?: return false
+        return HabitRules.isBurnedToday(slot.lastCompletedDayMillis, startOfTodayMillis())
+    }
+
+    private suspend fun burnSlotForToday(slotIndex: Int) {
+        val user = authRepository.currentUserSync() ?: return
+        dao.upsertSlot(
+            HabitSlotEntity(
+                userId = user.uid,
+                slotIndex = slotIndex,
+                lastCompletedDayMillis = startOfTodayMillis(),
+                updatedAtMillis = System.currentTimeMillis(),
+            )
+        )
+        syncScheduler.requestSync()
+    }
+
+    private suspend fun unburnSlotForToday(slotIndex: Int) {
+        val user = authRepository.currentUserSync() ?: return
+        val slot = dao.getSlot(user.uid, slotIndex) ?: return
+        if (!HabitRules.isBurnedToday(slot.lastCompletedDayMillis, startOfTodayMillis())) return
+        dao.upsertSlot(
+            slot.copy(
+                lastCompletedDayMillis = 0L,
+                updatedAtMillis = System.currentTimeMillis(),
+                syncState = SyncState.PENDING.name,
+            )
+        )
         syncScheduler.requestSync()
     }
 

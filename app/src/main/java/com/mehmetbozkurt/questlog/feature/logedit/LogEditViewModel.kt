@@ -34,8 +34,11 @@ class LogEditViewModel @Inject constructor(
     private var originalCompleted: Boolean = false
     private var originalCompletedAt: Instant? = null
     private var originalPathwayQuestId: String? = null
+    private var originalSlotIndex: Int? = null
 
     init {
+        setState { copy(slotIndex = route.slotIndex) }
+
         val existingId = route.logId
         if (existingId != null) {
             viewModelScope.launch {
@@ -45,6 +48,7 @@ class LogEditViewModel @Inject constructor(
                     originalCompleted = log.isCompleted
                     originalCompletedAt = log.completedAt
                     originalPathwayQuestId = log.pathwayQuestId
+                    originalSlotIndex = log.slotIndex
                     setState {
                         copy(
                             id = log.id,
@@ -60,6 +64,7 @@ class LogEditViewModel @Inject constructor(
                             proofNote = log.proofNote.orEmpty(),
                             proofPhotoUrl = log.proofPhotoUrl,
                             proofPhotoLocalPath = log.proofPhotoLocalPath,
+                            slotIndex = log.slotIndex,
                         )
                     }
                 }
@@ -120,6 +125,7 @@ class LogEditViewModel @Inject constructor(
                 proofPhotoLocalPath = if (isQuest) state.proofPhotoLocalPath else null,
                 completedAt = originalCompletedAt,
                 pathwayQuestId = originalPathwayQuestId,
+                slotIndex = originalSlotIndex ?: route.slotIndex,
             )
 
             repository.upsert(log)

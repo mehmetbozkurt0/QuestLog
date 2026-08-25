@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.mehmetbozkurt.questlog.core.database.entity.HabitSlotEntity
 import com.mehmetbozkurt.questlog.core.database.entity.QuestLogEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -110,6 +111,7 @@ interface QuestLogDao {
             proofPhotoUrl = :proofPhotoUrl,
             completedAtMillis = :completedAtMillis,
             pathwayQuestId = :pathwayQuestId,
+            slotIndex = :slotIndex,
             syncState = 'SYNCED'
         WHERE id = :id
         AND syncState = 'SYNCED'
@@ -137,7 +139,38 @@ interface QuestLogDao {
         proofPhotoUrl: String?,
         completedAtMillis: Long?,
         pathwayQuestId: String?,
+        slotIndex: Int?,
     )
+
+
+    @Query("SELECT * FROM habit_slots WHERE userId = :userId ORDER BY slotIndex")
+    fun observeSlots(userId: String): Flow<List<HabitSlotEntity>>
+
+    @Query("SELECT * FROM habit_slots WHERE userId = :userId AND slotIndex = :slotIndex")
+    suspend fun getSlot(userId: String, slotIndex: Int): HabitSlotEntity?
+
+    @Upsert
+    suspend fun upsertSlot(entity: HabitSlotEntity)
+
+    @Query("SELECT * FROM habit_slots WHERE syncState != 'SYNCED'")
+    suspend fun getPendingSlots(): List<HabitSlotEntity>
+
+    @Query("""
+        SELECT * FROM quest_logs
+        WHERE ownerId = :ownerId AND isDeleted = 0 AND slotIndex IS NOT NULL
+        ORDER BY slotIndex
+    """)
+    fun observeHabits(ownerId: String): Flow<List<QuestLogEntity>>
+
+    @Query("""
+        SELECT * FROM quest_logs
+        WHERE ownerId = :ownerId AND isDeleted = 0 AND slotIndex = :slotIndex
+        LIMIT 1
+    """)
+    suspend fun getHabitInSlot(ownerId: String, slotIndex: Int): QuestLogEntity?
+
+    @Query("UPDATE quest_logs SET slotIndex = NULL, updatedAtMillis = :nowMillis, syncState = 'PENDING' WHERE ownerId = :ownerId AND slotIndex = :slotIndex")
+    suspend fun clearSlotAssignment(ownerId: String, slotIndex: Int, nowMillis: Long)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(entity: QuestLogEntity): Long
@@ -169,6 +202,7 @@ interface QuestLogDao {
                     proofPhotoUrl = e.proofPhotoUrl,
                     completedAtMillis = e.completedAtMillis,
                     pathwayQuestId = e.pathwayQuestId,
+                    slotIndex = e.slotIndex,
                 )
             }
         }

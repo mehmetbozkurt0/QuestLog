@@ -28,9 +28,12 @@ data class LogEditState(
     val proofNote: String = "",
     val proofPhotoUrl: String? = null,
     val proofPhotoLocalPath: String? = null,
+    val slotIndex: Int? = null,
 ): UiState{
     val isEditMode: Boolean get() = id != null
-    val canSave: Boolean get() = !isSaving && title.isNotEmpty()
+    val isHabit: Boolean get() = slotIndex != null
+    val canSave: Boolean
+        get() = !isSaving && title.isNotEmpty() && (!isHabit || statType != null)
     val showQuestFields: Boolean get() = type == LogType.QUEST
 }
 

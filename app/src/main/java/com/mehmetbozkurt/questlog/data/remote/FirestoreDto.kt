@@ -1,8 +1,11 @@
 package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.mehmetbozkurt.questlog.core.database.entity.CatalogCompletionEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CatalogTaskEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.HabitSlotEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayProgressEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
@@ -30,6 +33,7 @@ fun QuestLogEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "readerIds" to listOf(ownerId),
     "editorIds" to listOf(ownerId),
     "pathwayQuestId" to pathwayQuestId,
+    "slotIndex" to slotIndex,
     "statType" to statType,
     "difficulty" to difficulty,
     "proofLevel" to proofLevel,
@@ -67,6 +71,7 @@ fun DocumentSnapshot.toEntityOrNull(): QuestLogEntity? {
         proofNote = getString("proofNote"),
         proofPhotoUrl = getString("proofPhotoUrl"),
         completedAtMillis = getLong("completedAtMillis"),
+        slotIndex = getLong("slotIndex")?.toInt(),
     )
 }
 
@@ -199,6 +204,56 @@ fun DocumentSnapshot.toLedgerEntityOrNull(userId: String): XpLedgerEntity? {
         baseXp = (getLong("baseXp") ?: 0L).toInt(),
         finalXp = (getLong("finalXp") ?: 0L).toInt(),
         earnedAtMillis = getLong("earnedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun DocumentSnapshot.toCatalogTaskEntityOrNull(): CatalogTaskEntity? {
+    val title = getString("title") ?: return null
+    val statType = getString("statType") ?: return null
+    val difficulty = getString("difficulty") ?: return null
+    return CatalogTaskEntity(
+        id = id,
+        title = title,
+        description = getString("description").orEmpty(),
+        titleEn = getString("titleEn"),
+        descriptionEn = getString("descriptionEn"),
+        statType = statType,
+        difficulty = difficulty,
+        sortOrder = (getLong("sortOrder") ?: 0L).toInt(),
+    )
+}
+
+fun CatalogCompletionEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "taskId" to taskId,
+    "completions" to completions,
+    "lastCompletedAtMillis" to lastCompletedAtMillis,
+)
+
+fun DocumentSnapshot.toCatalogCompletionEntityOrNull(userId: String): CatalogCompletionEntity? {
+    val taskId = getString("taskId") ?: return null
+    return CatalogCompletionEntity(
+        userId = userId,
+        taskId = taskId,
+        completions = (getLong("completions") ?: 0L).toInt(),
+        lastCompletedAtMillis = getLong("lastCompletedAtMillis") ?: 0L,
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun HabitSlotEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "slotIndex" to slotIndex,
+    "lastCompletedDayMillis" to lastCompletedDayMillis,
+    "updatedAtMillis" to updatedAtMillis,
+)
+
+fun DocumentSnapshot.toHabitSlotEntityOrNull(userId: String): HabitSlotEntity? {
+    val slotIndex = getLong("slotIndex")?.toInt() ?: return null
+    return HabitSlotEntity(
+        userId = userId,
+        slotIndex = slotIndex,
+        lastCompletedDayMillis = getLong("lastCompletedDayMillis") ?: 0L,
+        updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
         syncState = SyncState.SYNCED.name,
     )
 }

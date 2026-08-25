@@ -38,13 +38,16 @@ import com.mehmetbozkurt.questlog.feature.questlog.component.ActivePathwayCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.CharacterSummaryCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
 import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
+import com.mehmetbozkurt.questlog.domain.progression.HabitRules
+import com.mehmetbozkurt.questlog.feature.questlog.component.HabitSlotCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun QuestLogListRoute(
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToCreate: () -> Unit,
+    onNavigateToCreate: (Int) -> Unit,
+    onNavigateToCatalog: () -> Unit,
     onNavigateToPathways: () -> Unit,
     onNavigateToPathwayDetail: (String) -> Unit,
     onNavigateToCharacter: () -> Unit,
@@ -59,7 +62,8 @@ fun QuestLogListRoute(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is QuestLogListEffect.NavigateToDetail -> onNavigateToDetail(effect.id)
-                QuestLogListEffect.NavigateToCreate -> onNavigateToCreate()
+                is QuestLogListEffect.NavigateToCreate -> onNavigateToCreate(effect.slotIndex)
+                QuestLogListEffect.NavigateToCatalog -> onNavigateToCatalog()
                 QuestLogListEffect.NavigateToPathways -> onNavigateToPathways()
                 is QuestLogListEffect.NavigateToPathwayDetail ->
                     onNavigateToPathwayDetail(effect.pathwayId)
@@ -150,15 +154,6 @@ fun QuestLogListScreen(
                 )
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onEvent(QuestLogListEvent.CreateClicked) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.questlog_new_quest))
-            }
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
@@ -234,27 +229,62 @@ fun QuestLogListScreen(
                 }
             }
 
-            if (state.isEmpty) {
-                item(key = "empty") {
-                    if (state.isEmptyBecauseOfFilters) {
-                        EmptyState(
-                            icon = Icons.Default.SearchOff,
-                            title = stringResource(R.string.questlog_empty_filtered_title),
-                            body = stringResource(R.string.questlog_empty_filtered_body),
-                            actionLabel = stringResource(R.string.questlog_empty_filtered_action),
-                            onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
+            if (state.showHeaderSections) {
+                item(key = "habits_header") {
+                    SectionEyebrow(
+                        stringResource(R.string.questlog_habits_header),
+                        trailing = "${state.habitSlots.count { !it.isEmpty }}/${HabitRules.MAX_SLOTS}",
+                    )
+                }
+                items(state.habitSlots, key = { "habit_${it.index}" }) { slot ->
+                    HabitSlotCard(
+                        slot = slot,
+                        onClick = { onEvent(QuestLogListEvent.HabitSlotClicked(slot.index)) },
+                        onToggleCompleted = { checked ->
+                            slot.quest?.let {
+                                onEvent(QuestLogListEvent.CompletionToggled(it.id, checked))
+                            }
+                        },
+                        onClear = { onEvent(QuestLogListEvent.HabitClearRequested(slot.index)) },
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
+
+            if (state.showHeaderSections) {
+                item(key = "catalog_cta") {
+                    QuestCard(
+                        onClick = { onEvent(QuestLogListEvent.CatalogClicked) },
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        seed = 13,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            stringResource(R.string.catalog_entry_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
-                    } else {
-                        EmptyState(
-                            icon = Icons.AutoMirrored.Filled.MenuBook,
-                            title = stringResource(R.string.questlog_empty_title),
-                            body = stringResource(R.string.questlog_empty_body),
-                            actionLabel = stringResource(R.string.questlog_empty_action),
-                            onAction = { onEvent(QuestLogListEvent.CreateClicked) },
+                        Spacer(Modifier.height(Spacing.xs))
+                        Text(
+                            stringResource(R.string.catalog_entry_body),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
-            } else {
+            }
+
+            if (state.isEmptyBecauseOfFilters) {
+                item(key = "empty") {
+                    EmptyState(
+                        icon = Icons.Default.SearchOff,
+                        title = stringResource(R.string.questlog_empty_filtered_title),
+                        body = stringResource(R.string.questlog_empty_filtered_body),
+                        actionLabel = stringResource(R.string.questlog_empty_filtered_action),
+                        onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
+                    )
+                }
+            } else if (!state.isEmpty) {
                 if (state.activeLogs.isNotEmpty()) {
                     item(key = "active_header") {
                         SectionEyebrow(
@@ -312,6 +342,24 @@ fun QuestLogListScreen(
                         photoLocalPath = draft.photoLocalPath,
                     )
                 )
+            },
+        )
+    }
+
+    if (state.slotPendingClear != null) {
+        AlertDialog(
+            onDismissRequest = { onEvent(QuestLogListEvent.HabitClearRequested(null)) },
+            title = { Text(stringResource(R.string.questlog_habit_clear_title)) },
+            text = { Text(stringResource(R.string.questlog_habit_clear_body)) },
+            confirmButton = {
+                TextButton(onClick = { onEvent(QuestLogListEvent.HabitClearConfirmed) }) {
+                    Text(stringResource(R.string.questlog_habit_clear_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onEvent(QuestLogListEvent.HabitClearRequested(null)) }) {
+                    Text(stringResource(R.string.questlog_habit_cancel))
+                }
             },
         )
     }

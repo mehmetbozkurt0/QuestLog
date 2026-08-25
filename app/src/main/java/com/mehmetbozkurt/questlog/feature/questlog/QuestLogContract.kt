@@ -8,6 +8,7 @@ import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
+import com.mehmetbozkurt.questlog.domain.model.HabitSlot
 import com.mehmetbozkurt.questlog.domain.model.Pathway
 import com.mehmetbozkurt.questlog.domain.model.PathwayProgress
 import com.mehmetbozkurt.questlog.domain.model.Priority
@@ -47,6 +48,8 @@ data class ActivePathwaySummary(
 
 data class QuestLogListState(
     val allLogs: List<QuestLog> = emptyList(),
+    val habitSlots: List<HabitSlot> = emptyList(),
+    val slotPendingClear: Int? = null,
     val character: CharacterSheet? = null,
     val activePathways: List<ActivePathwaySummary> = emptyList(),
     val isLoading: Boolean = true,
@@ -63,6 +66,7 @@ data class QuestLogListState(
 
     val logs: List<QuestLog>
         get() = allLogs
+            .filter { log -> log.slotIndex == null }
             .filter { log ->
                 val q = searchQuery.trim()
                 q.isBlank() ||
@@ -132,7 +136,9 @@ sealed interface QuestLogListEvent : UiEvent {
         val note: String?,
         val photoLocalPath: String?,
     ) : QuestLogListEvent
-    data object CreateClicked : QuestLogListEvent
+    data class HabitSlotClicked(val index: Int) : QuestLogListEvent
+    data class HabitClearRequested(val index: Int?) : QuestLogListEvent
+    data object HabitClearConfirmed : QuestLogListEvent
     data class SearchChanged(val value: String) : QuestLogListEvent
     data class CompletionFilterChanged(val value: CompletionFilter) : QuestLogListEvent
     data class StatFilterChanged(val value: StatType?) : QuestLogListEvent
@@ -141,15 +147,17 @@ sealed interface QuestLogListEvent : UiEvent {
     data class FilterSheetToggled(val show: Boolean) : QuestLogListEvent
     data object FiltersCleared : QuestLogListEvent
     data object PathwaysClicked : QuestLogListEvent
+    data object CatalogClicked : QuestLogListEvent
     data class PathwayClicked(val pathwayId: String) : QuestLogListEvent
     data object CharacterClicked : QuestLogListEvent
 }
 
 sealed interface QuestLogListEffect : UiEffect {
     data class NavigateToDetail(val id: String) : QuestLogListEffect
-    data object NavigateToCreate : QuestLogListEffect
+    data class NavigateToCreate(val slotIndex: Int) : QuestLogListEffect
     data class ShowXpMessage(val text: UiText) : QuestLogListEffect
     data object NavigateToPathways : QuestLogListEffect
+    data object NavigateToCatalog : QuestLogListEffect
     data class NavigateToPathwayDetail(val pathwayId: String) : QuestLogListEffect
     data object NavigateToCharacter : QuestLogListEffect
     data class ShowCelebration(val celebration: Celebration): QuestLogListEffect

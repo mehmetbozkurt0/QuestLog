@@ -3,8 +3,10 @@ package com.mehmetbozkurt.questlog.data.remote
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
+import com.mehmetbozkurt.questlog.core.database.entity.CatalogCompletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
+import com.mehmetbozkurt.questlog.core.database.entity.HabitSlotEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
 import com.mehmetbozkurt.questlog.core.database.entity.StatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
@@ -24,6 +26,8 @@ class CharacterRemoteDataSource @Inject constructor(
     private fun feats(uid: String) = userDoc(uid).collection("feats")
     private fun ledger(uid: String) = userDoc(uid).collection("xpLedger")
     private fun completions(uid: String) = userDoc(uid).collection("questCompletions")
+    private fun habitSlots(uid: String) = userDoc(uid).collection("habitSlots")
+    private fun catalogCompletions(uid: String) = userDoc(uid).collection("catalogCompletions")
 
     suspend fun pushCharacter(entity: CharacterEntity) {
         userDoc(entity.userId).set(entity.toFireStoreMap(), SetOptions.merge()).await()
@@ -45,12 +49,23 @@ class CharacterRemoteDataSource @Inject constructor(
         completions(entity.userId).document(entity.questId).set(entity.toFireStoreMap()).await()
     }
 
+    suspend fun pushHabitSlot(entity: HabitSlotEntity) {
+        habitSlots(entity.userId).document(entity.slotIndex.toString())
+            .set(entity.toFireStoreMap()).await()
+    }
+
+    suspend fun pushCatalogCompletion(entity: CatalogCompletionEntity) {
+        catalogCompletions(entity.userId).document(entity.taskId)
+            .set(entity.toFireStoreMap()).await()
+    }
+
     suspend fun deleteLedgerEntry(uid: String, docId: String) {
         ledger(uid).document(docId).delete().await()
     }
 
     suspend fun deleteUserDocument(uid: String) {
-        listOf(stats(uid), feats(uid), ledger(uid), completions(uid)).forEach { collection ->
+        listOf(stats(uid), feats(uid), ledger(uid), completions(uid), habitSlots(uid), catalogCompletions(uid))
+            .forEach { collection ->
             collection.get().await().documents.forEach { it.reference.delete().await() }
         }
         userDoc(uid).delete().await()
@@ -112,6 +127,32 @@ class CharacterRemoteDataSource @Inject constructor(
             }
             if (snapshot != null) {
                 trySend(snapshot.documents.mapNotNull { it.toLedgerEntityOrNull(uid) })
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    fun observeHabitSlots(uid: String): Flow<List<HabitSlotEntity>> = callbackFlow {
+        val registration = habitSlots(uid).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                trySend(snapshot.documents.mapNotNull { it.toHabitSlotEntityOrNull(uid) })
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    fun observeCatalogCompletions(uid: String): Flow<List<CatalogCompletionEntity>> = callbackFlow {
+        val registration = catalogCompletions(uid).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                trySend(snapshot.documents.mapNotNull { it.toCatalogCompletionEntityOrNull(uid) })
             }
         }
         awaitClose { registration.remove() }

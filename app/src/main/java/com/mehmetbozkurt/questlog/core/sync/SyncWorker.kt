@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
@@ -30,6 +31,7 @@ class SyncWorker @AssistedInject constructor(
     private val characterDao: CharacterDao,
     private val characterRemote: CharacterRemoteDataSource,
     private val crewDao: CrewDao,
+    private val catalogDao: CatalogDao,
     private val crewRemote: CrewRemoteDataSource,
     private val proofPhotoRemote: ProofPhotoRemoteDataSource,
 ): CoroutineWorker(context, params) {
@@ -74,6 +76,24 @@ class SyncWorker @AssistedInject constructor(
             try {
                 characterRemote.pushCompletion(entity)
                 pathwayDao.upsertCompletion(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        catalogDao.getPendingCompletions().forEach { entity ->
+            try {
+                characterRemote.pushCatalogCompletion(entity)
+                catalogDao.upsertCompletion(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
+        dao.getPendingSlots().forEach { entity ->
+            try {
+                characterRemote.pushHabitSlot(entity)
+                dao.upsertSlot(entity.copy(syncState = SyncState.SYNCED.name))
             } catch (e: Exception) {
                 if (e.isRetryable()) hadRetryableFailure = true
             }

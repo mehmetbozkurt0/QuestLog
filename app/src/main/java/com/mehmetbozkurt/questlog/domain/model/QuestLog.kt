@@ -28,10 +28,12 @@ data class QuestLog (
     val proofPhotoUrl: String? = null,
     val proofPhotoLocalPath: String? = null,
     val completedAt: Instant?,
+    val slotIndex: Int? = null,
 ) {
     val descriptionFirstLine: String
         get() = description.lineSequence().firstOrNull()?.trim().orEmpty()
 
     val isXpEligible: Boolean
-        get() = type == LogType.QUEST && statType != null && difficulty != null
+        get() = type == LogType.QUEST && slotIndex != null &&
+                statType != null && difficulty != null
 }

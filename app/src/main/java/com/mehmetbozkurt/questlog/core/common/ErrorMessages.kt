@@ -3,6 +3,7 @@ package com.mehmetbozkurt.questlog.core.common
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.domain.repository.ApproveFailure
 import com.mehmetbozkurt.questlog.domain.repository.CrewFailure
+import com.mehmetbozkurt.questlog.domain.repository.CatalogRejection
 import com.mehmetbozkurt.questlog.domain.repository.DeleteFailure
 import com.mehmetbozkurt.questlog.domain.repository.QuestRejection
 
@@ -36,6 +37,16 @@ fun QuestRejection.toUiText(): UiText = uiText(
         QuestRejection.ALREADY_COMPLETED -> R.string.pathway_reject_already_completed
         QuestRejection.ALREADY_DONE_TODAY -> R.string.pathway_reject_already_done_today
         QuestRejection.XP_NOT_AWARDED -> R.string.pathway_reject_xp_not_awarded
+    }
+)
+
+fun CatalogRejection.toUiText(): UiText = uiText(
+    when (this) {
+        CatalogRejection.NO_SESSION -> R.string.pathway_reject_no_session
+        CatalogRejection.TASK_NOT_FOUND -> R.string.pathway_reject_quest_not_found
+        CatalogRejection.ALREADY_DONE_TODAY -> R.string.catalog_reject_already_done_today
+        CatalogRejection.DAILY_LIMIT -> R.string.catalog_reject_daily_limit
+        CatalogRejection.XP_NOT_AWARDED -> R.string.pathway_reject_xp_not_awarded
     }
 )
 

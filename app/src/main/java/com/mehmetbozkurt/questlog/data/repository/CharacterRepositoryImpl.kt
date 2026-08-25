@@ -353,9 +353,13 @@ class CharacterRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun revokeXpFor(logId: String) = withContext(io) {
+    override suspend fun revokeXpFor(logId: String, sinceMillis: Long?) = withContext(io) {
         val user = authRepository.currentUserSync() ?: return@withContext
-        val entries = dao.ledgerEntriesForLog(user.uid, logId)
+        val entries = if (sinceMillis == null) {
+            dao.ledgerEntriesForLog(user.uid, logId)
+        } else {
+            dao.ledgerEntriesForLogSince(user.uid, logId, sinceMillis)
+        }
         if (entries.isEmpty()) return@withContext
 
         val now = System.currentTimeMillis()

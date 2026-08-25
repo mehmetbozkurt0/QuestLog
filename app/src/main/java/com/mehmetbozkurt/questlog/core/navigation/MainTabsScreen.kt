@@ -37,7 +37,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainTabsScreen(
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToCreate: () -> Unit,
+    onNavigateToCreate: (Int) -> Unit,
+    onNavigateToCatalog: () -> Unit,
     onNavigateToPathwayDetail: (String) -> Unit,
     onNavigateToAuth: () -> Unit,
     openCrewChat: Boolean = false,
@@ -116,6 +117,7 @@ fun MainTabsScreen(
                 BottomNavItem.LOGS -> QuestLogListRoute(
                     onNavigateToDetail = onNavigateToDetail,
                     onNavigateToCreate = onNavigateToCreate,
+                    onNavigateToCatalog = onNavigateToCatalog,
                     onNavigateToPathways = {
                         scope.launch {
                             pagerState.animateScrollToPage(

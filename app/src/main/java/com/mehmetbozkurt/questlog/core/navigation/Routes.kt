@@ -15,7 +15,10 @@ data object HomeRouteKey
 data class LogDetailRouteKey(val id: String)
 
 @Serializable
-data class LogEditRouteKey(val logId: String?)
+data class LogEditRouteKey(val logId: String? = null, val slotIndex: Int? = null)
 
 @Serializable
 data class PathwayDetailRouteKey(val pathwayId: String)
+
+@Serializable
+data object CatalogRouteKey

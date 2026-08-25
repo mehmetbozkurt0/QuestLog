@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.core.sync
 
 import android.util.Log
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
+import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
@@ -15,6 +16,7 @@ import com.mehmetbozkurt.questlog.core.notification.ChatPresence
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
+import com.mehmetbozkurt.questlog.domain.repository.CatalogRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +46,8 @@ class RemoteSyncManager @Inject constructor(
     private val characterRepository: CharacterRepository,
     private val crewRemote: CrewRemoteDataSource,
     private val crewDao: CrewDao,
+    private val catalogDao: CatalogDao,
+    private val catalogRepository: CatalogRepository,
     private val settingsRepository: SettingsRepository,
     private val chatPresence: ChatPresence,
     @ApplicationScope private val scope: CoroutineScope
@@ -57,6 +61,7 @@ class RemoteSyncManager @Inject constructor(
             .launchIn(scope)
 
         scope.launch { pathwayRepository.refreshCatalog() }
+        scope.launch { catalogRepository.refreshCatalog() }
 
         authRepository.currentUser
             .flatMapLatest { user ->
@@ -140,6 +145,48 @@ class RemoteSyncManager @Inject constructor(
                             local.lastCompletedAtMillis >= remoteCompletion.lastCompletedAtMillis
                     if (!localPendingNewer) {
                         pathwayDao.upsertCompletion(remoteCompletion)
+                    }
+                }
+            }
+            .launchIn(scope)
+
+        authRepository.currentUser
+            .flatMapLatest { user ->
+                if (user == null) emptyFlow()
+                else characterRemote.observeCatalogCompletions(user.uid)
+            }
+            .retrying("Catalog completions")
+            .onEach { remoteCompletions ->
+                remoteCompletions.forEach { remote ->
+                    val local = catalogDao.getCompletion(remote.userId, remote.taskId)
+                    val localPendingNewer = local != null &&
+                            local.syncState != SyncState.SYNCED.name &&
+                            local.lastCompletedAtMillis >= remote.lastCompletedAtMillis
+                    if (!localPendingNewer) {
+                        catalogDao.upsertCompletion(remote)
+                    }
+                }
+            }
+            .launchIn(scope)
+
+        authRepository.currentUser
+            .flatMapLatest { user ->
+                if (user == null) emptyFlow()
+                else characterRemote.observeHabitSlots(user.uid)
+            }
+            .retrying("Habit slots")
+            .onEach { remoteSlots ->
+                remoteSlots.forEach { remoteSlot ->
+                    val local = dao.getSlot(remoteSlot.userId, remoteSlot.slotIndex)
+                    if (local == null || remoteSlot.updatedAtMillis > local.updatedAtMillis) {
+                        dao.upsertSlot(
+                            remoteSlot.copy(
+                                lastCompletedDayMillis = maxOf(
+                                    remoteSlot.lastCompletedDayMillis,
+                                    local?.lastCompletedDayMillis ?: 0L,
+                                )
+                            )
+                        )
                     }
                 }
             }

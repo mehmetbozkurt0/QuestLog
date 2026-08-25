@@ -188,6 +188,13 @@ fun LogEditScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            } else if (state.isHabit) {
+                Spacer(Modifier.height(Spacing.xs))
+                Text(
+                    stringResource(R.string.logedit_habit_stat_required),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
 
             Spacer(Modifier.height(Spacing.lg))

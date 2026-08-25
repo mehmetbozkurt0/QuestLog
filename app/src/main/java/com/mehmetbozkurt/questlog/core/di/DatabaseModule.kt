@@ -11,7 +11,10 @@ import com.mehmetbozkurt.questlog.core.database.MIGRATION_6_7
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_7_8
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_8_9
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_9_10
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_10_11
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_11_12
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
+import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.dao.PathwayDao
@@ -42,6 +45,8 @@ object DatabaseModule {
         MIGRATION_7_8,
         MIGRATION_8_9,
         MIGRATION_9_10,
+        MIGRATION_10_11,
+        MIGRATION_11_12,
     ).build()
 
     @Provides
@@ -55,4 +60,7 @@ object DatabaseModule {
 
     @Provides
     fun provideCrewDao(db: QuestLogDatabase): CrewDao = db.crewDao()
+
+    @Provides
+    fun provideCatalogDao(db: QuestLogDatabase): CatalogDao = db.catalogDao()
 }
