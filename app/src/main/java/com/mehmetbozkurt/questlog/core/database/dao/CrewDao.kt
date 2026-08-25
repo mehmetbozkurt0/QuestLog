@@ -14,9 +14,6 @@ interface CrewDao {
     @Query("SELECT * FROM crews WHERE crewId = :crewId")
     fun observeCrew(crewId: String): Flow<CrewEntity?>
 
-    @Query("SELECT * FROM crews WHERE crewId = :crewId")
-    suspend fun getCrew(crewId: String): CrewEntity?
-
     @Upsert
     suspend fun upsertCrew(entity: CrewEntity)
 
@@ -25,9 +22,6 @@ interface CrewDao {
 
     @Query("SELECT * FROM crew_members WHERE crewId = :crewId ORDER BY totalXp DESC")
     fun observeMembers(crewId: String): Flow<List<CrewMemberEntity>>
-
-    @Query("SELECT * FROM crew_members WHERE userId = :userId")
-    suspend fun getMember(userId: String): CrewMemberEntity?
 
     @Upsert
     suspend fun upsertMember(entity: CrewMemberEntity)
@@ -49,9 +43,6 @@ interface CrewDao {
 
     @Upsert
     suspend fun upsertFeedEntry(entity: CrewFeedEntity)
-
-    @Upsert
-    suspend fun upsertFeedEntries(entities: List<CrewFeedEntity>)
 
     @Query("SELECT * FROM crew_feed WHERE syncState != 'SYNCED'")
     suspend fun getPendingFeedEntries(): List<CrewFeedEntity>
@@ -76,9 +67,6 @@ interface CrewDao {
 
     @Query("SELECT * FROM crew_messages WHERE syncState != 'SYNCED'")
     suspend fun getPendingMessages(): List<CrewMessageEntity>
-
-    @Query("SELECT * FROM crew_messages WHERE id = :id")
-    suspend fun getMessage(id: String): CrewMessageEntity?
 
     @Query("DELETE FROM crew_messages WHERE crewId = :crewId")
     suspend fun deleteMessagesForCrew(crewId: String)

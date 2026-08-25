@@ -62,12 +62,6 @@ interface CharacterDao {
     """)
     suspend fun distinctStatsSince(userId: String, sinceMillis: Long): List<String>
 
-    @Query("""
-        SELECT COALESCE(SUM(finalXp), 0) FROM xp_ledger
-        WHERE userId = :userId AND earnedAtMillis >= :sinceMillis
-    """)
-    fun observeXpSince(userId: String, sinceMillis: Long): Flow<Int>
-
     @Query("DELETE FROM xp_ledger WHERE logId = :logId")
     suspend fun deleteLedgerForLog(logId: String)
 

@@ -35,9 +35,6 @@ interface QuestLogDao {
     @Upsert
     suspend fun upsert(entity: QuestLogEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(entities: List<QuestLogEntity>)
-
     @Query("""
         UPDATE quest_logs
         SET isDeleted = 1, updatedAtMillis = :nowMillis, syncState = 'PENDING'

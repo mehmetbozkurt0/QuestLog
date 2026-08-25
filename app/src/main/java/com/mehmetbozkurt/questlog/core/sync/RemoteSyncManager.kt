@@ -19,7 +19,6 @@ import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
@@ -53,7 +52,7 @@ class RemoteSyncManager @Inject constructor(
         authRepository.currentUser.flatMapLatest { user ->
             if (user == null) emptyFlow()
             else remote.observeForUser(user.uid)
-        }.catch { e -> Log.e(TAG, "QuestLog sync", e) }
+        }.retrying("QuestLog")
             .onEach { entities -> dao.mergeFromRemote(entities) }
             .launchIn(scope)
 
@@ -64,7 +63,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else pathwayRemote.observeProgressForUser(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Pathway sync", e) }
+            .retrying("Pathway")
             .onEach { entities -> entities.forEach { pathwayDao.upsertProgress(it) } }
             .launchIn(scope)
 
@@ -73,7 +72,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else characterRemote.observeCharacter(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Character sync", e) }
+            .retrying("Character")
             .onEach { remoteChar ->
                 if (remoteChar != null) {
                     val local = characterDao.getCharacter(remoteChar.userId)
@@ -89,7 +88,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else characterRemote.observeStats(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Stats sync", e) }
+            .retrying("Stats")
             .onEach { remoteStats ->
                 remoteStats.forEach { remoteStat ->
                     val local = characterDao.getStat(remoteStat.userId, remoteStat.statType)
@@ -105,7 +104,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else characterRemote.observeFeats(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Feats sync", e) }
+            .retrying("Feats")
             .onEach { remoteFeats ->
                 if (remoteFeats.isNotEmpty()) characterDao.upsertFeats(remoteFeats)
             }
@@ -116,7 +115,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else characterRemote.observeLedger(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Ledger sync", e) }
+            .retrying("Ledger")
             .onEach { remoteEntries ->
                 val deleting = characterDao.getPendingDeletionIds().toSet()
                 val toUpsert = remoteEntries.filter { it.id !in deleting }
@@ -129,7 +128,7 @@ class RemoteSyncManager @Inject constructor(
                 if (user == null) emptyFlow()
                 else characterRemote.observeCompletions(user.uid)
             }
-            .catch { e -> Log.e(TAG, "Completions sync", e) }
+            .retrying("Completions")
             .onEach { remoteCompletions ->
                 remoteCompletions.forEach { remoteCompletion ->
                     val local = pathwayDao.getCompletion(

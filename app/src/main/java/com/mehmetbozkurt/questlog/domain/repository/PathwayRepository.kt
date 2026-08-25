@@ -27,15 +27,6 @@ sealed interface StartResult {
     data object AlreadyStarted : StartResult
 }
 
-data class CompletionOutcome(
-    val pathwayTitle: String,
-    val escrowedXp: Int,
-    val stageUnlocked: Int?,
-    val pathwayCompleted: Boolean,
-    val releasedXp: Int,
-    val bonusXp: Int,
-)
-
 sealed interface QuestCompletionResult {
     data class Success(
         val questTitle: String,

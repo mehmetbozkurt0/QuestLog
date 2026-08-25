@@ -309,7 +309,6 @@
     <string name="weekly_summary">%1$d XP · %2$d görev</string>
     <string name="weekly_summary_with_top">%1$d XP · %2$d görev · En çok: %3$s</string>
 
-    <string name="character_level">Seviye %1$d</string>
     <string name="character_boons">· %1$d Kutsama</string>
     <string name="character_streak">Seri</string>
     <string name="character_resolute_active">Kararlı devrede</string>

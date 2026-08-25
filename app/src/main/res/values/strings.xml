@@ -311,7 +311,6 @@
     <string name="weekly_summary">%1$d XP · %2$d quests</string>
     <string name="weekly_summary_with_top">%1$d XP · %2$d quests · Most: %3$s</string>
 
-    <string name="character_level">Level %1$d</string>
     <string name="character_boons">· %1$d Boons</string>
     <string name="character_streak">Streak</string>
     <string name="character_resolute_active">Resolute is active</string>

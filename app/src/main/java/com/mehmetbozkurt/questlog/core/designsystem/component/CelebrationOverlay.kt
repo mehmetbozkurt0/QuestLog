@@ -160,7 +160,7 @@ private fun BannerContent(celebration: Celebration) {
             if (celebration.streakMilestone != null) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
-                    stringResource(R.string.celebration_streak, celebration.streakMilestone ?: 0),
+                    stringResource(R.string.celebration_streak, celebration.streakMilestone),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -330,7 +330,7 @@ private fun EpicCelebration(
             }
             if (celebration.streakMilestone != null) {
                 Text(
-                    stringResource(R.string.celebration_streak, celebration.streakMilestone ?: 0),
+                    stringResource(R.string.celebration_streak, celebration.streakMilestone),
                     style = MaterialTheme.typography.titleMedium,
                     color = accent,
                 )
