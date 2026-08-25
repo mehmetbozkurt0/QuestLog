@@ -35,18 +35,27 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
+import com.mehmetbozkurt.questlog.feature.crew.component.CrewChatPane
 import com.mehmetbozkurt.questlog.feature.crew.component.CrewMemberRow
 import com.mehmetbozkurt.questlog.feature.crew.component.FeedEntryCard
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CrewRoute(
+    startOnChat: Boolean = false,
+    onStartOnChatHandled: () -> Unit = {},
     viewModel: CrewViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
+
+    LaunchedEffect(startOnChat) {
+        if (!startOnChat) return@LaunchedEffect
+        viewModel.onEvent(CrewEvent.TabSelected(CrewTab.CHAT))
+        onStartOnChatHandled()
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -142,92 +151,148 @@ fun CrewScreen(
                 }
             }
 
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = Spacing.lg,
-                    end = Spacing.lg,
-                    top = padding.calculateTopPadding() + Spacing.sm,
-                    bottom = padding.calculateBottomPadding() + Spacing.xxl,
-                ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md),
+            else -> Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = padding.calculateTopPadding())
             ) {
-                item(key = "invite") {
-                    QuestCard(
-                        onClick = { onEvent(CrewEvent.InviteCodeCopied) },
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        seed = 21,
-                        modifier = Modifier.fillMaxWidth(),
+                TabRow(
+                    selectedTabIndex = state.tab.ordinal,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                ) {
+                    CrewTab.entries.forEach { tab ->
+                        Tab(
+                            selected = state.tab == tab,
+                            onClick = { onEvent(CrewEvent.TabSelected(tab)) },
+                            text = {
+                                val unread =
+                                    if (tab == CrewTab.CHAT) state.unreadMessages else 0
+                                BadgedBox(
+                                    badge = {
+                                        if (unread > 0) {
+                                            Badge(
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = MaterialTheme.colorScheme.onError,
+                                            ) {
+                                                Text(unread.badgeLabel())
+                                            }
+                                        }
+                                    },
+                                ) {
+                                    Text(
+                                        stringResource(tab.labelRes()),
+                                        style = MaterialTheme.typography.labelLarge,
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
+
+                when (state.tab) {
+                    CrewTab.CHAT -> CrewChatPane(
+                        messages = state.messages,
+                        ownUserId = state.ownUserId,
+                        input = state.messageInput,
+                        canSend = state.canSendMessage,
+                        onInputChange = { onEvent(CrewEvent.MessageInputChanged(it)) },
+                        onSend = { onEvent(CrewEvent.MessageSent) },
+                        onVisibilityChanged = {
+                            onEvent(CrewEvent.ChatVisibilityChanged(it))
+                        },
+                        contentPadding = padding,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+
+                    CrewTab.FEED -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = Spacing.lg,
+                            end = Spacing.lg,
+                            top = Spacing.md,
+                            bottom = padding.calculateBottomPadding() + Spacing.xxl,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.md),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    state.crew?.name.orEmpty(),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Spacer(Modifier.height(Spacing.sm))
-                                Text(
-                                    stringResource(R.string.crew_invite_code_field).uppercaseLocalized(),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Spacer(Modifier.height(Spacing.xs))
-                                InviteCodeStamp(state.crew?.inviteCode.orEmpty())
+                        item(key = "invite") {
+                            QuestCard(
+                                onClick = { onEvent(CrewEvent.InviteCodeCopied) },
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                seed = 21,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            state.crew?.name.orEmpty(),
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                        Spacer(Modifier.height(Spacing.sm))
+                                        Text(
+                                            stringResource(R.string.crew_invite_code_field).uppercaseLocalized(),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Spacer(Modifier.height(Spacing.xs))
+                                        InviteCodeStamp(state.crew?.inviteCode.orEmpty())
+                                    }
+                                    Icon(
+                                        Icons.Default.ContentCopy,
+                                        contentDescription = stringResource(R.string.crew_copy_code),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
                             }
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = stringResource(R.string.crew_copy_code),
-                                tint = MaterialTheme.colorScheme.primary,
+                        }
+
+                        item(key = "members_header") {
+                            SectionEyebrow(
+                                stringResource(R.string.crew_members_header),
+                                trailing = "${state.members.size}",
                             )
                         }
-                    }
-                }
 
-                item(key = "members_header") {
-                    SectionEyebrow(
-                        stringResource(R.string.crew_members_header),
-                        trailing = "${state.members.size}",
-                    )
-                }
+                        items(state.members, key = { "m_${it.userId}" }) { member ->
+                            CrewMemberRow(
+                                member = member,
+                                isSelf = member.userId == state.ownUserId,
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
 
-                items(state.members, key = { "m_${it.userId}" }) { member ->
-                    CrewMemberRow(
-                        member = member,
-                        isSelf = member.userId == state.ownUserId,
-                        modifier = Modifier.animateItem(),
-                    )
-                }
+                        item(key = "feed_header") {
+                            SectionEyebrow(
+                                stringResource(R.string.crew_feed_header),
+                                trailing = if (state.hasMentorFeat)
+                                    stringResource(R.string.crew_approvals_left, state.approvalsLeft)
+                                else null,
+                            )
+                        }
 
-                item(key = "feed_header") {
-                    SectionEyebrow(
-                        stringResource(R.string.crew_feed_header),
-                        trailing = if (state.hasMentorFeat)
-                            stringResource(R.string.crew_approvals_left, state.approvalsLeft)
-                        else null,
-                    )
-                }
-
-                if (state.feed.isEmpty()) {
-                    item(key = "feed_empty") {
-                        Text(
-                            stringResource(R.string.crew_feed_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.lg),
-                        )
-                    }
-                } else {
-                    items(state.feed, key = { "f_${it.id}" }) { item ->
-                        FeedEntryCard(
-                            item = item,
-                            isMine = item.authorId == state.ownUserId,
-                            canApprove = state.canApprove(item) && !state.isWorking,
-                            approvedByMe = state.ownUserId in item.approvedBy,
-                            onApprove = { onEvent(CrewEvent.ApproveClicked(item.id)) },
-                            modifier = Modifier.animateItem(),
-                        )
+                        if (state.feed.isEmpty()) {
+                            item(key = "feed_empty") {
+                                Text(
+                                    stringResource(R.string.crew_feed_empty),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.lg),
+                                )
+                            }
+                        } else {
+                            items(state.feed, key = { "f_${it.id}" }) { item ->
+                                FeedEntryCard(
+                                    item = item,
+                                    isMine = item.authorId == state.ownUserId,
+                                    canApprove = state.canApprove(item) && !state.isWorking,
+                                    approvedByMe = state.ownUserId in item.approvedBy,
+                                    onApprove = { onEvent(CrewEvent.ApproveClicked(item.id)) },
+                                    modifier = Modifier.animateItem(),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -354,6 +419,13 @@ fun CrewScreen(
             },
         )
     }
+}
+
+internal fun Int.badgeLabel(): String = if (this > 99) "99+" else "$this"
+
+private fun CrewTab.labelRes(): Int = when (this) {
+    CrewTab.FEED -> R.string.crew_tab_feed
+    CrewTab.CHAT -> R.string.crew_tab_chat
 }
 
 @Composable

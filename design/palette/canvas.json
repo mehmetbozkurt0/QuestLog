@@ -1,0 +1,25 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "A — Mevcut", "x": 0, "y": 0, "w": 390, "h": 720 },
+    { "file": "Murekkep.dc.html", "title": "B — Derin mürekkep", "x": 470, "y": 0, "w": 390, "h": 720 },
+    { "file": "Gece.dc.html", "title": "C — Gece mavisi", "x": 940, "y": 0, "w": 390, "h": 720 },
+    { "file": "Kontrast.dc.html", "title": "D — Yüksek kontrast", "x": 1410, "y": 0, "w": 390, "h": 720 }
+  ],
+  "annotations": [
+    {
+      "id": "sorun",
+      "x": 0,
+      "y": -230,
+      "w": 860,
+      "text": "MEVCUT PALETİN İKİ SOMUT SORUNU\n\n1. Karizma'nın rengi vurgu altınıyla BİREBİR aynı (#C8A951). Petekte KAR hücresi, mühür ve seviye yayıyla aynı renkte — o yüzden \"seçili hücre\" gibi okunuyor. Yeni yönlerin üçünde de KAR kendi tonuna (turuncu/kehribar) taşındı.\n\n2. Altı stat rengi değer olarak birbirine çok yakın: hepsi orta koyulukta, düşük doygunlukta. Yan yana geldiklerinde ayrışmıyorlar ve kahverengi zeminle karışıyorlar. Yeni yönlerde hem doygunluk yükseldi hem de tonlar arasında açıklık farkı açıldı."
+    },
+    {
+      "id": "nasil-bak",
+      "x": 940,
+      "y": -230,
+      "w": 860,
+      "text": "NEYE BAKMALI\n\nHer tahtada aynı üç şey var: renk şeritleri (arayüz + statlar), Karakter peteği (altı rengin bir arada göründüğü en yoğun yüzey) ve bir görev kartı.\n\nPeteğe bak: altı hücreyi birbirinden ayırt edebiliyor musun? Sonra mühre bak: altın yay hücrelerden ayrışıyor mu, yoksa KAR ile karışıyor mu?\n\nSeçtiğin yön son değil — beğendiğin bir yönü söyle, tek tek tonlar üzerinde oynayabiliriz. Aydınlık tema henüz çizilmedi; yön netleşince ondan türetirim."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

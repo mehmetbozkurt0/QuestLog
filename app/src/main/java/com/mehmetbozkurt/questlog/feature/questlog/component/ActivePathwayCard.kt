@@ -17,8 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.feature.questlog.ActivePathwaySummary
 
 @Composable
@@ -26,7 +25,7 @@ fun ActivePathwayCard(
     summary: ActivePathwaySummary,
     onClick: () -> Unit,
 ) {
-    val statColor = summary.pathway.primaryStat.colorHex().toComposeColor()
+    val statColor = summary.pathway.primaryStat.color()
 
     QuestCard(
         onClick = onClick,

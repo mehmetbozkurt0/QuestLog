@@ -6,6 +6,7 @@ import androidx.room.Upsert
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewMessageEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -63,4 +64,22 @@ interface CrewDao {
 
     @Query("DELETE FROM crew_feed WHERE crewId = :crewId")
     suspend fun deleteFeedForCrew(crewId: String)
+
+    @Query("SELECT * FROM crew_messages WHERE crewId = :crewId ORDER BY sentAtMillis DESC LIMIT :limit")
+    fun observeMessages(crewId: String, limit: Int): Flow<List<CrewMessageEntity>>
+
+    @Upsert
+    suspend fun upsertMessage(entity: CrewMessageEntity)
+
+    @Upsert
+    suspend fun upsertMessages(entities: List<CrewMessageEntity>)
+
+    @Query("SELECT * FROM crew_messages WHERE syncState != 'SYNCED'")
+    suspend fun getPendingMessages(): List<CrewMessageEntity>
+
+    @Query("SELECT * FROM crew_messages WHERE id = :id")
+    suspend fun getMessage(id: String): CrewMessageEntity?
+
+    @Query("DELETE FROM crew_messages WHERE crewId = :crewId")
+    suspend fun deleteMessagesForCrew(crewId: String)
 }

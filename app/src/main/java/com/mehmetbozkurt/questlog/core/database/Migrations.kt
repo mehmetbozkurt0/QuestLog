@@ -231,3 +231,22 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
         db.execSQL("ALTER TABLE crew_feed ADD COLUMN proofPhotoUrl TEXT")
     }
 }
+
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `crew_messages` (
+                `id` TEXT NOT NULL,
+                `crewId` TEXT NOT NULL,
+                `authorId` TEXT NOT NULL,
+                `authorName` TEXT NOT NULL,
+                `text` TEXT NOT NULL,
+                `sentAtMillis` INTEGER NOT NULL,
+                `syncState` TEXT NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+        """)
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crew_messages_crewId` ON `crew_messages` (`crewId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crew_messages_sentAtMillis` ON `crew_messages` (`sentAtMillis`)")
+    }
+}

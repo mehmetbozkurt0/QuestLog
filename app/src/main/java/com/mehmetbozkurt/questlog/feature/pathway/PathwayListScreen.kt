@@ -24,11 +24,10 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.nameRes
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
 import kotlinx.coroutines.flow.collectLatest
 
@@ -155,7 +154,7 @@ fun PathwayListScreen(
 @Composable
 private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
     val pathway = item.pathway
-    val statColor = pathway.primaryStat.colorHex().toComposeColor()
+    val statColor = pathway.primaryStat.color()
 
     QuestCard(
         onClick = onClick,

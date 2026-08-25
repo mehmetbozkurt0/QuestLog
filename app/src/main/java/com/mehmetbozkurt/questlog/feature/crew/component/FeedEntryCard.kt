@@ -26,11 +26,10 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
-import com.mehmetbozkurt.questlog.domain.model.colorHex
 import java.time.Duration
 import java.time.Instant
 
@@ -43,7 +42,7 @@ fun FeedEntryCard(
     onApprove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val statColor = item.statType?.colorHex()?.toComposeColor()
+    val statColor = item.statType?.color()
 
     QuestCard(
         accent = statColor,
@@ -146,7 +145,7 @@ fun FeedEntryCard(
 }
 
 @Composable
-private fun Instant.relativeLabel(): String {
+internal fun Instant.relativeLabel(): String {
     val minutes = Duration.between(this, Instant.now()).toMinutes()
     return when {
         minutes < 1 -> stringResource(R.string.feed_time_now)

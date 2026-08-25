@@ -9,12 +9,15 @@ import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewMessageEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
+import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
 import com.mehmetbozkurt.questlog.domain.model.Crew
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
 import com.mehmetbozkurt.questlog.domain.model.CrewMember
+import com.mehmetbozkurt.questlog.domain.model.CrewMessage
 import com.mehmetbozkurt.questlog.domain.model.CrewState
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.FeatId
@@ -34,7 +37,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -47,6 +52,7 @@ class CrewRepositoryImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val characterRepository: CharacterRepository,
     private val crewRemote: CrewRemoteDataSource,
+    private val settingsRepository: SettingsRepository,
     private val syncScheduler: SyncScheduler,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : CrewRepository {
@@ -76,6 +82,63 @@ class CrewRepositoryImpl @Inject constructor(
                 }
             }
         }
+
+    override fun observeMessages(): Flow<List<CrewMessage>> =
+        authRepository.currentUser.flatMapLatest { user ->
+            if (user == null) {
+                flowOf(emptyList())
+            } else {
+                characterDao.observeCharacter(user.uid).flatMapLatest { character ->
+                    val crewId = character?.crewId
+                    if (crewId == null) {
+                        flowOf(emptyList())
+                    } else {
+                        crewDao.observeMessages(crewId, MESSAGE_PAGE)
+                            .map { messages -> messages.map { it.toDomain() } }
+                    }
+                }
+            }
+        }
+
+    override fun observeUnreadMessageCount(): Flow<Int> = combine(
+        observeMessages(),
+        settingsRepository.observeLastSeenCrewMessageMillis(),
+        authRepository.currentUser,
+    ) { messages, lastSeen, user ->
+        messages.count { it.authorId != user?.uid && it.sentAt.toEpochMilli() > lastSeen }
+    }
+
+    override suspend fun sendMessage(text: String): CrewActionResult = withContext(io) {
+        val trimmed = text.trim().take(CrewRules.MESSAGE_MAX_LENGTH)
+        if (trimmed.isEmpty()) return@withContext CrewActionResult.Success
+
+        val user = authRepository.currentUserSync()
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_SESSION)
+        val character = characterDao.getCharacter(user.uid)
+            ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_CHARACTER)
+        val crewId = character.crewId ?: return@withContext CrewActionResult.NotInCrew
+
+        val entity = CrewMessageEntity(
+            id = UUID.randomUUID().toString(),
+            crewId = crewId,
+            authorId = user.uid,
+            authorName = user.displayName,
+            text = trimmed,
+            sentAtMillis = System.currentTimeMillis(),
+        )
+        crewDao.upsertMessage(entity)
+
+        val pushed = withTimeoutOrNull(PUSH_TIMEOUT_MS) {
+            runCatching { crewRemote.pushMessage(entity) }.isSuccess
+        } ?: false
+
+        if (pushed) {
+            crewDao.upsertMessage(entity.copy(syncState = SyncState.SYNCED.name))
+        } else {
+            syncScheduler.requestSync()
+        }
+        CrewActionResult.Success
+    }
 
     override suspend fun createCrew(name: String): CrewActionResult = withContext(io) {
         val user = authRepository.currentUserSync()
@@ -154,6 +217,7 @@ class CrewRepositoryImpl @Inject constructor(
             .onFailure { return@withContext it.toCrewFailure("leave") }
 
         crewDao.deleteFeedForCrew(crewId)
+        crewDao.deleteMessagesForCrew(crewId)
         crewDao.deleteMembersForCrew(crewId)
         crewDao.deleteCrew(crewId)
         characterDao.upsertCharacter(
@@ -265,6 +329,15 @@ class CrewRepositoryImpl @Inject constructor(
         approvedBy = approvedBy,
     )
 
+    private fun CrewMessageEntity.toDomain() = CrewMessage(
+        id = id,
+        authorId = authorId,
+        authorName = authorName,
+        text = text,
+        sentAt = Instant.ofEpochMilli(sentAtMillis),
+        isPending = syncState != SyncState.SYNCED.name,
+    )
+
     private fun Throwable.toCrewFailure(action: String): CrewActionResult {
         Log.e(TAG, "Crew $action failed", this)
         return when ((this as? FirebaseFirestoreException)?.code) {
@@ -281,6 +354,8 @@ class CrewRepositoryImpl @Inject constructor(
 
     companion object {
         private const val FEED_PAGE = 50
+        private const val MESSAGE_PAGE = 200
+        private const val PUSH_TIMEOUT_MS = 5000L
         private const val TAG = "QuestLog"
     }
 }

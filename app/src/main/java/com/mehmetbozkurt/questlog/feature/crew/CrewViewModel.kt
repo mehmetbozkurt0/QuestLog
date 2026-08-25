@@ -6,6 +6,10 @@ import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.common.toUiText
 import com.mehmetbozkurt.questlog.core.common.uiText
+import com.mehmetbozkurt.questlog.core.notification.ChatPresence
+import com.mehmetbozkurt.questlog.core.notification.CrewMessageNotifier
+import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
+import com.mehmetbozkurt.questlog.domain.model.CrewMessage
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.ApproveResult
@@ -24,6 +28,9 @@ class CrewViewModel @Inject constructor(
     private val crewRepository: CrewRepository,
     private val characterRepository: CharacterRepository,
     private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository,
+    private val chatPresence: ChatPresence,
+    private val crewMessageNotifier: CrewMessageNotifier,
 ) : MviViewModel<CrewState, CrewEvent, CrewEffect>(CrewState()) {
 
     init {
@@ -40,6 +47,17 @@ class CrewViewModel @Inject constructor(
                     )
                 }
             }
+            .launchIn(viewModelScope)
+
+        crewRepository.observeMessages()
+            .onEach { messages ->
+                setState { copy(messages = messages) }
+                if (chatPresence.isChatVisible) markSeen(messages)
+            }
+            .launchIn(viewModelScope)
+
+        crewRepository.observeUnreadMessageCount()
+            .onEach { count -> setState { copy(unreadMessages = count) } }
             .launchIn(viewModelScope)
 
         characterRepository.observeFeats()
@@ -78,6 +96,19 @@ class CrewViewModel @Inject constructor(
             CrewEvent.LeaveConfirmed -> leaveCrew()
             is CrewEvent.ApproveClicked -> approve(event.entryId)
 
+            is CrewEvent.TabSelected -> setState { copy(tab = event.tab) }
+
+            is CrewEvent.MessageInputChanged -> setState {
+                copy(messageInput = event.value.take(CrewRules.MESSAGE_MAX_LENGTH))
+            }
+
+            CrewEvent.MessageSent -> sendMessage()
+
+            is CrewEvent.ChatVisibilityChanged -> {
+                chatPresence.setVisible(event.visible)
+                if (event.visible) markChatSeen()
+            }
+
             CrewEvent.InviteCodeCopied -> {
                 val code = currentState.crew?.inviteCode ?: return
                 sendEffect(CrewEffect.CopyToClipboard(code))
@@ -114,6 +145,29 @@ class CrewViewModel @Inject constructor(
             val result = crewRepository.leaveCrew()
             setState { copy(isWorking = false) }
             sendEffect(CrewEffect.ShowMessage(result.message(R.string.crew_left)))
+        }
+    }
+
+    private fun markChatSeen() {
+        crewMessageNotifier.clear()
+        markSeen(currentState.messages)
+    }
+
+    private fun markSeen(messages: List<CrewMessage>) {
+        val newest = messages.maxOfOrNull { it.sentAt.toEpochMilli() } ?: return
+        viewModelScope.launch { settingsRepository.setLastSeenCrewMessageMillis(newest) }
+    }
+
+    private fun sendMessage() {
+        if (!currentState.canSendMessage) return
+        val text = currentState.messageInput
+        setState { copy(messageInput = "") }
+        viewModelScope.launch {
+            val result = crewRepository.sendMessage(text)
+            if (result !is CrewActionResult.Success) {
+                setState { copy(messageInput = text) }
+                sendEffect(CrewEffect.ShowMessage(result.message(R.string.crew_message_sent)))
+            }
         }
     }
 

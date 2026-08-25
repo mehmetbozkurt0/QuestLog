@@ -142,6 +142,15 @@ class SyncWorker @AssistedInject constructor(
             }
         }
 
+        crewDao.getPendingMessages().forEach { entity ->
+            try {
+                crewRemote.pushMessage(entity)
+                crewDao.upsertMessage(entity.copy(syncState = SyncState.SYNCED.name))
+            } catch (e: Exception) {
+                if (e.isRetryable()) hadRetryableFailure = true
+            }
+        }
+
         return if (hadRetryableFailure) Result.retry() else Result.success()
     }
 

@@ -33,7 +33,6 @@ import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
@@ -43,7 +42,7 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.shortLabelRes
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -55,7 +54,7 @@ fun QuestLogCard(
     onToggleCompleted: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val statColor = log.statType?.colorHex()?.toComposeColor()
+    val statColor = log.statType?.color()
     val priorityColor = log.priority?.color()
 
     QuestCard(

@@ -37,6 +37,7 @@ import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.LevelUpInfo
 import com.mehmetbozkurt.questlog.domain.repository.XpAward
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -159,7 +160,10 @@ class CharacterRepositoryImpl @Inject constructor(
         val user = authRepository.currentUserSync() ?: return@withContext
         if (dao.getCharacter(user.uid) != null) return@withContext
 
-        val remoteCharacter = runCatching { characterRemote.fetchCharacter(user.uid) }.getOrNull()
+        val fetched = fetchRemoteCharacter(user.uid)
+        if (fetched.isFailure) return@withContext
+
+        val remoteCharacter = fetched.getOrNull()
         if (remoteCharacter != null) {
             dao.upsertCharacter(remoteCharacter)
             runCatching { characterRemote.fetchStats(user.uid) }.getOrNull()
@@ -196,6 +200,16 @@ class CharacterRepositoryImpl @Inject constructor(
         )
 
         syncScheduler.requestSync()
+    }
+
+    private suspend fun fetchRemoteCharacter(uid: String): Result<CharacterEntity?> {
+        var attempt = 0
+        while (true) {
+            val result = runCatching { characterRemote.fetchCharacter(uid) }
+            if (result.isSuccess || attempt >= ENSURE_FETCH_ATTEMPTS - 1) return result
+            delay(ENSURE_RETRY_BASE_MS shl attempt)
+            attempt++
+        }
     }
 
     override suspend fun awardXpFor(log: QuestLog): XpAward? = withContext(io) {
@@ -425,6 +439,7 @@ class CharacterRepositoryImpl @Inject constructor(
         statType: StatType,
         difficulty: Difficulty,
         logId: String,
+        title: String,
         immediateCharacterXp: Int,
         fullStatXp: Int,
     ): XpAward.Granted? = withContext(io) {
@@ -486,6 +501,23 @@ class CharacterRepositoryImpl @Inject constructor(
 
         val milestone = streakMilestoneAfterAward(user.uid)
 
+        character.crewId?.let { crewId ->
+            crewDao.upsertFeedEntry(
+                CrewFeedEntity(
+                    id = UUID.randomUUID().toString(),
+                    crewId = crewId,
+                    authorId = user.uid,
+                    authorName = user.displayName,
+                    questLogId = logId,
+                    title = title,
+                    statType = statType.name,
+                    difficulty = difficulty.name,
+                    completedAtMillis = now,
+                    proofPhotoUrl = null,
+                )
+            )
+        }
+
         syncScheduler.requestSync()
 
         XpAward.Granted(
@@ -533,5 +565,10 @@ class CharacterRepositoryImpl @Inject constructor(
             newLevel = newLevel,
             featChoicesGained = featGain,
         )
+    }
+
+    private companion object {
+        const val ENSURE_FETCH_ATTEMPTS = 4
+        const val ENSURE_RETRY_BASE_MS = 1000L
     }
 }

@@ -1,10 +1,17 @@
 package com.mehmetbozkurt.questlog.domain.repository
 
+import com.mehmetbozkurt.questlog.domain.model.CrewMessage
 import com.mehmetbozkurt.questlog.domain.model.CrewState
 import kotlinx.coroutines.flow.Flow
 
 interface CrewRepository {
     fun observeCrewState(): Flow<CrewState>
+
+    fun observeMessages(): Flow<List<CrewMessage>>
+
+    fun observeUnreadMessageCount(): Flow<Int>
+
+    suspend fun sendMessage(text: String): CrewActionResult
 
     suspend fun createCrew(name: String): CrewActionResult
     suspend fun joinByCode(code: String): CrewActionResult

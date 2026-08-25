@@ -258,6 +258,7 @@ class PathwayRepositoryImpl @Inject constructor(
                     statType = quest.statType,
                     difficulty = quest.difficulty,
                     logId = questId,
+                    title = quest.title,
                     immediateCharacterXp = split.immediate,
                     fullStatXp = baseXp,
                 ) ?: return@withLock QuestCompletionResult.Rejected(QuestRejection.XP_NOT_AWARDED)

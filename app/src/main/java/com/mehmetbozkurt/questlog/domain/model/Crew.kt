@@ -32,6 +32,15 @@ data class CrewFeedItem(
     val approvalCount: Int get() = approvedBy.size
 }
 
+data class CrewMessage(
+    val id: String,
+    val authorId: String,
+    val authorName: String,
+    val text: String,
+    val sentAt: Instant,
+    val isPending: Boolean,
+)
+
 data class CrewState(
     val crew: Crew?,
     val members: List<CrewMember>,

@@ -33,7 +33,6 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.LogType
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.ProofLevel
@@ -42,7 +41,7 @@ import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.core.common.resolve
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.feature.logedit.formattedWithTime
 import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
@@ -155,7 +154,7 @@ fun LogDetailScreen(
                     .verticalScroll(rememberScrollState()),
             ) {
                 if (log.statType != null) {
-                    val statColor = log.statType.colorHex().toComposeColor()
+                    val statColor = log.statType.color()
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(10.dp).background(statColor, CircleShape))
                         Spacer(Modifier.width(Spacing.sm))

@@ -49,7 +49,11 @@ import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.settings.AppLanguage
+import com.mehmetbozkurt.questlog.core.settings.AppPalette
 import com.mehmetbozkurt.questlog.core.settings.ThemePreference
+import com.mehmetbozkurt.questlog.core.designsystem.theme.darkSpecOf
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -189,6 +193,22 @@ fun ProfileScreen(
                         selected = state.theme == pref,
                         onClick = { onEvent(ProfileEvent.ThemeChanged(pref)) },
                         label = { Text(pref.label()) },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.xl))
+
+            SectionEyebrow(stringResource(R.string.profile_section_palette))
+            Spacer(Modifier.height(Spacing.md))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                AppPalette.entries.forEach { option ->
+                    PaletteSwatch(
+                        palette = option,
+                        selected = state.palette == option,
+                        onClick = { onEvent(ProfileEvent.PaletteChanged(option)) },
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -526,6 +546,65 @@ private fun ThemePreference.label(): String = stringResource(
         ThemePreference.DARK -> R.string.theme_dark
     }
 )
+
+@Composable
+private fun PaletteSwatch(
+    palette: AppPalette,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spec = darkSpecOf(palette)
+    val shape = MaterialTheme.shapes.medium
+    val accent = MaterialTheme.colorScheme.primary
+
+    Column(
+        modifier
+            .clip(shape)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) accent else MaterialTheme.colorScheme.outline,
+                shape = shape,
+            )
+            .clickable(onClick = onClick)
+            .padding(Spacing.sm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(46.dp)
+                .clip(MaterialTheme.shapes.small)
+                .background(spec.bg),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                listOf(spec.gold, spec.str, spec.dex, spec.int, spec.cha).forEach { swatch ->
+                    Box(
+                        Modifier
+                            .size(9.dp)
+                            .clip(CircleShape)
+                            .background(swatch)
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(Spacing.xs))
+        Text(
+            stringResource(palette.labelRes()),
+            style = MaterialTheme.typography.labelMedium,
+            color = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            minLines = 2,
+        )
+    }
+}
+
+private fun AppPalette.labelRes(): Int = when (this) {
+    AppPalette.MUREKKEP -> R.string.palette_murekkep
+    AppPalette.GECE -> R.string.palette_gece
+    AppPalette.KONTRAST -> R.string.palette_kontrast
+}
 
 @Composable
 private fun AppLanguage.label(): String = when (this) {

@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
 import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayQuestCompletionEntity
@@ -56,7 +57,7 @@ class CharacterRemoteDataSource @Inject constructor(
     }
 
     suspend fun fetchCharacter(uid: String): CharacterEntity? =
-        userDoc(uid).get().await().toCharacterEntityOrNull()
+        userDoc(uid).get(Source.SERVER).await().toCharacterEntityOrNull()
 
     suspend fun fetchStats(uid: String): List<StatEntity> =
         stats(uid).get().await().documents.mapNotNull { it.toStatEntityOrNull(uid) }

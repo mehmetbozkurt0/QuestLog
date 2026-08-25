@@ -33,12 +33,11 @@ import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.shortLabelRes
 import com.mehmetbozkurt.questlog.core.designsystem.theme.CinzelFamily
 import com.mehmetbozkurt.questlog.core.designsystem.theme.GaramondFamily
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
 import com.mehmetbozkurt.questlog.domain.model.StatProgress
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.domain.model.abilityModifier
-import com.mehmetbozkurt.questlog.domain.model.colorHex
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import kotlin.math.cos
 import kotlin.math.sin
@@ -98,7 +97,7 @@ fun CharacterCrest(
         val stat = byType[type] ?: return@mapNotNull null
         CellText(
             center = center,
-            color = type.colorHex().toComposeColor(),
+            color = type.color(),
             label = stringResource(type.shortLabelRes()) + "  " + stat.signedModifier(),
             value = stat.value.toString(),
             detail = if (stat.value >= XpCurve.MAX_STAT) maxLabel

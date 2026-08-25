@@ -5,6 +5,10 @@
     <string name="reminder_channel_description">Notifications for quests you set a reminder on.</string>
     <string name="streak_channel_name">Streak alerts</string>
     <string name="streak_channel_description">An evening warning when your streak is about to break.</string>
+    <string name="crew_chat_channel_name">Crew chat</string>
+    <string name="crew_chat_channel_description">New messages from your crew.</string>
+    <string name="notification_chat_title">Crew chat</string>
+    <string name="notification_chat_self">You</string>
 
     <string name="error_weak_password">Password is too weak. Use at least 6 characters.</string>
     <string name="error_invalid_credentials">E-mail or password is incorrect.</string>
@@ -23,6 +27,10 @@
     <string name="profile_title">Profile</string>
     <string name="profile_section_journey">Journey</string>
     <string name="profile_section_appearance">Appearance</string>
+    <string name="profile_section_palette">Palette</string>
+    <string name="palette_murekkep">Deep Ink</string>
+    <string name="palette_gece">Midnight</string>
+    <string name="palette_kontrast">High Contrast</string>
     <string name="profile_section_language">Language</string>
     <string name="profile_section_notifications">Notifications</string>
     <string name="profile_stat_completed">Completed</string>
@@ -320,6 +328,13 @@
     <string name="crew_feed_header">Recent Quests</string>
     <string name="crew_approvals_left">%1$d approvals left</string>
     <string name="crew_feed_empty">Nobody has completed a quest yet. Be the first.</string>
+    <string name="crew_tab_feed">Feed</string>
+    <string name="crew_tab_chat">Chat</string>
+    <string name="crew_chat_empty">No messages yet. Say something to your crew.</string>
+    <string name="crew_chat_hint">Write a message</string>
+    <string name="crew_chat_send">Send</string>
+    <string name="crew_chat_pending">Sending…</string>
+    <string name="crew_message_sent">Message sent</string>
     <string name="crew_create_dialog_body">Give your crew a name. Once it exists, share the invite code with your friends.</string>
     <string name="crew_name_label">Crew name</string>
     <string name="crew_create_confirm">Create</string>

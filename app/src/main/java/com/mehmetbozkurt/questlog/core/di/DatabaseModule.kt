@@ -10,6 +10,7 @@ import com.mehmetbozkurt.questlog.core.database.MIGRATION_5_6
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_6_7
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_7_8
 import com.mehmetbozkurt.questlog.core.database.MIGRATION_8_9
+import com.mehmetbozkurt.questlog.core.database.MIGRATION_9_10
 import com.mehmetbozkurt.questlog.core.database.QuestLogDatabase
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
@@ -40,6 +41,7 @@ object DatabaseModule {
         MIGRATION_6_7,
         MIGRATION_7_8,
         MIGRATION_8_9,
+        MIGRATION_9_10,
     ).build()
 
     @Provides

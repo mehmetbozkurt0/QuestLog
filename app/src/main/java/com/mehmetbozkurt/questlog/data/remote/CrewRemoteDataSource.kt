@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewMessageEntity
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -19,6 +20,7 @@ class CrewRemoteDataSource @Inject constructor(
     private fun crewDoc(crewId: String) = firestore.collection("crews").document(crewId)
     private fun members(crewId: String) = crewDoc(crewId).collection("members")
     private fun feed(crewId: String) = crewDoc(crewId).collection("feed")
+    private fun messages(crewId: String) = crewDoc(crewId).collection("messages")
     private fun codeDoc(code: String) = firestore.collection("inviteCodes").document(code)
 
     suspend fun createCrew(entity: CrewEntity) {
@@ -44,6 +46,15 @@ class CrewRemoteDataSource @Inject constructor(
     suspend fun deleteFeedEntriesBy(crewId: String, uid: String) {
         feed(crewId).whereEqualTo("authorId", uid).get().await().documents
             .forEach { it.reference.delete().await() }
+    }
+
+    suspend fun deleteMessagesBy(crewId: String, uid: String) {
+        messages(crewId).whereEqualTo("authorId", uid).get().await().documents
+            .forEach { it.reference.delete().await() }
+    }
+
+    suspend fun pushMessage(entity: CrewMessageEntity) {
+        messages(entity.crewId).document(entity.id).set(entity.toFireStoreMap()).await()
     }
 
     suspend fun pushMemberCard(entity: CrewMemberEntity) {
@@ -100,7 +111,24 @@ class CrewRemoteDataSource @Inject constructor(
         awaitClose { registration.remove() }
     }
 
+    fun observeMessages(crewId: String): Flow<List<CrewMessageEntity>> = callbackFlow {
+        val registration = messages(crewId)
+            .orderBy("sentAtMillis", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(MESSAGE_LIMIT)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    trySend(snapshot.documents.mapNotNull { it.toCrewMessageEntityOrNull(crewId) })
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
     companion object {
         const val FEED_LIMIT = 50L
+        const val MESSAGE_LIMIT = 200L
     }
 }

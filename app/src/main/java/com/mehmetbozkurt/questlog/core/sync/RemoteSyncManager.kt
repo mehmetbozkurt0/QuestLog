@@ -11,18 +11,23 @@ import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
+import com.mehmetbozkurt.questlog.core.notification.ChatPresence
+import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,6 +45,8 @@ class RemoteSyncManager @Inject constructor(
     private val characterRepository: CharacterRepository,
     private val crewRemote: CrewRemoteDataSource,
     private val crewDao: CrewDao,
+    private val settingsRepository: SettingsRepository,
+    private val chatPresence: ChatPresence,
     @ApplicationScope private val scope: CoroutineScope
 ) {
     fun start(){
@@ -143,7 +150,7 @@ class RemoteSyncManager @Inject constructor(
             .flatMapLatest { crewId ->
                 if (crewId == null) emptyFlow() else crewRemote.observeCrew(crewId)
             }
-            .catch { e -> Log.e(TAG, "Crew sync", e) }
+            .retrying("Crew")
             .onEach { remoteCrew -> if (remoteCrew != null) crewDao.upsertCrew(remoteCrew) }
             .launchIn(scope)
 
@@ -151,7 +158,7 @@ class RemoteSyncManager @Inject constructor(
             .flatMapLatest { crewId ->
                 if (crewId == null) emptyFlow() else crewRemote.observeMembers(crewId)
             }
-            .catch { e -> Log.e(TAG, "Crew members sync", e) }
+            .retrying("Crew members")
             .onEach { remoteMembers ->
                 val ownUid = authRepository.currentUserSync()?.uid
                 val incoming = remoteMembers.filter { it.userId != ownUid }
@@ -163,7 +170,7 @@ class RemoteSyncManager @Inject constructor(
             .flatMapLatest { crewId ->
                 if (crewId == null) emptyFlow() else crewRemote.observeFeed(crewId)
             }
-            .catch { e -> Log.e(TAG, "Crew feed sync", e) }
+            .retrying("Crew feed")
             .onEach { remoteFeed ->
                 val ownUid = authRepository.currentUserSync()?.uid
                 remoteFeed.forEach { remoteEntry ->
@@ -181,6 +188,35 @@ class RemoteSyncManager @Inject constructor(
                 }
             }
             .launchIn(scope)
+
+        observeCrewId()
+            .flatMapLatest { crewId ->
+                if (crewId == null) emptyFlow() else crewRemote.observeMessages(crewId)
+            }
+            .retrying("Crew messages")
+            .onEach { remoteMessages ->
+                if (remoteMessages.isEmpty()) return@onEach
+                crewDao.upsertMessages(remoteMessages)
+
+                val ownUid = authRepository.currentUserSync()?.uid
+                val lastSeen = settingsRepository.lastSeenCrewMessageMillis()
+                val fresh = remoteMessages
+                    .filter { it.authorId != ownUid && it.sentAtMillis > lastSeen }
+                    .sortedBy { it.sentAtMillis }
+
+                if (fresh.isEmpty()) return@onEach
+
+                if (chatPresence.isChatVisible) {
+                    settingsRepository.setLastSeenCrewMessageMillis(fresh.last().sentAtMillis)
+                }
+            }
+            .launchIn(scope)
+    }
+
+    private fun <T> Flow<T>.retrying(label: String): Flow<T> = retryWhen { cause, attempt ->
+        Log.e(TAG, "$label sync failed (attempt $attempt), retrying", cause)
+        delay((RETRY_BASE_MS shl attempt.coerceAtMost(4).toInt()).coerceAtMost(RETRY_MAX_MS))
+        true
     }
 
     private fun observeCrewId() = authRepository.currentUser
@@ -192,5 +228,7 @@ class RemoteSyncManager @Inject constructor(
 
     private companion object {
         const val TAG = "QuestLog"
+        const val RETRY_BASE_MS = 2000L
+        const val RETRY_MAX_MS = 30_000L
     }
 }

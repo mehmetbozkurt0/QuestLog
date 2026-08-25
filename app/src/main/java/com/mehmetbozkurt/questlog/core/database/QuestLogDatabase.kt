@@ -10,6 +10,7 @@ import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewMessageEntity
 import com.mehmetbozkurt.questlog.core.database.entity.FeatEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PathwayEntity
 import com.mehmetbozkurt.questlog.core.database.entity.PendingDeletionEntity
@@ -35,8 +36,9 @@ import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
         CrewEntity::class,
         CrewMemberEntity::class,
         CrewFeedEntity::class,
+        CrewMessageEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class QuestLogDatabase : RoomDatabase() {

@@ -25,6 +25,8 @@ fun QuestLogNavHost(
     startLoggedIn: Boolean,
     pendingLogId: String? = null,
     onPendingLogHandled: () -> Unit = {},
+    openCrewChat: Boolean = false,
+    onCrewChatHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
 
@@ -82,6 +84,8 @@ fun QuestLogNavHost(
 
         composable<HomeRouteKey> {
             MainTabsScreen(
+                openCrewChat = openCrewChat,
+                onCrewChatHandled = onCrewChatHandled,
                 onNavigateToDetail = { id -> navController.navigate(LogDetailRouteKey(id)) },
                 onNavigateToCreate = { navController.navigate(LogEditRouteKey(null)) },
                 onNavigateToPathwayDetail = { id ->

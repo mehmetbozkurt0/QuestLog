@@ -22,7 +22,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.QuestLogTheme
 import com.mehmetbozkurt.questlog.core.navigation.QuestLogNavHost
+import com.mehmetbozkurt.questlog.core.notification.CrewMessageNotifier
 import com.mehmetbozkurt.questlog.core.notification.ReminderReceiver
+import com.mehmetbozkurt.questlog.core.settings.AppPalette
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import com.mehmetbozkurt.questlog.feature.splash.SplashViewModel
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
 
     private val pendingLogId = mutableStateOf<String?>(null)
+    private val openCrewChat = mutableStateOf(false)
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -46,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         pendingLogId.value = intent?.getStringExtra(ReminderReceiver.EXTRA_LOG_ID)
+        openCrewChat.value =
+            intent?.getBooleanExtra(CrewMessageNotifier.EXTRA_OPEN_CREW_CHAT, false) == true
         requestNotificationPermissionIfNeeded()
 
         splashScreen.setKeepOnScreenCondition {
@@ -56,13 +61,16 @@ class MainActivity : AppCompatActivity() {
             val destination by splashViewModel.startDestination.collectAsStateWithLifecycle()
             val theme by settingsRepository.observeTheme()
                 .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
+            val palette by settingsRepository.observePalette()
+                .collectAsStateWithLifecycle(initialValue = AppPalette.Default)
 
             QuestLogTheme(
                 darkTheme = when (theme) {
                     ThemePreference.SYSTEM -> isSystemInDarkTheme()
                     ThemePreference.LIGHT -> false
                     ThemePreference.DARK -> true
-                }
+                },
+                palette = palette,
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -74,6 +82,8 @@ class MainActivity : AppCompatActivity() {
                             startLoggedIn = true,
                             pendingLogId = pendingLogId.value,
                             onPendingLogHandled = { pendingLogId.value = null },
+                            openCrewChat = openCrewChat.value,
+                            onCrewChatHandled = { openCrewChat.value = false },
                         )
 
                         StartDestination.Auth -> QuestLogNavHost(
@@ -91,6 +101,8 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         pendingLogId.value = intent.getStringExtra(ReminderReceiver.EXTRA_LOG_ID)
+        openCrewChat.value =
+            intent.getBooleanExtra(CrewMessageNotifier.EXTRA_OPEN_CREW_CHAT, false)
     }
 
     private fun requestNotificationPermissionIfNeeded() {

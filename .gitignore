@@ -17,3 +17,6 @@ google-services.json
 *.apk
 *.aab
 *.keystore
+node_modules/
+firebase-debug.log
+.firebase/

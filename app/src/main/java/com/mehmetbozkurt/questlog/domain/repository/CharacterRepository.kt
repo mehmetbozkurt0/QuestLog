@@ -26,6 +26,7 @@ interface CharacterRepository {
         statType: StatType,
         difficulty: Difficulty,
         logId: String,
+        title: String,
         immediateCharacterXp: Int,
         fullStatXp: Int,
     ): XpAward.Granted?

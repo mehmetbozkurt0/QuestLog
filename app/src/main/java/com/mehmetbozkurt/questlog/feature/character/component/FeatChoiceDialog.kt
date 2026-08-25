@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
 import com.mehmetbozkurt.questlog.domain.model.FeatId
 import com.mehmetbozkurt.questlog.domain.model.StatType
@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.descriptionRes
 import com.mehmetbozkurt.questlog.core.common.nameRes
-import com.mehmetbozkurt.questlog.domain.model.colorHex
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -134,7 +133,7 @@ fun FeatChoiceDialog(
                                         Modifier
                                             .size(10.dp)
                                             .background(
-                                                stat.colorHex().toComposeColor(),
+                                                stat.color(),
                                                 CircleShape
                                             )
                                     )

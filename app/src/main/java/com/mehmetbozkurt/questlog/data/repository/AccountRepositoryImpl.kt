@@ -13,6 +13,7 @@ import com.mehmetbozkurt.questlog.core.database.dao.QuestLogDao
 import com.mehmetbozkurt.questlog.core.media.ProofPhotoStore
 import com.mehmetbozkurt.questlog.data.remote.CharacterRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
+import com.mehmetbozkurt.questlog.data.remote.DeviceTokenRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.PathwayRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.ProofPhotoRemoteDataSource
 import com.mehmetbozkurt.questlog.data.remote.QuestLogRemoteDataSource
@@ -36,6 +37,7 @@ class AccountRepositoryImpl @Inject constructor(
     private val pathwayRemote: PathwayRemoteDataSource,
     private val crewRemote: CrewRemoteDataSource,
     private val proofPhotoRemote: ProofPhotoRemoteDataSource,
+    private val deviceTokenRemote: DeviceTokenRemoteDataSource,
     private val photoStore: ProofPhotoStore,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : AccountRepository {
@@ -83,6 +85,7 @@ class AccountRepositoryImpl @Inject constructor(
         return try {
             deleteProofPhotos(uid)
             deleteCrewTraces(uid)
+            runCatching { deviceTokenRemote.removeAll(uid) }
             questLogRemote.deleteAllOwnedBy(uid)
             pathwayRemote.deleteProgressForUser(uid)
             characterRemote.deleteUserDocument(uid)
@@ -107,6 +110,7 @@ class AccountRepositoryImpl @Inject constructor(
     private suspend fun deleteCrewTraces(uid: String) {
         val crewId = characterDao.getCharacter(uid)?.crewId ?: return
         runCatching { crewRemote.deleteFeedEntriesBy(crewId, uid) }
+        runCatching { crewRemote.deleteMessagesBy(crewId, uid) }
         runCatching { crewRemote.leaveCrew(crewId, uid) }
     }
 

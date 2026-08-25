@@ -11,6 +11,8 @@ object CrewRules {
 
     const val INVITE_CODE_LENGTH = 6
 
+    const val MESSAGE_MAX_LENGTH = 500
+
     private const val CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
     fun generateInviteCode(random: Random = Random.Default): String =

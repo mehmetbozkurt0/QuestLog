@@ -30,19 +30,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.CelebrationTier
-import com.mehmetbozkurt.questlog.core.designsystem.theme.AgedGold
-import com.mehmetbozkurt.questlog.core.designsystem.theme.InkBlack
-import com.mehmetbozkurt.questlog.core.designsystem.theme.Parchment
-import com.mehmetbozkurt.questlog.core.designsystem.theme.ParchmentDim
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
+import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
+import com.mehmetbozkurt.questlog.core.designsystem.theme.statColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.common.toUiText
-import com.mehmetbozkurt.questlog.domain.model.colorHex
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -99,7 +96,7 @@ private fun CelebrationBanner(
 
 @Composable
 private fun BannerContent(celebration: Celebration) {
-    val statColor = celebration.statType.colorHex().toComposeColor()
+    val statColor = celebration.statType.color()
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -201,6 +198,13 @@ private fun EpicCelebration(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val night = MaterialTheme.extendedColors.celebration
+    val scrim = night.bg
+    val accent = night.gold
+    val bright = night.text
+    val muted = night.textDim
+    val statColor = night.statColor(celebration.statType)
+
     val rayAngle by rememberInfiniteTransition(label = "rays").animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -226,7 +230,7 @@ private fun EpicCelebration(
     Box(
         modifier
             .fillMaxSize()
-            .background(InkBlack.copy(alpha = 0.88f))
+            .background(scrim.copy(alpha = 0.88f))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -238,7 +242,7 @@ private fun EpicCelebration(
             repeat(12) { i ->
                 rotate(rayAngle + i * 30f) {
                     drawRect(
-                        color = AgedGold.copy(alpha = 0.07f),
+                        color = accent.copy(alpha = 0.07f),
                         topLeft = Offset(center.x - 36f, 0f),
                         size = Size(72f, center.y),
                     )
@@ -248,7 +252,7 @@ private fun EpicCelebration(
             sparks.forEach { s ->
                 val dist = s.speed * p
                 drawCircle(
-                    color = AgedGold.copy(alpha = (1f - p).coerceIn(0f, 1f)),
+                    color = accent.copy(alpha = (1f - p).coerceIn(0f, 1f)),
                     radius = s.size * (1f - p * 0.4f),
                     center = center + Offset(cos(s.angle) * dist, sin(s.angle) * dist),
                 )
@@ -259,23 +263,23 @@ private fun EpicCelebration(
                 Text(
                     stringResource(R.string.character_level_caps),
                     style = MaterialTheme.typography.labelLarge,
-                    color = AgedGold,
+                    color = accent,
                 )
                 Text(
                     "${celebration.newLevel}",
                     style = MaterialTheme.typography.displayLarge,
-                    color = Parchment,
+                    color = bright,
                 )
             } else {
                 Text(
                     stringResource(R.string.celebration_pathway),
                     style = MaterialTheme.typography.labelLarge,
-                    color = AgedGold,
+                    color = accent,
                 )
                 Text(
                     stringResource(R.string.celebration_pathway_done),
                     style = MaterialTheme.typography.displayMedium,
-                    color = Parchment,
+                    color = bright,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -287,7 +291,7 @@ private fun EpicCelebration(
                     stringResource(celebration.statType.nameRes()),
                 ),
                 style = MaterialTheme.typography.titleMedium,
-                color = Parchment,
+                color = bright,
             )
             if (celebration.completionBonusXp > 0) {
                 Text(
@@ -296,14 +300,14 @@ private fun EpicCelebration(
                         celebration.completionBonusXp,
                     ),
                     style = MaterialTheme.typography.titleMedium,
-                    color = AgedGold,
+                    color = accent,
                 )
             }
             if (celebration.leveledUp && celebration.pathwayCompleted) {
                 Text(
                     stringResource(R.string.celebration_pathway_too),
                     style = MaterialTheme.typography.titleMedium,
-                    color = AgedGold,
+                    color = accent,
                 )
             }
             if (celebration.statIncreased) {
@@ -314,28 +318,28 @@ private fun EpicCelebration(
                         celebration.newStatValue,
                     ),
                     style = MaterialTheme.typography.titleMedium,
-                    color = celebration.statType.colorHex().toComposeColor(),
+                    color = statColor,
                 )
             }
             if (celebration.featChoicesGained > 0) {
                 Text(
                     stringResource(R.string.celebration_new_feat_long),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Parchment,
+                    color = bright,
                 )
             }
             if (celebration.streakMilestone != null) {
                 Text(
                     stringResource(R.string.celebration_streak, celebration.streakMilestone ?: 0),
                     style = MaterialTheme.typography.titleMedium,
-                    color = AgedGold,
+                    color = accent,
                 )
             }
             Spacer(Modifier.height(Spacing.xl))
             Text(
                 stringResource(R.string.celebration_tap),
                 style = MaterialTheme.typography.bodySmall,
-                color = ParchmentDim,
+                color = muted,
             )
         }
     }

@@ -3,6 +3,10 @@
     <string name="reminder_channel_description">Hatırlatıcı kurduğun görevler için bildirim.</string>
     <string name="streak_channel_name">Seri uyarıları</string>
     <string name="streak_channel_description">Serin kırılmak üzereyken akşam uyarısı.</string>
+    <string name="crew_chat_channel_name">Ekip sohbeti</string>
+    <string name="crew_chat_channel_description">Ekibinden gelen yeni mesajlar.</string>
+    <string name="notification_chat_title">Ekip sohbeti</string>
+    <string name="notification_chat_self">Sen</string>
 
     <string name="error_weak_password">Parola çok zayıf. En az 6 karakter kullan.</string>
     <string name="error_invalid_credentials">E-posta veya parola hatalı.</string>
@@ -21,6 +25,10 @@
     <string name="profile_title">Profil</string>
     <string name="profile_section_journey">Yolculuk</string>
     <string name="profile_section_appearance">Görünüm</string>
+    <string name="profile_section_palette">Palet</string>
+    <string name="palette_murekkep">Derin Mürekkep</string>
+    <string name="palette_gece">Gece Mavisi</string>
+    <string name="palette_kontrast">Yüksek Kontrast</string>
     <string name="profile_section_language">Dil</string>
     <string name="profile_section_notifications">Bildirimler</string>
     <string name="profile_stat_completed">Tamamlanan</string>
@@ -318,6 +326,13 @@
     <string name="crew_feed_header">Son Görevler</string>
     <string name="crew_approvals_left">%1$d onay hakkı</string>
     <string name="crew_feed_empty">Henüz kimse görev tamamlamadı. İlk sen ol.</string>
+    <string name="crew_tab_feed">Akış</string>
+    <string name="crew_tab_chat">Sohbet</string>
+    <string name="crew_chat_empty">Henüz mesaj yok. Ekibine bir şeyler yaz.</string>
+    <string name="crew_chat_hint">Bir mesaj yaz</string>
+    <string name="crew_chat_send">Gönder</string>
+    <string name="crew_chat_pending">Gönderiliyor…</string>
+    <string name="crew_message_sent">Mesaj gönderildi</string>
     <string name="crew_create_dialog_body">Ekibine bir ad ver. Kurduktan sonra davet kodunu arkadaşlarınla paylaş.</string>
     <string name="crew_name_label">Ekip adı</string>
     <string name="crew_create_confirm">Kur</string>

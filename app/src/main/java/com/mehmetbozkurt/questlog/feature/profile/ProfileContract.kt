@@ -7,6 +7,7 @@ import com.mehmetbozkurt.questlog.core.common.mvi.UiEffect
 import com.mehmetbozkurt.questlog.core.common.mvi.UiEvent
 import com.mehmetbozkurt.questlog.core.common.mvi.UiState
 import com.mehmetbozkurt.questlog.core.settings.AppLanguage
+import com.mehmetbozkurt.questlog.core.settings.AppPalette
 import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import com.mehmetbozkurt.questlog.domain.model.AppUser
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
@@ -29,6 +30,7 @@ data class ProfileState(
     val deleteError: UiText? = null,
     val isPasswordAccount: Boolean = true,
     val theme: ThemePreference = ThemePreference.SYSTEM,
+    val palette: AppPalette = AppPalette.Default,
     val language: AppLanguage = AppLanguage.SYSTEM,
 ) : UiState {
     val canDelete: Boolean
@@ -56,6 +58,7 @@ sealed interface ProfileEvent : UiEvent {
     data class SignOutDialogToggled(val show: Boolean) : ProfileEvent
     data object SignOutConfirmed : ProfileEvent
     data class ThemeChanged(val value: ThemePreference) : ProfileEvent
+    data class PaletteChanged(val value: AppPalette) : ProfileEvent
     data class LanguageChanged(val value: AppLanguage) : ProfileEvent
     data object NotificationSettingsClicked : ProfileEvent
     data class DeleteDialogToggled(val show: Boolean) : ProfileEvent

@@ -7,13 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.core.designsystem.icon
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.Priority
 import com.mehmetbozkurt.questlog.domain.model.StatType
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.nameRes
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.feature.questlog.CompletionFilter
 import com.mehmetbozkurt.questlog.feature.questlog.SortOption
 import com.mehmetbozkurt.questlog.feature.questlog.labelRes
@@ -85,7 +84,7 @@ fun FilterSheet(
                             Icon(
                                 imageVector = stat.icon(),
                                 contentDescription = null,
-                                tint = stat.colorHex().toComposeColor(),
+                                tint = stat.color(),
                                 modifier = Modifier.size(16.dp),
                             )
                         },

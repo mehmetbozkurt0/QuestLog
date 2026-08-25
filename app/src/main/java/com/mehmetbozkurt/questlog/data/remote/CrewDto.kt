@@ -4,6 +4,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
+import com.mehmetbozkurt.questlog.core.database.entity.CrewMessageEntity
 import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 
 fun CrewEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
@@ -79,6 +80,27 @@ fun DocumentSnapshot.toCrewFeedEntityOrNull(crewId: String): CrewFeedEntity? {
         completedAtMillis = getLong("completedAtMillis") ?: 0L,
         proofPhotoUrl = getString("proofPhotoUrl"),
         approvedByCsv = approvedBy.joinToString(","),
+        syncState = SyncState.SYNCED.name,
+    )
+}
+
+fun CrewMessageEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
+    "id" to id,
+    "authorId" to authorId,
+    "authorName" to authorName,
+    "text" to text,
+    "sentAtMillis" to sentAtMillis,
+)
+
+fun DocumentSnapshot.toCrewMessageEntityOrNull(crewId: String): CrewMessageEntity? {
+    val messageId = getString("id") ?: return null
+    return CrewMessageEntity(
+        id = messageId,
+        crewId = crewId,
+        authorId = getString("authorId").orEmpty(),
+        authorName = getString("authorName").orEmpty(),
+        text = getString("text").orEmpty(),
+        sentAtMillis = getLong("sentAtMillis") ?: 0L,
         syncState = SyncState.SYNCED.name,
     )
 }

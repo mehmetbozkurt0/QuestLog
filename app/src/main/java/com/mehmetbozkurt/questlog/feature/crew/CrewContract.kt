@@ -7,12 +7,19 @@ import com.mehmetbozkurt.questlog.core.common.mvi.UiState
 import com.mehmetbozkurt.questlog.domain.model.Crew
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
 import com.mehmetbozkurt.questlog.domain.model.CrewMember
+import com.mehmetbozkurt.questlog.domain.model.CrewMessage
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
+
+enum class CrewTab { FEED, CHAT }
 
 data class CrewState(
     val crew: Crew? = null,
     val members: List<CrewMember> = emptyList(),
     val feed: List<CrewFeedItem> = emptyList(),
+    val messages: List<CrewMessage> = emptyList(),
+    val tab: CrewTab = CrewTab.FEED,
+    val messageInput: String = "",
+    val unreadMessages: Int = 0,
     val ownUserId: String = "",
     val hasMentorFeat: Boolean = false,
     val approvalsToday: Int = 0,
@@ -31,6 +38,9 @@ data class CrewState(
 
     val canJoin: Boolean
         get() = !isWorking && joinCodeInput.trim().length == CrewRules.INVITE_CODE_LENGTH
+
+    val canSendMessage: Boolean
+        get() = messageInput.isNotBlank()
 
     val approvalsLeft: Int
         get() = (CrewRules.DAILY_APPROVAL_LIMIT - approvalsToday).coerceAtLeast(0)
@@ -53,6 +63,10 @@ sealed interface CrewEvent : UiEvent {
     data object LeaveConfirmed : CrewEvent
     data class ApproveClicked(val entryId: String) : CrewEvent
     data object InviteCodeCopied : CrewEvent
+    data class TabSelected(val tab: CrewTab) : CrewEvent
+    data class MessageInputChanged(val value: String) : CrewEvent
+    data object MessageSent : CrewEvent
+    data class ChatVisibilityChanged(val visible: Boolean) : CrewEvent
 }
 
 sealed interface CrewEffect : UiEffect {

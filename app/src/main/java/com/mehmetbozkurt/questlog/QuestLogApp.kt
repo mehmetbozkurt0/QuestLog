@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
 import com.mehmetbozkurt.questlog.core.firebase.FirebaseInitializer
+import com.mehmetbozkurt.questlog.core.notification.DeviceTokenManager
 import com.mehmetbozkurt.questlog.core.notification.NotificationChannels
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.sync.RemoteSyncManager
@@ -24,6 +25,7 @@ class QuestLogApp: Application(), Configuration.Provider {
     @Inject lateinit var characterRepository: CharacterRepository
     @Inject lateinit var authRepository: AuthRepository
     @Inject lateinit var reminderScheduler: ReminderScheduler
+    @Inject lateinit var deviceTokenManager: DeviceTokenManager
     @ApplicationScope @Inject lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration get() = Configuration.Builder()
@@ -37,6 +39,11 @@ class QuestLogApp: Application(), Configuration.Provider {
         reminderScheduler.scheduleStreakCheck()
         remoteSyncManager.start()
 
-        authRepository.currentUser.filterNotNull().onEach { characterRepository.ensureCharacter() }.launchIn(appScope)
+        authRepository.currentUser.filterNotNull()
+            .onEach {
+                characterRepository.ensureCharacter()
+                deviceTokenManager.register()
+            }
+            .launchIn(appScope)
     }
 }

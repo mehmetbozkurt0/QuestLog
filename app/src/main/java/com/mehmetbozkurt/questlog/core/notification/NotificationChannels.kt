@@ -9,6 +9,7 @@ import com.mehmetbozkurt.questlog.R
 object NotificationChannels {
     const val REMINDERS = "quest_reminders"
     const val STREAK = "streak_warnings"
+    const val CREW_CHAT = "crew_chat"
 
     fun ensureCreated(context: Context) {
         val manager = context.getSystemService<NotificationManager>() ?: return
@@ -30,6 +31,15 @@ object NotificationChannels {
             description = context.getString(R.string.streak_channel_description)
         }
 
-        manager.createNotificationChannels(listOf(reminders, streak))
+        val crewChat = NotificationChannel(
+            CREW_CHAT,
+            context.getString(R.string.crew_chat_channel_name),
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = context.getString(R.string.crew_chat_channel_description)
+            enableVibration(true)
+        }
+
+        manager.createNotificationChannels(listOf(reminders, streak, crewChat))
     }
 }

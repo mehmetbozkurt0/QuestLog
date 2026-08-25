@@ -5,6 +5,7 @@ import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.common.toUiText
 import com.mehmetbozkurt.questlog.core.common.uiText
+import com.mehmetbozkurt.questlog.core.notification.DeviceTokenManager
 import com.mehmetbozkurt.questlog.core.settings.AppLocaleManager
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.domain.model.LogType
@@ -18,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,6 +30,7 @@ class ProfileViewModel @Inject constructor(
     crewRepository: CrewRepository,
     private val settingsRepository: SettingsRepository,
     private val accountRepository: AccountRepository,
+    private val deviceTokenManager: DeviceTokenManager,
 ) : MviViewModel<ProfileState, ProfileEvent, ProfileEffect>(ProfileState()) {
     init {
         authRepository.currentUser
@@ -36,6 +39,10 @@ class ProfileViewModel @Inject constructor(
 
         settingsRepository.observeTheme()
             .onEach { theme -> setState { copy(theme = theme) } }
+            .launchIn(viewModelScope)
+
+        settingsRepository.observePalette()
+            .onEach { palette -> setState { copy(palette = palette) } }
             .launchIn(viewModelScope)
 
         characterRepository.observeCharacter()
@@ -85,12 +92,24 @@ class ProfileViewModel @Inject constructor(
 
             ProfileEvent.SignOutConfirmed -> {
                 setState { copy(showSignOutDialog = false) }
-                authRepository.signOut()
-                sendEffect(ProfileEffect.NavigateToAuth)
+                viewModelScope.launch {
+                    val uid = authRepository.currentUserSync()?.uid
+                    if (uid != null) {
+                        withTimeoutOrNull(TOKEN_CLEANUP_TIMEOUT_MS) {
+                            deviceTokenManager.unregisterCurrentDevice(uid)
+                        }
+                    }
+                    authRepository.signOut()
+                    sendEffect(ProfileEffect.NavigateToAuth)
+                }
             }
 
             is ProfileEvent.ThemeChanged -> viewModelScope.launch {
                 settingsRepository.setTheme(event.value)
+            }
+
+            is ProfileEvent.PaletteChanged -> viewModelScope.launch {
+                settingsRepository.setPalette(event.value)
             }
 
             is ProfileEvent.LanguageChanged -> {
@@ -128,6 +147,10 @@ class ProfileViewModel @Inject constructor(
                 copy(isDeleting = false, deleteError = event.message)
             }
         }
+    }
+
+    private companion object {
+        const val TOKEN_CLEANUP_TIMEOUT_MS = 3000L
     }
 
     private fun deleteAccount() {

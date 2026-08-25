@@ -33,14 +33,13 @@ import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
 import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.core.designsystem.toComposeColor
 import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.core.common.resolve
-import com.mehmetbozkurt.questlog.domain.model.colorHex
+import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -137,7 +136,7 @@ fun PathwayDetailScreen(
             }
 
             else -> {
-                val statColor = detail.pathway.primaryStat.colorHex().toComposeColor()
+                val statColor = detail.pathway.primaryStat.color()
 
                 Column(
                     modifier = Modifier
@@ -287,7 +286,7 @@ fun PathwayDetailScreen(
                             quests.forEach { qp ->
                                 QuestRow(
                                     questProgress = qp,
-                                    statColor = qp.quest.statType.colorHex().toComposeColor(),
+                                    statColor = qp.quest.statType.color(),
                                     unlocked = unlocked,
                                     enabled = state.isActive && !state.isWorking,
                                     onClick = {
