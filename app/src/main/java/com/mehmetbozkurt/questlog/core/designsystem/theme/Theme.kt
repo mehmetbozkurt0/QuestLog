@@ -27,6 +27,9 @@ data class QuestLogExtendedColors(
     val statInt: Color,
     val statWis: Color,
     val statCha: Color,
+    val glass: Color,
+    val rim: Color,
+    val well: Color,
     val celebration: PaletteSpec,
 )
 
@@ -45,8 +48,14 @@ private fun darkSchemeOf(s: PaletteSpec): ColorScheme = darkColorScheme(
     onSurface = s.text,
     surfaceVariant = s.surfaceHigh,
     onSurfaceVariant = s.textDim,
+    surfaceContainerLowest = s.well,
+    surfaceContainerLow = s.surface,
+    surfaceContainer = s.surface,
+    surfaceContainerHigh = s.surfaceHigh,
+    surfaceContainerHighest = s.surfaceHigh,
     outline = s.outline,
-    outlineVariant = s.surfaceHigh,
+    outlineVariant = s.outline.copy(alpha = 0.5f),
+    scrim = s.bg.copy(alpha = 0.8f),
     error = s.high,
     onError = s.bg,
 )
@@ -66,8 +75,14 @@ private fun lightSchemeOf(s: PaletteSpec): ColorScheme = lightColorScheme(
     onSurface = s.text,
     surfaceVariant = s.surfaceHigh,
     onSurfaceVariant = s.textDim,
+    surfaceContainerLowest = s.well,
+    surfaceContainerLow = s.surface,
+    surfaceContainer = s.surface,
+    surfaceContainerHigh = s.surfaceHigh,
+    surfaceContainerHighest = s.surfaceHigh,
     outline = s.outline,
-    outlineVariant = s.surfaceHigh,
+    outlineVariant = s.outline.copy(alpha = 0.5f),
+    scrim = s.text.copy(alpha = 0.4f),
     error = s.high,
     onError = s.surface,
 )
@@ -86,6 +101,9 @@ private fun extendedOf(s: PaletteSpec, night: PaletteSpec) = QuestLogExtendedCol
     statInt = s.int,
     statWis = s.wis,
     statCha = s.cha,
+    glass = s.glass,
+    rim = s.rim,
+    well = s.well,
     celebration = night,
 )
 

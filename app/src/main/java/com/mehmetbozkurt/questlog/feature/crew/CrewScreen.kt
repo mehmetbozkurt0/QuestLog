@@ -3,6 +3,7 @@ package com.mehmetbozkurt.questlog.feature.crew
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Groups
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Notifications
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.text.AnnotatedString
@@ -30,8 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.Rule
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.ScreenTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.progression.CrewRules
@@ -42,6 +48,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CrewRoute(
+    onNavigateToMember: (String) -> Unit,
     startOnChat: Boolean = false,
     onStartOnChatHandled: () -> Unit = {},
     viewModel: CrewViewModel = hiltViewModel(),
@@ -69,6 +76,7 @@ fun CrewRoute(
     }
 
     CrewScreen(
+        onNavigateToMember = onNavigateToMember,
         state = state,
         onEvent = viewModel::onEvent,
         snackbarHostState = snackbarHostState,
@@ -78,34 +86,15 @@ fun CrewRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrewScreen(
+    onNavigateToMember: (String) -> Unit,
     state: CrewState,
     onEvent: (CrewEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.crew_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                actions = {
-                    if (state.inCrew) {
-                        IconButton(onClick = { onEvent(CrewEvent.LeaveDialogToggled(true)) }) {
-                            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.crew_leave_action))
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
 
         when {
@@ -131,6 +120,7 @@ fun CrewScreen(
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
                     OutlinedButton(
+                        shape = MaterialTheme.shapes.large,
                         onClick = { onEvent(CrewEvent.JoinDialogToggled(true)) },
                         enabled = !state.isWorking,
                     ) {
@@ -140,6 +130,7 @@ fun CrewScreen(
                         )
                     }
                     Button(
+                        shape = MaterialTheme.shapes.large,
                         onClick = { onEvent(CrewEvent.CreateDialogToggled(true)) },
                         enabled = !state.isWorking,
                     ) {
@@ -156,10 +147,35 @@ fun CrewScreen(
                     .fillMaxSize()
                     .padding(top = padding.calculateTopPadding())
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = Spacing.screen,
+                            end = Spacing.sm,
+                            top = Spacing.lg,
+                            bottom = Spacing.sm,
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ScreenTitle(
+                        title = stringResource(R.string.crew_title),
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { onEvent(CrewEvent.LeaveDialogToggled(true)) }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.crew_leave_action),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
                 TabRow(
                     selectedTabIndex = state.tab.ordinal,
                     containerColor = MaterialTheme.colorScheme.background,
                     contentColor = MaterialTheme.colorScheme.primary,
+                    divider = { Rule() },
                 ) {
                     CrewTab.entries.forEach { tab ->
                         Tab(
@@ -181,8 +197,8 @@ fun CrewScreen(
                                     },
                                 ) {
                                     Text(
-                                        stringResource(tab.labelRes()),
-                                        style = MaterialTheme.typography.labelLarge,
+                                        stringResource(tab.labelRes()).uppercaseLocalized(),
+                                        style = MaterialTheme.typography.labelSmall,
                                     )
                                 }
                             },
@@ -208,18 +224,17 @@ fun CrewScreen(
                     CrewTab.FEED -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            start = Spacing.lg,
-                            end = Spacing.lg,
+                            start = Spacing.screen,
+                            end = Spacing.screen,
                             top = Spacing.md,
                             bottom = padding.calculateBottomPadding() + Spacing.xxl,
                         ),
                         verticalArrangement = Arrangement.spacedBy(Spacing.md),
                     ) {
                         item(key = "invite") {
-                            QuestCard(
+                            GlassPanel(
                                 onClick = { onEvent(CrewEvent.InviteCodeCopied) },
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                seed = 21,
+                                containerColor = wellColor(),
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -248,26 +263,47 @@ fun CrewScreen(
                         }
 
                         item(key = "members_header") {
-                            SectionEyebrow(
-                                stringResource(R.string.crew_members_header),
-                                trailing = "${state.members.size}",
+                            SectionTitle(
+                                text = stringResource(R.string.crew_members_header),
+                                modifier = Modifier.padding(top = Spacing.sm),
+                                trailing = {
+                                    DataValue(
+                                        text = "${state.members.size}",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
                             )
                         }
 
-                        items(state.members, key = { "m_${it.userId}" }) { member ->
+                        itemsIndexed(
+                            state.members,
+                            key = { _, m -> "m_${m.userId}" },
+                        ) { index, member ->
                             CrewMemberRow(
                                 member = member,
+                                rank = index + 1,
                                 isSelf = member.userId == state.ownUserId,
+                                onClick = { onNavigateToMember(member.userId) },
                                 modifier = Modifier.animateItem(),
                             )
                         }
 
                         item(key = "feed_header") {
-                            SectionEyebrow(
-                                stringResource(R.string.crew_feed_header),
-                                trailing = if (state.hasMentorFeat)
-                                    stringResource(R.string.crew_approvals_left, state.approvalsLeft)
-                                else null,
+                            SectionTitle(
+                                text = stringResource(R.string.crew_feed_header),
+                                icon = Icons.Default.Notifications,
+                                modifier = Modifier.padding(top = Spacing.lg),
+                                trailing = if (state.hasMentorFeat) {
+                                    {
+                                        DataValue(
+                                            text = stringResource(
+                                                R.string.crew_approvals_left,
+                                                state.approvalsLeft,
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                } else null,
                             )
                         }
 

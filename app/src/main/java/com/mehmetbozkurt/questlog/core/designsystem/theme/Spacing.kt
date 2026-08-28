@@ -9,4 +9,10 @@ object Spacing {
     val lg = 16.dp
     val xl = 24.dp
     val xxl = 32.dp
+
+    val screen = 16.dp
+    val card = 20.dp
+    val section = 28.dp
+    val barHeight = 12.dp
+    val topBar = 64.dp
 }

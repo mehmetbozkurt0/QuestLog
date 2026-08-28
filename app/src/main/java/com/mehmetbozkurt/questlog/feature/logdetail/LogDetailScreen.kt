@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -28,9 +29,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import androidx.compose.ui.graphics.Color
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionRule
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.OutlineChip
+import com.mehmetbozkurt.questlog.core.designsystem.component.Rule
+import com.mehmetbozkurt.questlog.core.designsystem.component.ShellBackBar
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
+import com.mehmetbozkurt.questlog.core.designsystem.component.StatChip
+import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
+import com.mehmetbozkurt.questlog.core.designsystem.theme.ContentHero
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.domain.model.LogType
@@ -98,19 +108,21 @@ fun LogDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                actions = {
-                    if (log != null) {
+            ShellBackBar(
+                title = stringResource(R.string.logdetail_header),
+                onBack = onNavigateBack,
+                trailing = if (log != null) {
+                    {
                         IconButton(onClick = { onEvent(LogDetailEvent.EditClicked) }) {
-                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.common_edit),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                        IconButton(onClick = { onEvent(LogDetailEvent.DeleteDialogToggled(true)) }) {
+                        IconButton(
+                            onClick = { onEvent(LogDetailEvent.DeleteDialogToggled(true)) },
+                        ) {
                             Icon(
                                 Icons.Default.Delete,
                                 contentDescription = stringResource(R.string.common_delete),
@@ -118,11 +130,38 @@ fun LogDetailScreen(
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
+                } else null,
             )
+        },
+        bottomBar = {
+            if (log != null && log.type == LogType.QUEST) {
+                Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                    Rule()
+                    Button(
+                        shape = MaterialTheme.shapes.large,
+                        onClick = { onEvent(LogDetailEvent.CompletionToggled) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.screen)
+                            .height(52.dp),
+                        colors = if (log.isCompleted) {
+                            ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors()
+                        },
+                    ) {
+                        Text(
+                            stringResource(
+                                if (log.isCompleted) R.string.logdetail_mark_incomplete
+                                else R.string.logdetail_mark_complete
+                            ),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
+            }
         },
         snackbarHost = {SnackbarHost(snackbarHostState)},
         containerColor = MaterialTheme.colorScheme.background,
@@ -150,27 +189,30 @@ fun LogDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = Spacing.lg)
+                    .padding(horizontal = Spacing.screen)
                     .verticalScroll(rememberScrollState()),
             ) {
-                if (log.statType != null) {
-                    val statColor = log.statType.color()
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(10.dp).background(statColor, CircleShape))
-                        Spacer(Modifier.width(Spacing.sm))
-                        Text(
-                            stringResource(log.statType.nameRes()),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = statColor,
-                        )
-                    }
+                Spacer(Modifier.height(Spacing.sm))
 
-                    Spacer(Modifier.height(Spacing.md))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (log.statType != null) {
+                        StatChip(
+                            label = stringResource(log.statType.nameRes()),
+                            color = log.statType.color(),
+                            icon = log.statType.icon(),
+                        )
+                        Spacer(Modifier.width(Spacing.sm))
+                    }
+                    if (log.difficulty != null) {
+                        OutlineChip(label = stringResource(log.difficulty.nameRes()))
+                    }
                 }
+
+                Spacer(Modifier.height(Spacing.md))
 
                 Text(
                     text = log.title,
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = ContentHero,
                     color = MaterialTheme.colorScheme.onSurface,
                     textDecoration = if (log.isCompleted) TextDecoration.LineThrough else null,
                 )
@@ -182,6 +224,42 @@ fun LogDetailScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+
+                if (log.statType != null && log.difficulty != null) {
+                    Spacer(Modifier.height(Spacing.xl))
+                    GlassPanel(
+                        accent = if (log.isCompleted) null
+                        else MaterialTheme.colorScheme.primary,
+                        containerColor = wellColor(),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Eyebrow(
+                            text = stringResource(R.string.logdetail_rewards),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(Spacing.sm))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(
+                                icon = Icons.Default.AutoAwesome,
+                                color = MaterialTheme.colorScheme.primary,
+                                size = 40.dp,
+                            )
+                            Spacer(Modifier.width(Spacing.md))
+                            Column {
+                                Text(
+                                    "+" + log.difficulty.baseXp + " XP",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    stringResource(log.statType.nameRes()),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = log.statType.color(),
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(Spacing.xl))
@@ -227,15 +305,18 @@ fun LogDetailScreen(
                     )
                 }
 
-                SectionEyebrow(stringResource(R.string.logdetail_section_details))
+                Eyebrow(stringResource(R.string.logdetail_section_details))
                 Spacer(Modifier.height(Spacing.md))
 
-                QuestCard(seed = log.id.hashCode(), modifier = Modifier.fillMaxWidth()) {
+                GlassPanel(
+                    containerColor = wellColor(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     rows.forEachIndexed { index, entry ->
                         if (index > 0) {
-                            Spacer(Modifier.height(Spacing.sm))
-                            SectionRule()
-                            Spacer(Modifier.height(Spacing.sm))
+                            Spacer(Modifier.height(Spacing.md))
+                            Rule()
+                            Spacer(Modifier.height(Spacing.md))
                         }
                         DetailRow(entry.label, entry.value, entry.color)
                     }
@@ -248,11 +329,11 @@ fun LogDetailScreen(
 
                 if (hasProof) {
                     Spacer(Modifier.height(Spacing.xl))
-                    SectionEyebrow(stringResource(R.string.logdetail_proof))
+                    Eyebrow(stringResource(R.string.logdetail_proof))
                     Spacer(Modifier.height(Spacing.md))
 
-                    QuestCard(
-                        seed = log.id.hashCode() + 1,
+                    GlassPanel(
+                        containerColor = wellColor(),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         if (log.proofLevel != ProofLevel.NONE) {
@@ -289,11 +370,7 @@ fun LogDetailScreen(
 
                         if (!log.proofNote.isNullOrBlank()) {
                             Spacer(Modifier.height(Spacing.md))
-                            Text(
-                                stringResource(R.string.logdetail_proof_note),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Eyebrow(stringResource(R.string.logdetail_proof_note))
                             Spacer(Modifier.height(Spacing.xs))
                             Text(
                                 log.proofNote,
@@ -301,30 +378,6 @@ fun LogDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
-                    }
-                }
-
-                if (log.type == LogType.QUEST) {
-                    Spacer(Modifier.height(Spacing.xl))
-
-                    Button(
-                        onClick = { onEvent(LogDetailEvent.CompletionToggled) },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        colors = if (log.isCompleted) {
-                            ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        } else {
-                            ButtonDefaults.buttonColors()
-                        },
-                    ) {
-                        Text(
-                            stringResource(
-                                if (log.isCompleted) R.string.logdetail_mark_incomplete
-                                else R.string.logdetail_mark_complete
-                            ),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
                     }
                 }
 
@@ -378,12 +431,12 @@ private fun DetailRow(
     ) {
         Text(
             label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             value,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelMedium,
             color = valueColor ?: MaterialTheme.colorScheme.onSurface,
         )
     }

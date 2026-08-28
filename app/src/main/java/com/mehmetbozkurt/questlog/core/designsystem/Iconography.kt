@@ -29,10 +29,3 @@ fun Difficulty?.accentWidth(): Dp = when (this) {
     Difficulty.EPIC -> 8.dp
     null -> 4.dp
 }
-
-fun Difficulty.pips(): String = when (this) {
-    Difficulty.EASY -> "◆"
-    Difficulty.MEDIUM -> "◆◆"
-    Difficulty.HARD -> "◆◆◆"
-    Difficulty.EPIC -> "◆◆◆◆"
-}

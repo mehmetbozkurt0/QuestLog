@@ -27,7 +27,7 @@
     <string name="profile_section_appearance">Görünüm</string>
     <string name="profile_section_palette">Palet</string>
     <string name="palette_murekkep">Derin Mürekkep</string>
-    <string name="palette_gece">Gece Mavisi</string>
+    <string name="palette_gece">Aura</string>
     <string name="palette_kontrast">Yüksek Kontrast</string>
     <string name="profile_section_language">Dil</string>
     <string name="profile_section_notifications">Bildirimler</string>
@@ -59,6 +59,7 @@
     <string name="rank_wanderer">Gezgin</string>
     <string name="rank_novice">Çaylak</string>
 
+    <string name="topbar_streak">%1$d GÜN SERİ</string>
     <string name="nav_logs">Görevler</string>
     <string name="nav_pathways">Yollar</string>
     <string name="nav_character">Karakter</string>
@@ -73,6 +74,8 @@
     <string name="auth_tagline_sign_up">Maceraya katıl</string>
     <string name="auth_tagline_sign_in">Seyir defterine dön</string>
     <string name="auth_hero_name">Kahraman adı</string>
+    <string name="auth_panel_title_sign_up">Karakterini Yarat</string>
+    <string name="auth_panel_title_sign_in">Yolculuğa Devam Et</string>
     <string name="auth_email">E-posta</string>
     <string name="auth_email_invalid">Geçerli bir e-posta gir</string>
     <string name="auth_password">Parola</string>
@@ -121,6 +124,8 @@
     <string name="common_locked">Kilitli</string>
 
     <string name="pathway_list_title">Yollar</string>
+    <string name="pathway_list_subtitle">Kaderini şekillendirecek disiplinleri seç ve ustalık yolunda ilerle.</string>
+    <string name="pathway_stage_count">Kademe %1$d · %2$d görev</string>
     <string name="pathway_list_active">Devam Eden Yollar</string>
     <string name="pathway_list_open">Açık Yollar</string>
     <string name="pathway_list_limit_reached">Sınıra ulaştın</string>
@@ -132,6 +137,12 @@
     <string name="pathway_prerequisite">Önce \"%1$s\" tamamlanmalı</string>
     <string name="pathway_in_progress">Devam ediyor · %1$d XP emanette</string>
 
+    <string name="pathway_detail_header">Yol Detayı</string>
+    <string name="pathway_detail_overall">Genel ilerleme</string>
+    <string name="pathway_detail_stages">Yol Aşamaları</string>
+    <string name="pathway_reward_label">Tamamlama ödülü</string>
+    <string name="pathway_reward_value">Bitirince +%1$d XP bonus</string>
+    <string name="pathway_stage_active">AKTİF</string>
     <string name="pathway_detail_abandon">Bırak</string>
     <string name="pathway_detail_not_found">Yol bulunamadı</string>
     <string name="pathway_detail_progress">%1$d / %2$d görev tamamlandı</string>
@@ -168,6 +179,7 @@
     <string name="celebration_new_feat_long">Yeni yetenek hakkı kazandın</string>
     <string name="celebration_streak">🔥 %1$d gün seri!</string>
     <string name="celebration_xp">+%1$d XP</string>
+    <string name="celebration_level_up">SEVİYE ATLADIN!</string>
     <string name="celebration_pathway">YOL</string>
     <string name="celebration_pathway_done">TAMAMLANDI</string>
     <string name="celebration_xp_stat">+%1$d XP · %2$s</string>
@@ -187,12 +199,14 @@
     <string name="onboarding_start">Maceraya Başla</string>
     <string name="onboarding_1_title">Günlüğüne hoş geldin, maceracı</string>
     <string name="onboarding_1_body">Bu bir yapılacaklar listesi değil. Burada gerçek hayatta yaptığın her iş karakterini inşa eder. Spor, kitap, ders, sosyalleşme... hepsi birer görev.</string>
-    <string name="onboarding_2_title">Görevler yetenek kazandırır</string>
-    <string name="onboarding_2_body">Görev oluştururken hangi yeteneği geliştirdiğini seçersin: spor Güç\'e, okumak Zeka\'ya işler. Zorluk XP\'yi belirler. Ama dikkat — sistem cömert değildir, günlük sınırlar vardır.</string>
-    <string name="onboarding_3_title">Yollar seni sınar</string>
-    <string name="onboarding_3_body">Yol, aşamalardan oluşan uzun bir maceradır. Yoldayken kazandığın XP\'nin bir kısmı emanete yazılır: bitirirsen emanet ve bonus senindir, yarıda bırakırsan emanet yanar.</string>
-    <string name="onboarding_4_title">Efsane olmak kolay değil</string>
-    <string name="onboarding_4_body">Seviye atladıkça yetenek hakları kazanırsın, her gün görev yaparsan alevin büyür. Seviye 20\'ye ulaşan henüz görülmedi. Belki ilk sen olursun.</string>
+    <string name="onboarding_2_title">Üç alışkanlık slotun var</string>
+    <string name="onboarding_2_body">Sınırsız görev ekleyemezsin. Üç alışkanlık seçersin; her slot günde yalnızca bir kez XP verir. Hangi yeteneği geliştirdiğini sen belirlersin: spor Güç\'e, okumak Zeka\'ya işler.</string>
+    <string name="onboarding_3_title">Katalog hazır görevlerle dolu</string>
+    <string name="onboarding_3_body">Tek seferlik işler için uygulama içi kataloğa bak: bir makale oku, birini ara, yürüyüşe çık. Aynı görevi başka bir gün tekrar yapabilirsin, ama günde en fazla iki katalog görevi XP verir.</string>
+    <string name="onboarding_4_title">Yollar seni sınar</string>
+    <string name="onboarding_4_body">Yol, aşamalardan oluşan uzun bir maceradır. Yoldayken kazandığın XP\'nin bir kısmı emanete yazılır: bitirirsen emanet ve bonus senindir, yarıda bırakırsan emanet yanar.</string>
+    <string name="onboarding_5_title">Efsane olmak kolay değil</string>
+    <string name="onboarding_5_body">Seviye atladıkça yetenek hakları kazanırsın, her gün görev yaparsan alevin büyür. Seviye 20\'ye ulaşan henüz görülmedi. Belki ilk sen olursun.</string>
 
     <string name="proof_title">Nasıl geçti?</string>
     <string name="proof_hint" formatted="false">Kanıt bırakırsan daha fazla XP alırsın: not %15, fotoğraf %30. Fotoğrafı ekip arkadaşların görür ve onaylayabilir.</string>
@@ -252,6 +266,7 @@
     <string name="logdetail_due">Son teslim</string>
     <string name="logdetail_reminder">Hatırlatma</string>
     <string name="logdetail_created">Oluşturulma</string>
+    <string name="logdetail_rewards">Ödüller</string>
     <string name="logdetail_proof">Kanıt</string>
     <string name="logdetail_proof_photo">Kanıt fotoğrafı</string>
     <string name="logdetail_photo_pending">Fotoğraf yüklenmeyi bekliyor</string>
@@ -293,6 +308,11 @@
     <string name="catalog_empty_body">Görev listesi yüklenemedi. Bağlantını kontrol edip tekrar dene.</string>
     <string name="catalog_reject_already_done_today">Bu görevi bugün zaten yaptın.</string>
     <string name="catalog_reject_daily_limit">Bugünkü katalog hakkını doldurdun.</string>
+    <string name="character_hero_subtitle">Seviye %1$d · Toplam %2$d XP</string>
+    <string name="character_level_rank">Seviye %1$d %2$s</string>
+    <string name="character_next_rank">Sonraki rütbe: Seviye %1$d</string>
+    <string name="questlog_daily_header">Günlük Görevler</string>
+    <string name="questlog_progress">İlerleme</string>
     <string name="questlog_active_header">Görevlerim</string>
     <string name="questlog_completed_header">Tamamlananlar</string>
 
@@ -327,7 +347,7 @@
     <string name="weekly_summary">%1$d XP · %2$d görev</string>
     <string name="weekly_summary_with_top">%1$d XP · %2$d görev · En çok: %3$s</string>
 
-    <string name="character_boons">· %1$d Kutsama</string>
+    <string name="character_boons">%1$d Kutsama</string>
     <string name="character_streak">Seri</string>
     <string name="character_resolute_active">Kararlı devrede</string>
     <string name="character_pending_feats">%1$d yetenek hakkın bekliyor</string>
@@ -339,6 +359,7 @@
     <string name="crew_join_with_code">Kodla Katıl</string>
     <string name="crew_create">Ekip Kur</string>
     <string name="crew_copy_code">Kodu kopyala</string>
+    <string name="crew_member_xp">%1$d XP</string>
     <string name="crew_members_header">Üyeler</string>
     <string name="crew_feed_header">Son Görevler</string>
     <string name="crew_approvals_left">%1$d onay hakkı</string>
@@ -439,4 +460,18 @@
     <string name="xp_bonus_enduring">Dayanıklı</string>
     <string name="xp_bonus_versatile">Çok Yönlü</string>
     <string name="xp_bonus_new_adventurer">Yeni Maceracı</string>
+    <string name="logdetail_header">Görev Detayı</string>
+    <string name="proof_section_evidence">Kanıt ekle</string>
+    <string name="crew_member_profile_title">Ekip Üyesi</string>
+    <string name="crew_member_rank">%2$d üyeden %1$d. sırada</string>
+    <string name="crew_member_quests_shared">Paylaşılan görev</string>
+    <string name="crew_member_approvals">Onay</string>
+    <string name="crew_member_activity">Son Etkinlik</string>
+    <string name="crew_member_no_activity">Henüz paylaşılan görev yok.</string>
+    <string name="crew_member_gone_title">Üye bulunamadı</string>
+    <string name="crew_member_gone_body">Ekipten ayrılmış olabilir.</string>
+    <string name="profile_stat_total_xp">Toplam XP</string>
+    <string name="profile_stat_active">Aktif görev</string>
+    <string name="profile_stat_longest_streak">En uzun seri</string>
+    <string name="profile_stat_crew">Ekip</string>
 </resources>

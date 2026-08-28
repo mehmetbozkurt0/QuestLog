@@ -29,7 +29,7 @@ data class ProfileState(
     val isDeleting: Boolean = false,
     val deleteError: UiText? = null,
     val isPasswordAccount: Boolean = true,
-    val theme: ThemePreference = ThemePreference.SYSTEM,
+    val theme: ThemePreference = ThemePreference.Default,
     val palette: AppPalette = AppPalette.Default,
     val language: AppLanguage = AppLanguage.SYSTEM,
 ) : UiState {

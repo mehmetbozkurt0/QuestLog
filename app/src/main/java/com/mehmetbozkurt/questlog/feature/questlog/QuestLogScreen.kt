@@ -1,17 +1,43 @@
 package com.mehmetbozkurt.questlog.feature.questlog
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,28 +46,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.rimColor
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.feature.questlog.component.ActivePathwayCard
+import com.mehmetbozkurt.questlog.domain.progression.HabitRules
+import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
+import com.mehmetbozkurt.questlog.core.designsystem.component.gridItems
+import com.mehmetbozkurt.questlog.feature.pathway.component.PathwayGridCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.CharacterSummaryCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.FilterSheet
-import com.mehmetbozkurt.questlog.feature.proof.ProofSheet
-import com.mehmetbozkurt.questlog.domain.progression.HabitRules
 import com.mehmetbozkurt.questlog.feature.questlog.component.HabitSlotCard
 import com.mehmetbozkurt.questlog.feature.questlog.component.QuestLogCard
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 @Composable
 fun QuestLogListRoute(
@@ -89,7 +123,6 @@ fun QuestLogListRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestLogListScreen(
     state: QuestLogListState,
@@ -97,70 +130,16 @@ fun QuestLogListScreen(
     snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
-        topBar = {
-            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            stringResource(R.string.questlog_title),
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    },
-                    actions = {
-                        BadgedBox(
-                            badge = {
-                                if (state.activeFilterCount > 0) {
-                                    Badge { Text("${state.activeFilterCount}") }
-                                }
-                            }
-                        ) {
-                            IconButton(onClick = {
-                                onEvent(QuestLogListEvent.FilterSheetToggled(true))
-                            }) {
-                                Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.questlog_filter))
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    ),
-                )
-
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
-                    placeholder = { Text(stringResource(R.string.questlog_search_placeholder)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.FilterList,
-                            contentDescription = null,
-                            modifier = Modifier.size(0.dp),
-                        )
-                    },
-                    trailingIcon = {
-                        if (state.searchQuery.isNotEmpty()) {
-                            IconButton(onClick = {
-                                onEvent(QuestLogListEvent.SearchChanged(""))
-                            }) {
-                                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.common_clear))
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Spacing.lg, vertical = Spacing.sm),
-                )
-            }
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
 
         if (state.isLoading) {
             Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -171,16 +150,15 @@ fun QuestLogListScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
-                start = Spacing.lg,
-                end = Spacing.lg,
-                top = padding.calculateTopPadding() + Spacing.sm,
-                bottom = padding.calculateBottomPadding() + 88.dp,
+                start = Spacing.screen,
+                end = Spacing.screen,
+                top = padding.calculateTopPadding() + Spacing.lg,
+                bottom = padding.calculateBottomPadding() + Spacing.xxl,
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
 
-
-            if (state.showHeaderSections && state.character != null) {
+            if (state.character != null) {
                 item(key = "character") {
                     CharacterSummaryCard(
                         character = state.character,
@@ -191,49 +169,51 @@ fun QuestLogListScreen(
                 }
             }
 
-
-            if (state.showHeaderSections && state.activePathways.isNotEmpty()) {
-                item(key = "pathway_header") {
-                    SectionEyebrow(stringResource(R.string.questlog_active_pathways))
-                }
-                items(state.activePathways, key = { "pw_${it.pathway.id}" }) { summary ->
-                    ActivePathwayCard(
-                        summary = summary,
-                        onClick = {
-                            onEvent(QuestLogListEvent.PathwayClicked(summary.pathway.id))
-                        },
-                    )
-                }
-            }
-
-            if (state.showHeaderSections && state.activePathways.isEmpty()) {
-                item(key = "pathway_cta") {
-                    QuestCard(
-                        onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        seed = 7,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            stringResource(R.string.questlog_pathway_cta_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(Modifier.height(Spacing.xs))
-                        Text(
-                            stringResource(R.string.questlog_pathway_cta_body),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+            item(key = "search") {
+                SearchRow(
+                    query = state.searchQuery,
+                    filterCount = state.activeFilterCount,
+                    onQueryChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
+                    onFilterClick = { onEvent(QuestLogListEvent.FilterSheetToggled(true)) },
+                )
             }
 
             if (state.showHeaderSections) {
+                item(key = "pathway_header") {
+                    Heading(stringResource(R.string.questlog_active_pathways))
+                }
+                if (state.activePathways.isNotEmpty()) {
+                    gridItems(state.activePathways, key = { it.pathway.id }) { summary ->
+                        PathwayGridCard(
+                            title = summary.pathway.title,
+                            stat = summary.pathway.primaryStat,
+                            caption = "${(summary.fraction * 100).roundToInt()}%",
+                            progress = summary.fraction,
+                            accented = true,
+                            onClick = {
+                                onEvent(QuestLogListEvent.PathwayClicked(summary.pathway.id))
+                            },
+                        )
+                    }
+                } else {
+                    item(key = "pathway_cta") {
+                        CtaCard(
+                            icon = Icons.Default.Explore,
+                            title = stringResource(R.string.questlog_pathway_cta_title),
+                            body = stringResource(R.string.questlog_pathway_cta_body),
+                            onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
+                        )
+                    }
+                }
+
+                item(key = "daily_header") {
+                    Heading(stringResource(R.string.questlog_daily_header))
+                }
+
                 item(key = "habits_header") {
-                    SectionEyebrow(
-                        stringResource(R.string.questlog_habits_header),
-                        trailing = "${state.habitSlots.count { !it.isEmpty }}/${HabitRules.MAX_SLOTS}",
+                    LabelRow(
+                        label = stringResource(R.string.questlog_habits_header),
+                        value = "${state.habitSlots.count { !it.isEmpty }}/${HabitRules.MAX_SLOTS}",
                     )
                 }
                 items(state.habitSlots, key = { "habit_${it.index}" }) { slot ->
@@ -249,28 +229,14 @@ fun QuestLogListScreen(
                         modifier = Modifier.animateItem(),
                     )
                 }
-            }
 
-            if (state.showHeaderSections) {
                 item(key = "catalog_cta") {
-                    QuestCard(
+                    CtaCard(
+                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                        title = stringResource(R.string.catalog_entry_title),
+                        body = stringResource(R.string.catalog_entry_body),
                         onClick = { onEvent(QuestLogListEvent.CatalogClicked) },
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        seed = 13,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            stringResource(R.string.catalog_entry_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(Modifier.height(Spacing.xs))
-                        Text(
-                            stringResource(R.string.catalog_entry_body),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    )
                 }
             }
 
@@ -287,12 +253,12 @@ fun QuestLogListScreen(
             } else if (!state.isEmpty) {
                 if (state.activeLogs.isNotEmpty()) {
                     item(key = "active_header") {
-                        SectionEyebrow(
-                            stringResource(
+                        LabelRow(
+                            label = stringResource(
                                 if (state.isSearching) R.string.questlog_results_header
                                 else R.string.questlog_active_header
                             ),
-                            trailing = "${state.activeLogs.size}",
+                            value = "${state.activeLogs.size}",
                         )
                     }
                     items(state.activeLogs, key = { it.id }) { log ->
@@ -309,9 +275,9 @@ fun QuestLogListScreen(
 
                 if (state.completedLogs.isNotEmpty()) {
                     item(key = "completed_header") {
-                        SectionEyebrow(
-                            stringResource(R.string.questlog_completed_header),
-                            trailing = "${state.completedLogs.size}",
+                        LabelRow(
+                            label = stringResource(R.string.questlog_completed_header),
+                            value = "${state.completedLogs.size}",
                         )
                     }
                     items(state.completedLogs, key = { it.id }) { log ->
@@ -321,7 +287,9 @@ fun QuestLogListScreen(
                             onToggleCompleted = { checked ->
                                 onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
                             },
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier
+                                .animateItem()
+                                .alpha(0.6f),
                         )
                     }
                 }
@@ -361,6 +329,7 @@ fun QuestLogListScreen(
                     Text(stringResource(R.string.questlog_habit_cancel))
                 }
             },
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 
@@ -377,5 +346,136 @@ fun QuestLogListScreen(
             onClear = { onEvent(QuestLogListEvent.FiltersCleared) },
             onDismiss = { onEvent(QuestLogListEvent.FilterSheetToggled(false)) },
         )
+    }
+}
+
+@Composable
+private fun Heading(text: String) {
+    SectionTitle(text = text, modifier = Modifier.padding(top = Spacing.md))
+}
+
+@Composable
+private fun LabelRow(label: String, value: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Eyebrow(label)
+        Spacer(Modifier.weight(1f))
+        DataValue(value, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchRow(
+    query: String,
+    filterCount: Int,
+    onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            placeholder = {
+                Text(
+                    stringResource(R.string.questlog_search_placeholder),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = stringResource(R.string.common_clear),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            singleLine = true,
+            shape = MaterialTheme.shapes.large,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = wellColor(),
+                focusedContainerColor = wellColor(),
+                unfocusedBorderColor = rimColor(),
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
+            modifier = Modifier.weight(1f),
+        )
+
+        Spacer(Modifier.width(Spacing.sm))
+
+        BadgedBox(
+            badge = {
+                if (filterCount > 0) {
+                    Badge { Text("$filterCount") }
+                }
+            }
+        ) {
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = stringResource(R.string.questlog_filter),
+                    tint = if (filterCount > 0) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CtaCard(
+    icon: ImageVector,
+    title: String,
+    body: String,
+    onClick: () -> Unit,
+) {
+    GlassPanel(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = wellColor(),
+        contentPadding = PaddingValues(Spacing.lg),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconTile(
+                icon = icon,
+                color = MaterialTheme.colorScheme.primary,
+                size = 36.dp,
+            )
+            Spacer(Modifier.width(Spacing.md))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

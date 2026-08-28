@@ -22,7 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import androidx.compose.material.icons.filled.Insights
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -41,19 +44,24 @@ fun WeeklySummaryCard(
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
-    QuestCard(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        seed = 3,
+    GlassPanel(
         contentPadding = PaddingValues(0.dp),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(Spacing.md)) {
+        Column(Modifier.padding(Spacing.card)) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                IconTile(
+                    icon = Icons.Default.Insights,
+                    color = MaterialTheme.colorScheme.primary,
+                    size = 28.dp,
+                    iconSize = 15.dp,
+                )
+                Spacer(Modifier.width(Spacing.sm))
                 Text(
                     stringResource(R.string.weekly_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.weight(1f))
                 if (streak != null && streak.currentStreak > 0) {
@@ -67,9 +75,8 @@ fun WeeklySummaryCard(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(2.dp))
-                    Text(
-                        stringResource(R.string.weekly_streak_days, streak.currentStreak),
-                        style = MaterialTheme.typography.labelLarge,
+                    DataValue(
+                        text = stringResource(R.string.weekly_streak_days, streak.currentStreak),
                         color = flameColor,
                     )
                 }
@@ -77,13 +84,12 @@ fun WeeklySummaryCard(
 
             if (streak != null && streak.longestStreak > 0) {
                 Spacer(Modifier.height(Spacing.xs))
-                Text(
-                    stringResource(
+                DataValue(
+                    text = stringResource(
                         if (streak.graceUsed) R.string.weekly_longest_streak_grace
                         else R.string.weekly_longest_streak,
                         streak.longestStreak,
                     ),
-                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -110,7 +116,7 @@ fun WeeklySummaryCard(
                                     .height((2 + 46 * frac).dp)
                                     .background(
                                         if (day.xp > 0) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surface,
+                                        else MaterialTheme.colorScheme.surfaceVariant,
                                         RoundedCornerShape(2.dp),
                                     )
                             )

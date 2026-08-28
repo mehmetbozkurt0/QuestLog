@@ -79,7 +79,10 @@ fun EmptyState(
 
         if (actionLabel != null && onAction != null) {
             Spacer(Modifier.height(Spacing.lg))
-            OutlinedButton(onClick = onAction) {
+            OutlinedButton(
+                onClick = onAction,
+                shape = MaterialTheme.shapes.large,
+            ) {
                 Text(actionLabel, style = MaterialTheme.typography.labelLarge)
             }
         }

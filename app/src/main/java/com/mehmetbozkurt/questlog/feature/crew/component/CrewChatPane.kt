@@ -38,7 +38,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mehmetbozkurt.questlog.R
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.domain.model.CrewMessage
 
@@ -161,12 +162,15 @@ private fun MessageBubble(
         Modifier.fillMaxWidth(),
         horizontalAlignment = if (isMine) Alignment.End else Alignment.Start,
     ) {
-        QuestCard(
-            seed = message.id.hashCode(),
+        GlassPanel(
+            shape = MaterialTheme.shapes.large,
             containerColor = if (isMine)
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
             else
-                MaterialTheme.colorScheme.surface,
+                wellColor(),
+            borderColor = if (isMine)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+            else null,
             contentPadding = PaddingValues(
                 horizontal = Spacing.md,
                 vertical = Spacing.sm,

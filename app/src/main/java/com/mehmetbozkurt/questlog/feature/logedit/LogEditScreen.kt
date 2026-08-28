@@ -1,49 +1,91 @@
-﻿package com.mehmetbozkurt.questlog.feature.logedit
+package com.mehmetbozkurt.questlog.feature.logedit
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mehmetbozkurt.questlog.core.designsystem.icon
-import com.mehmetbozkurt.questlog.core.designsystem.pips
-import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.domain.model.Difficulty
-import com.mehmetbozkurt.questlog.domain.model.LogType
-import com.mehmetbozkurt.questlog.domain.model.Priority
-import com.mehmetbozkurt.questlog.domain.model.ProofLevel
-import com.mehmetbozkurt.questlog.domain.model.StatType
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.rimColor
 import com.mehmetbozkurt.questlog.R
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
 import com.mehmetbozkurt.questlog.core.common.descriptionRes
 import com.mehmetbozkurt.questlog.core.common.hintRes
 import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.common.shortLabelRes
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
+import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.Rule
+import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.color
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
+import com.mehmetbozkurt.questlog.domain.model.Difficulty
+import com.mehmetbozkurt.questlog.domain.model.Priority
+import com.mehmetbozkurt.questlog.domain.model.StatType
 import com.mehmetbozkurt.questlog.feature.questlog.component.formatted
 import com.mehmetbozkurt.questlog.feature.questlog.component.labelRes
 import kotlinx.coroutines.flow.collectLatest
@@ -51,8 +93,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import kotlin.math.roundToInt
 
 @Composable
 fun LogEditRoute(
@@ -91,26 +131,59 @@ fun LogEditScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (state.isEditMode) R.string.logedit_title_edit
-                            else R.string.logedit_title_new
-                        ),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(
+                                if (state.isEditMode) R.string.logedit_title_edit
+                                else R.string.logedit_title_new
+                            ),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                )
+                Rule()
+            }
+        },
+        bottomBar = {
+            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                Rule()
+                Button(
+                    shape = MaterialTheme.shapes.large,
+                    onClick = { onEvent(LogEditEvent.SaveClicked) },
+                    enabled = state.canSave,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Spacing.screen)
+                        .height(52.dp),
+                ) {
+                    if (state.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        Text(
+                            stringResource(R.string.common_save),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -119,221 +192,183 @@ fun LogEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = Spacing.lg)
+                .padding(horizontal = Spacing.screen)
                 .verticalScroll(rememberScrollState())
                 .imePadding(),
         ) {
-            Spacer(Modifier.height(Spacing.sm))
-
-//            Text("Kayıt Türü", style = MaterialTheme.typography.labelLarge,
-//                color = MaterialTheme.colorScheme.onSurfaceVariant)
-//            Spacer(Modifier.height(Spacing.sm))
-//
-//            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-//                LogType.entries.forEachIndexed { index, type ->
-//                    SegmentedButton(
-//                        selected = state.type == type,
-//                        onClick = { onEvent(LogEditEvent.TypeChanged(type)) },
-//                        shape = SegmentedButtonDefaults.itemShape(index, LogType.entries.size),
-//                        enabled = !state.isSaving,
-//                    ) {
-//                        Text(type.label(), style = MaterialTheme.typography.labelMedium)
-//                    }
-//                }
-//            }
-//
-//            Spacer(Modifier.height(Spacing.lg))
-
-            OutlinedTextField(
-                value = state.title,
-                onValueChange = { onEvent(LogEditEvent.TitleChanged(it)) },
-                label = { Text(stringResource(R.string.logedit_field_title)) },
-                singleLine = true,
-                enabled = !state.isSaving,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
             Spacer(Modifier.height(Spacing.lg))
 
-            Text(
-                stringResource(R.string.logedit_stat_prompt),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(Spacing.sm))
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                StatType.entries.forEach { stat ->
-                    FilterChip(
-                        selected = state.statType == stat,
-                        onClick = { onEvent(LogEditEvent.StatTypeChanged(stat)) },
-                        enabled = !state.isSaving,
-                        label = { Text(stringResource(stat.nameRes())) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = stat.icon(),
-                                contentDescription = null,
-                                tint = stat.color(),
-                                modifier = Modifier.size(16.dp),
-                            )
-                        },
-                    )
-                }
-            }
-
-            if (state.statType != null) {
-                Spacer(Modifier.height(Spacing.xs))
-                Text(
-                    stringResource(state.statType.descriptionRes()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            GlassPanel(containerColor = wellColor(), modifier = Modifier.fillMaxWidth()) {
+                Eyebrow(stringResource(R.string.logedit_field_title))
+                Spacer(Modifier.height(Spacing.sm))
+                AuraTextField(
+                    value = state.title,
+                    onValueChange = { onEvent(LogEditEvent.TitleChanged(it)) },
+                    enabled = !state.isSaving,
+                    singleLine = true,
                 )
-            } else if (state.isHabit) {
-                Spacer(Modifier.height(Spacing.xs))
-                Text(
-                    stringResource(R.string.logedit_habit_stat_required),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
 
-            Spacer(Modifier.height(Spacing.lg))
-
-            Text(
-                stringResource(R.string.logedit_difficulty),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(Spacing.sm))
-
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                Difficulty.entries.forEachIndexed { index, diff ->
-                    SegmentedButton(
-                        selected = state.difficulty == diff,
-                        onClick = { onEvent(LogEditEvent.DifficultyChanged(diff)) },
-                        shape = SegmentedButtonDefaults.itemShape(index, Difficulty.entries.size),
-                        enabled = !state.isSaving,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(diff.nameRes()),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                            Text(
-                                diff.pips(),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(Spacing.xs))
-            Text(
-                stringResource(
-                    R.string.logedit_difficulty_hint,
-                    stringResource(state.difficulty.hintRes()),
-                    state.difficulty.baseXp,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(Spacing.md))
-
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = { onEvent(LogEditEvent.DescriptionChanged(it)) },
-                label = { Text(stringResource(R.string.logedit_field_description)) },
-                enabled = !state.isSaving,
-                minLines = 4,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            if (state.showQuestFields) {
                 Spacer(Modifier.height(Spacing.lg))
 
-                Text(
-                    stringResource(R.string.logedit_priority),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Eyebrow(stringResource(R.string.logedit_field_description))
                 Spacer(Modifier.height(Spacing.sm))
-
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    Priority.entries.forEachIndexed { index, p ->
-                        SegmentedButton(
-                            selected = state.priority == p,
-                            onClick = { onEvent(LogEditEvent.PriorityChanged(p)) },
-                            shape = SegmentedButtonDefaults.itemShape(index, Priority.entries.size),
-                            enabled = !state.isSaving,
-                        ) {
-                            Text(
-                                stringResource(p.labelRes()),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.xl))
-
-                SectionEyebrow(stringResource(R.string.logedit_section_timing))
-
-                Spacer(Modifier.height(Spacing.md))
-
-                DateField(
-                    label = stringResource(R.string.logedit_due_date),
-                    value = state.dueAt,
+                AuraTextField(
+                    value = state.description,
+                    onValueChange = { onEvent(LogEditEvent.DescriptionChanged(it)) },
                     enabled = !state.isSaving,
-                    onPick = { onEvent(LogEditEvent.DuePickerToggled(true)) },
-                    onClear = { onEvent(LogEditEvent.DueAtChanged(null)) },
+                    minLines = 3,
                 )
+            }
 
-                Spacer(Modifier.height(Spacing.md))
+            Spacer(Modifier.height(Spacing.lg))
 
-                DateField(
-                    label = stringResource(R.string.logedit_reminder),
-                    value = state.remindAt,
-                    enabled = !state.isSaving,
-                    withTime = true,
-                    onPick = { onEvent(LogEditEvent.RemindPickerToggled(true)) },
-                    onClear = { onEvent(LogEditEvent.RemindAtChanged(null)) },
-                )
+            Eyebrow(stringResource(R.string.logedit_stat_prompt))
+            Spacer(Modifier.height(Spacing.md))
 
-                Spacer(Modifier.height(Spacing.md))
+            StatGrid(
+                selected = state.statType,
+                enabled = !state.isSaving,
+                onSelect = { onEvent(LogEditEvent.StatTypeChanged(it)) },
+            )
 
-                QuestCard(
-                    seed = 17,
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
+            when {
+                state.statType != null -> {
+                    Spacer(Modifier.height(Spacing.sm))
                     Text(
-                        stringResource(R.string.logedit_proof_hint),
+                        stringResource(state.statType.descriptionRes()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+
+                state.isHabit -> {
+                    Spacer(Modifier.height(Spacing.sm))
+                    Text(
+                        stringResource(R.string.logedit_habit_stat_required),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
-            Spacer(Modifier.height(Spacing.xl))
+            Spacer(Modifier.height(Spacing.lg))
 
-            Button(
-                onClick = { onEvent(LogEditEvent.SaveClicked) },
-                enabled = state.canSave,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
+            GlassPanel(containerColor = wellColor(), modifier = Modifier.fillMaxWidth()) {
+                Eyebrow(stringResource(R.string.logedit_difficulty))
+                Spacer(Modifier.height(Spacing.md))
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                ) {
+                    Difficulty.entries.forEach { diff ->
+                        val selected = state.difficulty == diff
+                        FilterChip(
+                            selected = selected,
+                            onClick = { onEvent(LogEditEvent.DifficultyChanged(diff)) },
+                            enabled = !state.isSaving,
+                            label = {
+                                Text(
+                                    stringResource(diff.nameRes()),
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                            },
+                            shape = MaterialTheme.shapes.small,
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                selectedContainerColor =
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(Spacing.sm))
+
+                Text(
+                    stringResource(
+                        R.string.logedit_difficulty_hint,
+                        stringResource(state.difficulty.hintRes()),
+                        state.difficulty.baseXp,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (state.showQuestFields) {
+                Spacer(Modifier.height(Spacing.lg))
+
+                GlassPanel(containerColor = wellColor(), modifier = Modifier.fillMaxWidth()) {
+                    Eyebrow(stringResource(R.string.logedit_priority))
+                    Spacer(Modifier.height(Spacing.md))
+
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Priority.entries.forEach { p ->
+                            val selected = state.priority == p
+                            FilterChip(
+                                selected = selected,
+                                onClick = { onEvent(LogEditEvent.PriorityChanged(p)) },
+                                enabled = !state.isSaving,
+                                label = {
+                                    Text(
+                                        stringResource(p.labelRes()),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                },
+                                shape = MaterialTheme.shapes.small,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    selectedContainerColor =
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(Spacing.lg))
+
+                GlassPanel(containerColor = wellColor(), modifier = Modifier.fillMaxWidth()) {
+                    Eyebrow(stringResource(R.string.logedit_section_timing))
+
+                    Spacer(Modifier.height(Spacing.md))
+
+                    DateField(
+                        label = stringResource(R.string.logedit_due_date),
+                        icon = Icons.Default.CalendarMonth,
+                        value = state.dueAt,
+                        enabled = !state.isSaving,
+                        onPick = { onEvent(LogEditEvent.DuePickerToggled(true)) },
+                        onClear = { onEvent(LogEditEvent.DueAtChanged(null)) },
                     )
-                } else {
+
+                    Spacer(Modifier.height(Spacing.md))
+
+                    Rule()
+
+                    Spacer(Modifier.height(Spacing.md))
+
+                    DateField(
+                        label = stringResource(R.string.logedit_reminder),
+                        icon = Icons.Default.NotificationsActive,
+                        value = state.remindAt,
+                        enabled = !state.isSaving,
+                        withTime = true,
+                        onPick = { onEvent(LogEditEvent.RemindPickerToggled(true)) },
+                        onClear = { onEvent(LogEditEvent.RemindAtChanged(null)) },
+                    )
+
+                    Spacer(Modifier.height(Spacing.md))
+
                     Text(
-                        stringResource(R.string.common_save),
-                        style = MaterialTheme.typography.labelLarge,
+                        stringResource(R.string.logedit_proof_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -360,8 +395,103 @@ fun LogEditScreen(
 }
 
 @Composable
+private fun AuraTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean,
+    singleLine: Boolean = false,
+    minLines: Int = 1,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        singleLine = singleLine,
+        minLines = minLines,
+        textStyle = MaterialTheme.typography.titleMedium,
+        shape = MaterialTheme.shapes.small,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.background,
+            focusedContainerColor = MaterialTheme.colorScheme.background,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun StatGrid(
+    selected: StatType?,
+    enabled: Boolean,
+    onSelect: (StatType) -> Unit,
+) {
+    val stats = StatType.entries
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        stats.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                row.forEach { stat ->
+                    StatTile(
+                        stat = stat,
+                        selected = selected == stat,
+                        enabled = enabled,
+                        onClick = { onSelect(stat) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(3 - row.size) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatTile(
+    stat: StatType,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val statColor = stat.color()
+    val shape = MaterialTheme.shapes.medium
+    val background: Color = if (selected) statColor.copy(alpha = 0.14f)
+    else MaterialTheme.colorScheme.surface
+    val borderColor = if (selected) statColor
+    else MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
+
+    Box(
+        modifier = modifier
+            .height(86.dp)
+            .background(background, shape)
+            .border(1.dp, borderColor, shape)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = stat.icon(),
+                contentDescription = null,
+                tint = if (selected) statColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(Modifier.height(Spacing.sm))
+            Text(
+                text = stringResource(stat.shortLabelRes()).uppercaseLocalized(),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (selected) statColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
 private fun DateField(
     label: String,
+    icon: ImageVector,
     value: Instant?,
     enabled: Boolean,
     onPick: () -> Unit,
@@ -369,24 +499,56 @@ private fun DateField(
     withTime: Boolean = false,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(
-            onClick = onPick,
-            enabled = enabled,
-            modifier = Modifier.weight(1f),
-        ) {
+        IconTile(
+            icon = icon,
+            color = MaterialTheme.colorScheme.primary,
+            size = 40.dp,
+            iconSize = 20.dp,
+        )
+
+        Spacer(Modifier.width(Spacing.md))
+
+        Column(Modifier.weight(1f)) {
             Text(
-                text = value?.let {
-                    val shown = if (withTime) it.formattedWithTime() else it.formatted()
-                    stringResource(R.string.logedit_picker_value, label, shown)
-                } ?: stringResource(R.string.logedit_picker_empty, label),
-                style = MaterialTheme.typography.bodyMedium,
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = stringResource(R.string.logedit_picker_empty, label),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        Spacer(Modifier.width(Spacing.sm))
+
+        Row(
+            Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.background)
+                .border(1.dp, rimColor(), MaterialTheme.shapes.large)
+                .clickable(enabled = enabled, onClick = onPick)
+                .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DataValue(
+                text = value?.let {
+                    if (withTime) it.formattedWithTime() else it.formatted()
+                } ?: "--/--/----",
+                color = if (value == null) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.primary,
+            )
+        }
+
         if (value != null) {
             IconButton(onClick = onClear, enabled = enabled) {
                 Icon(
                     Icons.Default.Clear,
                     contentDescription = stringResource(R.string.common_clear),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
                 )
             }
         }
@@ -466,6 +628,7 @@ private fun LogDateTimePicker(
                     Text(stringResource(R.string.common_back))
                 }
             },
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 }

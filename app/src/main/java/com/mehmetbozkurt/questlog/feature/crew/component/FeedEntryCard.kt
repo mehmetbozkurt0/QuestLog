@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.crew.component
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,14 +23,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
+import com.mehmetbozkurt.questlog.core.designsystem.component.StatChip
+import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.shortLabelRes
 import com.mehmetbozkurt.questlog.core.designsystem.icon
-import com.mehmetbozkurt.questlog.core.designsystem.pips
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
-import com.mehmetbozkurt.questlog.domain.model.Difficulty
 import java.time.Duration
 import java.time.Instant
 
@@ -44,56 +47,58 @@ fun FeedEntryCard(
 ) {
     val statColor = item.statType?.color()
 
-    QuestCard(
-        accent = statColor,
-        accentWidth = item.difficulty.accentWidth(),
-        seed = item.id.hashCode(),
+    GlassPanel(
+        edge = statColor,
+        edgeWidth = item.difficulty.accentWidth(),
+        containerColor = wellColor(),
+        shape = MaterialTheme.shapes.small,
+        contentPadding = PaddingValues(Spacing.lg),
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (item.statType != null && statColor != null) {
-                Icon(
-                    imageVector = item.statType.icon(),
-                    contentDescription = null,
-                    tint = statColor,
-                    modifier = Modifier.size(14.dp),
-                )
-                Spacer(Modifier.width(Spacing.xs))
-            }
             Text(
                 if (isMine) stringResource(R.string.feed_author_self) else item.authorName,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (item.difficulty != null) {
-                Spacer(Modifier.width(Spacing.sm))
-                Text(
-                    item.difficulty.pips(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (item.difficulty >= Difficulty.HARD)
-                        MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
             Spacer(Modifier.weight(1f))
             Text(
                 item.completedAt.relativeLabel(),
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        Spacer(Modifier.height(Spacing.xs))
+        Spacer(Modifier.height(Spacing.sm))
 
         Text(
             item.title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
+
+        if (item.statType != null && statColor != null) {
+            Spacer(Modifier.height(Spacing.sm))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StatChip(
+                    label = stringResource(item.statType.shortLabelRes()),
+                    color = statColor,
+                    icon = item.statType.icon(),
+                )
+                if (item.difficulty != null) {
+                    Spacer(Modifier.width(Spacing.sm))
+                    Text(
+                        stringResource(item.difficulty.nameRes()),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
 
         item.proofPhotoUrl?.let { url ->
             Spacer(Modifier.height(Spacing.sm))

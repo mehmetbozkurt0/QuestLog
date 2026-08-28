@@ -28,6 +28,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import com.mehmetbozkurt.questlog.core.designsystem.icon
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.CelebrationTier
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
@@ -100,7 +106,7 @@ private fun BannerContent(celebration: Celebration) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = BorderStroke(1.dp, statColor.copy(alpha = 0.7f)),
+        border = BorderStroke(1.dp, statColor.copy(alpha = 0.5f)),
         shadowElevation = 8.dp,
     ) {
         Column(
@@ -145,7 +151,7 @@ private fun BannerContent(celebration: Celebration) {
                 Spacer(Modifier.height(Spacing.xs))
                 Text(
                     stringResource(R.string.celebration_stage_done),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -239,12 +245,17 @@ private fun EpicCelebration(
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            repeat(12) { i ->
-                rotate(rayAngle + i * 30f) {
+            val rayBrush = Brush.verticalGradient(
+                colors = listOf(Color.Transparent, accent.copy(alpha = 0.30f)),
+                startY = 0f,
+                endY = center.y,
+            )
+            repeat(16) { i ->
+                rotate(rayAngle + i * 22.5f) {
                     drawRect(
-                        color = accent.copy(alpha = 0.07f),
-                        topLeft = Offset(center.x - 36f, 0f),
-                        size = Size(72f, center.y),
+                        brush = rayBrush,
+                        topLeft = Offset(center.x - 30f, 0f),
+                        size = Size(60f, center.y),
                     )
                 }
             }
@@ -261,19 +272,37 @@ private fun EpicCelebration(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (celebration.leveledUp) {
                 Text(
-                    stringResource(R.string.character_level_caps),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = accent,
-                )
-                Text(
-                    "${celebration.newLevel}",
+                    stringResource(R.string.celebration_level_up),
                     style = MaterialTheme.typography.displayLarge,
-                    color = bright,
+                    color = accent,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = Spacing.xl),
                 )
+                Spacer(Modifier.height(Spacing.xl))
+                Box(
+                    Modifier
+                        .size(132.dp)
+                        .background(scrim.copy(alpha = 0.9f), CircleShape)
+                        .border(2.dp, accent, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            stringResource(R.string.character_level_caps),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = muted,
+                        )
+                        Text(
+                            "${celebration.newLevel}",
+                            style = MaterialTheme.typography.displayLarge,
+                            color = bright,
+                        )
+                    }
+                }
             } else {
                 Text(
                     stringResource(R.string.celebration_pathway),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelSmall,
                     color = accent,
                 )
                 Text(
@@ -311,15 +340,34 @@ private fun EpicCelebration(
                 )
             }
             if (celebration.statIncreased) {
-                Text(
-                    stringResource(
-                        R.string.celebration_stat_up_plain,
-                        stringResource(celebration.statType.nameRes()),
-                        celebration.newStatValue,
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = statColor,
-                )
+                Spacer(Modifier.height(Spacing.sm))
+                Row(
+                    Modifier
+                        .background(statColor.copy(alpha = 0.12f), MaterialTheme.shapes.large)
+                        .border(1.dp, statColor.copy(alpha = 0.5f), MaterialTheme.shapes.large)
+                        .padding(horizontal = Spacing.lg, vertical = Spacing.md),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        celebration.statType.icon(),
+                        contentDescription = null,
+                        tint = statColor,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(Modifier.width(Spacing.md))
+                    Column {
+                        Text(
+                            stringResource(celebration.statType.nameRes()).uppercaseLocalized(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = bright,
+                        )
+                        Text(
+                            "${celebration.newStatValue}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = statColor,
+                        )
+                    }
+                }
             }
             if (celebration.featChoicesGained > 0) {
                 Text(

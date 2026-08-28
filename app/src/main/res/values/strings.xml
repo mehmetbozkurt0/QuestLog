@@ -29,7 +29,7 @@
     <string name="profile_section_appearance">Appearance</string>
     <string name="profile_section_palette">Palette</string>
     <string name="palette_murekkep">Deep Ink</string>
-    <string name="palette_gece">Midnight</string>
+    <string name="palette_gece">Aura</string>
     <string name="palette_kontrast">High Contrast</string>
     <string name="profile_section_language">Language</string>
     <string name="profile_section_notifications">Notifications</string>
@@ -61,6 +61,7 @@
     <string name="rank_wanderer">Wanderer</string>
     <string name="rank_novice">Novice</string>
 
+    <string name="topbar_streak">%1$d DAY STREAK</string>
     <string name="nav_logs">Quests</string>
     <string name="nav_pathways">Pathways</string>
     <string name="nav_character">Character</string>
@@ -75,6 +76,8 @@
     <string name="auth_tagline_sign_up">Join the adventure</string>
     <string name="auth_tagline_sign_in">Return to your logbook</string>
     <string name="auth_hero_name">Hero name</string>
+    <string name="auth_panel_title_sign_up">Create your character</string>
+    <string name="auth_panel_title_sign_in">Continue your journey</string>
     <string name="auth_email">E-mail</string>
     <string name="auth_email_invalid">Enter a valid e-mail</string>
     <string name="auth_password">Password</string>
@@ -123,6 +126,8 @@
     <string name="common_locked">Locked</string>
 
     <string name="pathway_list_title">Pathways</string>
+    <string name="pathway_list_subtitle">Choose the disciplines that will shape your fate and walk the road to mastery.</string>
+    <string name="pathway_stage_count">Stage %1$d · %2$d quests</string>
     <string name="pathway_list_active">Active Pathways</string>
     <string name="pathway_list_open">Open Pathways</string>
     <string name="pathway_list_limit_reached">You reached the limit</string>
@@ -134,6 +139,12 @@
     <string name="pathway_prerequisite">Finish \"%1$s\" first</string>
     <string name="pathway_in_progress">In progress · %1$d XP in escrow</string>
 
+    <string name="pathway_detail_header">Pathway</string>
+    <string name="pathway_detail_overall">Overall progress</string>
+    <string name="pathway_detail_stages">Pathway stages</string>
+    <string name="pathway_reward_label">Completion reward</string>
+    <string name="pathway_reward_value">+%1$d XP bonus on completion</string>
+    <string name="pathway_stage_active">ACTIVE</string>
     <string name="pathway_detail_abandon">Abandon</string>
     <string name="pathway_detail_not_found">Pathway not found</string>
     <string name="pathway_detail_progress">%1$d / %2$d quests completed</string>
@@ -170,6 +181,7 @@
     <string name="celebration_new_feat_long">You earned a new feat choice</string>
     <string name="celebration_streak">🔥 %1$d day streak!</string>
     <string name="celebration_xp">+%1$d XP</string>
+    <string name="celebration_level_up">LEVEL UP!</string>
     <string name="celebration_pathway">PATHWAY</string>
     <string name="celebration_pathway_done">COMPLETE</string>
     <string name="celebration_xp_stat">+%1$d XP · %2$s</string>
@@ -189,12 +201,14 @@
     <string name="onboarding_start">Begin the Adventure</string>
     <string name="onboarding_1_title">Welcome to your logbook, adventurer</string>
     <string name="onboarding_1_body">This is not a to-do list. Here, everything you do in real life builds your character. Exercise, books, study, socialising… each one is a quest.</string>
-    <string name="onboarding_2_title">Quests earn abilities</string>
-    <string name="onboarding_2_body">When you create a quest you pick the ability it trains: exercise feeds Strength, reading feeds Intelligence. Difficulty sets the XP. But be warned — the system is not generous, and there are daily limits.</string>
-    <string name="onboarding_3_title">Pathways test you</string>
-    <string name="onboarding_3_body">A pathway is a long adventure made of stages. While you are on one, part of the XP you earn is held in escrow: finish it and the escrow plus a bonus is yours, abandon it and the escrow burns.</string>
-    <string name="onboarding_4_title">Becoming a legend is not easy</string>
-    <string name="onboarding_4_body">Every level grants feat choices, and your flame grows while you quest daily. Nobody has reached level 20 yet. Maybe you will be the first.</string>
+    <string name="onboarding_2_title">You get three habit slots</string>
+    <string name="onboarding_2_body">You cannot add unlimited quests. You pick three habits, and each slot pays XP once per day. You choose the ability it trains: exercise feeds Strength, reading feeds Intelligence.</string>
+    <string name="onboarding_3_title">The catalog is full of ready quests</string>
+    <string name="onboarding_3_body">For one-off efforts, open the in-app catalog: read an article, call someone, take a walk. You can repeat the same task on another day, but at most two catalog quests pay XP per day.</string>
+    <string name="onboarding_4_title">Pathways test you</string>
+    <string name="onboarding_4_body">A pathway is a long adventure made of stages. While you are on one, part of the XP you earn is held in escrow: finish it and the escrow plus a bonus is yours, abandon it and the escrow burns.</string>
+    <string name="onboarding_5_title">Becoming a legend is not easy</string>
+    <string name="onboarding_5_body">Every level grants feat choices, and your flame grows while you quest daily. Nobody has reached level 20 yet. Maybe you will be the first.</string>
 
     <string name="proof_title">How did it go?</string>
     <string name="proof_hint" formatted="false">Leave proof and you earn more XP: a note gives 15%, a photo 30%. Your crewmates can see the photo and approve it.</string>
@@ -254,6 +268,7 @@
     <string name="logdetail_due">Due</string>
     <string name="logdetail_reminder">Reminder</string>
     <string name="logdetail_created">Created</string>
+    <string name="logdetail_rewards">Rewards</string>
     <string name="logdetail_proof">Proof</string>
     <string name="logdetail_proof_photo">Proof photo</string>
     <string name="logdetail_photo_pending">Photo is waiting to upload</string>
@@ -295,6 +310,11 @@
     <string name="catalog_empty_body">The task list could not be loaded. Check your connection and try again.</string>
     <string name="catalog_reject_already_done_today">You already did this task today.</string>
     <string name="catalog_reject_daily_limit">You have reached the daily catalog limit.</string>
+    <string name="character_hero_subtitle">Level %1$d · %2$d XP total</string>
+    <string name="character_level_rank">Level %1$d %2$s</string>
+    <string name="character_next_rank">Next rank at Lvl %1$d</string>
+    <string name="questlog_daily_header">Daily Quests</string>
+    <string name="questlog_progress">Progress</string>
     <string name="questlog_active_header">My Quests</string>
     <string name="questlog_completed_header">Completed</string>
 
@@ -329,7 +349,7 @@
     <string name="weekly_summary">%1$d XP · %2$d quests</string>
     <string name="weekly_summary_with_top">%1$d XP · %2$d quests · Most: %3$s</string>
 
-    <string name="character_boons">· %1$d Boons</string>
+    <string name="character_boons">%1$d Boons</string>
     <string name="character_streak">Streak</string>
     <string name="character_resolute_active">Resolute is active</string>
     <string name="character_pending_feats">%1$d feat choices waiting</string>
@@ -341,6 +361,7 @@
     <string name="crew_join_with_code">Join With Code</string>
     <string name="crew_create">Start a Crew</string>
     <string name="crew_copy_code">Copy the code</string>
+    <string name="crew_member_xp">%1$d XP</string>
     <string name="crew_members_header">Members</string>
     <string name="crew_feed_header">Recent Quests</string>
     <string name="crew_approvals_left">%1$d approvals left</string>
@@ -442,4 +463,18 @@
     <string name="xp_bonus_enduring">Enduring</string>
     <string name="xp_bonus_versatile">Versatile</string>
     <string name="xp_bonus_new_adventurer">New Adventurer</string>
+    <string name="logdetail_header">Quest Detail</string>
+    <string name="proof_section_evidence">Provide evidence</string>
+    <string name="crew_member_profile_title">Crew Member</string>
+    <string name="crew_member_rank">Rank %1$d of %2$d</string>
+    <string name="crew_member_quests_shared">Quests shared</string>
+    <string name="crew_member_approvals">Approvals</string>
+    <string name="crew_member_activity">Recent Activity</string>
+    <string name="crew_member_no_activity">No shared quests yet.</string>
+    <string name="crew_member_gone_title">Member not found</string>
+    <string name="crew_member_gone_body">They may have left the crew.</string>
+    <string name="profile_stat_total_xp">Total XP</string>
+    <string name="profile_stat_active">Active quests</string>
+    <string name="profile_stat_longest_streak">Longest streak</string>
+    <string name="profile_stat_crew">Crew</string>
 </resources>

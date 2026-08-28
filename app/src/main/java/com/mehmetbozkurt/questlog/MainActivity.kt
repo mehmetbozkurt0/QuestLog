@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val destination by splashViewModel.startDestination.collectAsStateWithLifecycle()
             val theme by settingsRepository.observeTheme()
-                .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
+                .collectAsStateWithLifecycle(initialValue = ThemePreference.Default)
             val palette by settingsRepository.observePalette()
                 .collectAsStateWithLifecycle(initialValue = AppPalette.Default)
 

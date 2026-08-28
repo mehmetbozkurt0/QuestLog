@@ -12,7 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.domain.model.FeatCatalog
@@ -68,10 +69,9 @@ fun FeatChoiceDialog(
                     val owned = def.id in ownedFeatIds
                     val selected = def.id == selectedFeatId
 
-                    QuestCard(
+                    GlassPanel(
                         onClick = { if (!owned && !isSaving) onFeatSelected(def.id) },
                         enabled = !owned && !isSaving,
-                        seed = def.id.hashCode(),
                         containerColor = if (selected)
                             MaterialTheme.colorScheme.primaryContainer
                         else

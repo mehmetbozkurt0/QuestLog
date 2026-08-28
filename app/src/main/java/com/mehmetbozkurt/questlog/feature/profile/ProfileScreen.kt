@@ -33,19 +33,31 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.BuildConfig
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Whatshot
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import com.mehmetbozkurt.questlog.core.designsystem.component.AuraBar
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
 import com.mehmetbozkurt.questlog.core.common.asString
 import com.mehmetbozkurt.questlog.core.auth.GoogleIdTokenResult
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.ScreenTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import com.mehmetbozkurt.questlog.core.designsystem.component.ProgressRing
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
+import com.mehmetbozkurt.questlog.core.designsystem.theme.ContentHero
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
 import com.mehmetbozkurt.questlog.core.settings.AppLanguage
@@ -105,36 +117,27 @@ fun ProfileScreen(
     onEvent: (ProfileEvent) -> Unit,
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.profile_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = Spacing.lg)
+                .padding(horizontal = Spacing.screen)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(Modifier.height(Spacing.md))
+            Spacer(Modifier.height(Spacing.lg))
+
+            ScreenTitle(title = stringResource(R.string.profile_title))
+
+            Spacer(Modifier.height(Spacing.lg))
 
             IdentityCard(state)
 
             Spacer(Modifier.height(Spacing.lg))
 
-            SectionEyebrow(stringResource(R.string.profile_section_journey))
+            SectionTitle(text = stringResource(R.string.profile_section_journey))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
@@ -142,6 +145,23 @@ fun ProfileScreen(
                     icon = Icons.Default.TaskAlt,
                     value = "${state.completedQuests}",
                     label = stringResource(R.string.profile_stat_completed),
+                    modifier = Modifier.weight(1f),
+                )
+                MetricCard(
+                    icon = Icons.AutoMirrored.Filled.Assignment,
+                    value = "${state.activeQuests}",
+                    label = stringResource(R.string.profile_stat_active),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Spacer(Modifier.height(Spacing.md))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                MetricCard(
+                    icon = Icons.Default.AutoAwesome,
+                    value = "${state.totalXp}",
+                    label = stringResource(R.string.profile_stat_total_xp),
                     modifier = Modifier.weight(1f),
                 )
                 MetricCard(
@@ -156,35 +176,51 @@ fun ProfileScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 MetricCard(
+                    icon = Icons.Default.Whatshot,
+                    value = "${state.streak?.longestStreak ?: 0}",
+                    label = stringResource(R.string.profile_stat_longest_streak),
+                    modifier = Modifier.weight(1f),
+                )
+                MetricCard(
                     icon = Icons.Default.EmojiEvents,
                     value = "${state.featCount}",
                     label = stringResource(R.string.profile_stat_feats),
                     modifier = Modifier.weight(1f),
                 )
-                MetricCard(
-                    icon = Icons.Default.Groups,
-                    value = if (state.crewName != null) "1" else "0",
-                    label = state.crewName ?: stringResource(R.string.profile_no_crew),
-                    modifier = Modifier.weight(1f),
-                )
             }
 
-            if (state.streak != null && state.streak.longestStreak > 0) {
-                Spacer(Modifier.height(Spacing.sm))
-                Text(
-                    stringResource(
-                        R.string.profile_streak_summary,
-                        state.streak.longestStreak,
-                        state.activeQuests,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Spacer(Modifier.height(Spacing.md))
+
+            GlassPanel(
+                containerColor = wellColor(),
+                contentPadding = PaddingValues(Spacing.lg),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconTile(
+                        icon = Icons.Default.Groups,
+                        color = MaterialTheme.colorScheme.primary,
+                        size = 36.dp,
+                    )
+                    Spacer(Modifier.width(Spacing.md))
+                    Column(Modifier.weight(1f)) {
+                        Eyebrow(stringResource(R.string.profile_stat_crew))
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = state.crewName
+                                ?: stringResource(R.string.profile_no_crew),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (state.crewName != null)
+                                MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionEyebrow(stringResource(R.string.profile_section_appearance))
+            SectionTitle(text = stringResource(R.string.profile_section_appearance))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -192,14 +228,18 @@ fun ProfileScreen(
                     FilterChip(
                         selected = state.theme == pref,
                         onClick = { onEvent(ProfileEvent.ThemeChanged(pref)) },
-                        label = { Text(pref.label()) },
+                        label = {
+                            Text(pref.label(), style = MaterialTheme.typography.titleSmall)
+                        },
+                        shape = MaterialTheme.shapes.small,
+                        colors = auraChipColors(),
                     )
                 }
             }
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionEyebrow(stringResource(R.string.profile_section_palette))
+            SectionTitle(text = stringResource(R.string.profile_section_palette))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -215,7 +255,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionEyebrow(stringResource(R.string.profile_section_language))
+            SectionTitle(text = stringResource(R.string.profile_section_language))
             Spacer(Modifier.height(Spacing.md))
 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -223,19 +263,22 @@ fun ProfileScreen(
                     FilterChip(
                         selected = state.language == language,
                         onClick = { onEvent(ProfileEvent.LanguageChanged(language)) },
-                        label = { Text(language.label()) },
+                        label = {
+                            Text(language.label(), style = MaterialTheme.typography.titleSmall)
+                        },
+                        shape = MaterialTheme.shapes.small,
+                        colors = auraChipColors(),
                     )
                 }
             }
 
             Spacer(Modifier.height(Spacing.xl))
 
-            SectionEyebrow(stringResource(R.string.profile_section_notifications))
+            SectionTitle(text = stringResource(R.string.profile_section_notifications))
             Spacer(Modifier.height(Spacing.md))
 
-            QuestCard(
+            GlassPanel(
                 onClick = { onEvent(ProfileEvent.NotificationSettingsClicked) },
-                seed = 31,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -271,6 +314,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(Spacing.xl))
 
             OutlinedButton(
+                shape = MaterialTheme.shapes.large,
                 onClick = { onEvent(ProfileEvent.SignOutDialogToggled(true)) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -415,8 +459,7 @@ fun ProfileScreen(
 
 @Composable
 private fun IdentityCard(state: ProfileState) {
-    QuestCard(
-        seed = 29,
+    GlassPanel(
         contentPadding = PaddingValues(Spacing.lg),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -427,7 +470,7 @@ private fun IdentityCard(state: ProfileState) {
             ) {
                 Text(
                     text = state.user?.displayName?.take(1)?.uppercaseLocalized() ?: "?",
-                    style = MaterialTheme.typography.displayMedium,
+                    style = ContentHero.copy(fontSize = 30.sp),
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                 )
@@ -447,7 +490,7 @@ private fun IdentityCard(state: ProfileState) {
                         state.level,
                         stringResource(state.titleRes),
                     ),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
@@ -457,6 +500,14 @@ private fun IdentityCard(state: ProfileState) {
                 )
             }
         }
+
+        Spacer(Modifier.height(Spacing.md))
+
+        AuraBar(
+            progress = state.levelProgress,
+            color = MaterialTheme.colorScheme.primary,
+            height = Spacing.barHeight,
+        )
 
         Spacer(Modifier.height(Spacing.md))
 
@@ -504,8 +555,7 @@ private fun MetricCard(
     label: String,
     modifier: Modifier = Modifier,
 ) {
-    QuestCard(
-        seed = label.hashCode(),
+    GlassPanel(
         modifier = modifier,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -518,7 +568,7 @@ private fun MetricCard(
             Spacer(Modifier.width(Spacing.sm))
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.labelMedium.copy(fontSize = 22.sp),
                 color = MaterialTheme.colorScheme.primary,
             )
         }
@@ -619,3 +669,12 @@ private fun Context.openNotificationSettings() {
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { startActivity(intent) }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun auraChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = MaterialTheme.colorScheme.background,
+    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    selectedLabelColor = MaterialTheme.colorScheme.primary,
+)

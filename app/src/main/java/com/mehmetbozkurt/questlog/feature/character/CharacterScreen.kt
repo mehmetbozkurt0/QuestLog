@@ -1,32 +1,59 @@
 package com.mehmetbozkurt.questlog.feature.character
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
-import com.mehmetbozkurt.questlog.core.designsystem.component.CharacterCrest
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
-import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.text.style.TextOverflow
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.descriptionRes
-import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.common.levelRankRes
 import com.mehmetbozkurt.questlog.core.common.nameRes
+import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.designsystem.component.AuraBar
+import com.mehmetbozkurt.questlog.core.designsystem.component.CharacterCrest
+import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
+import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 import com.mehmetbozkurt.questlog.feature.character.component.FeatChoiceDialog
 import com.mehmetbozkurt.questlog.feature.character.component.WeeklySummaryCard
@@ -47,46 +74,40 @@ fun CharacterRoute(
             }
         }
     }
-    CharacterScreen(state = state, onEvent = viewModel::onEvent, snackbarHostState = snackbarHostState)
+    CharacterScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        snackbarHostState = snackbarHostState,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CharacterScreen(
     state: CharacterState,
     onEvent: (CharacterEvent) -> Unit,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.character_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState)},
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         val character = state.character
 
         when {
             state.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
 
             character == null -> Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 EmptyState(
@@ -100,21 +121,49 @@ fun CharacterScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = Spacing.lg)
+                    .padding(horizontal = Spacing.screen)
                     .verticalScroll(rememberScrollState()),
             ) {
-                Spacer(Modifier.height(Spacing.md))
+                Spacer(Modifier.height(Spacing.lg))
 
-                CharacterCrest(
-                    character = character,
-                    levelProgress = state.levelProgress,
-                )
+                GlassPanel(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(Spacing.card),
+                ) {
+                    CharacterCrest(
+                        character = character,
+                        levelProgress = state.levelProgress,
+                    )
 
-                Spacer(Modifier.height(Spacing.sm))
+                    Spacer(Modifier.height(Spacing.lg))
 
-                Row(Modifier.fillMaxWidth()) {
                     Text(
-                        if (character.level >= XpCurve.MAX_LEVEL) {
+                        text = stringResource(levelRankRes(character.level))
+                            .uppercaseLocalized(),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Spacer(Modifier.height(Spacing.xs))
+
+                    Text(
+                        text = stringResource(
+                            R.string.character_hero_subtitle,
+                            character.level,
+                            character.totalXp,
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Spacer(Modifier.height(Spacing.sm))
+
+                    DataValue(
+                        text = if (character.level >= XpCurve.MAX_LEVEL) {
                             stringResource(R.string.profile_max_level)
                         } else {
                             stringResource(
@@ -123,29 +172,34 @@ fun CharacterScreen(
                                 character.xpToNextLevel,
                             )
                         },
-                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        stringResource(R.string.character_total_xp, character.totalXp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                    Spacer(Modifier.height(Spacing.md))
+
+                    AuraBar(
+                        progress = state.levelProgress,
+                        color = MaterialTheme.colorScheme.primary,
+                        height = Spacing.barHeight,
                     )
                 }
 
                 if (character.pendingFeatChoices > 0) {
                     Spacer(Modifier.height(Spacing.lg))
-                    QuestCard(
+                    GlassPanel(
                         onClick = { onEvent(CharacterEvent.FeatDialogToggled(true)) },
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        seed = 13,
+                        accent = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(Spacing.lg),
                     ) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(
+                                icon = Icons.Default.Stars,
+                                color = MaterialTheme.colorScheme.primary,
+                                size = 36.dp,
+                            )
+                            Spacer(Modifier.width(Spacing.md))
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     stringResource(
@@ -153,61 +207,83 @@ fun CharacterScreen(
                                         character.pendingFeatChoices,
                                     ),
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                                 Text(
                                     stringResource(R.string.character_tap_to_choose),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
                 }
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                WeeklySummaryCard(streak = state.streak, weekly = state.weekly)
 
                 if (state.feats.isNotEmpty()) {
-                    Spacer(Modifier.height(Spacing.xl))
-                    SectionEyebrow(stringResource(R.string.character_earned_feats))
+                    Spacer(Modifier.height(Spacing.section))
+                    SectionTitle(
+                        text = stringResource(R.string.character_earned_feats),
+                        icon = Icons.Default.Stars,
+                    )
                     Spacer(Modifier.height(Spacing.md))
 
-                    state.feats.forEach { feat ->
-                        QuestCard(
-                            seed = feat.featId.hashCode(),
-                            modifier = Modifier.fillMaxWidth(),
+                    state.feats.chunked(2).forEach { pair ->
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
                         ) {
-                            Text(
-                                stringResource(feat.featId.nameRes()),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                stringResource(feat.featId.descriptionRes()),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (feat.chosenStat != null) {
-                                Text(
-                                    stringResource(
-                                        R.string.character_feat_focus,
-                                        stringResource(feat.chosenStat.nameRes()),
-                                    ),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
+                            pair.forEach { feat ->
+                                GlassPanel(
+                                    modifier = Modifier.weight(1f),
+                                    containerColor = wellColor(),
+                                    contentPadding = PaddingValues(Spacing.lg),
+                                ) {
+                                    IconTile(
+                                        icon = Icons.Default.MilitaryTech,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        size = 36.dp,
+                                    )
+                                    Spacer(Modifier.height(Spacing.md))
+                                    Text(
+                                        stringResource(feat.featId.nameRes()),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        minLines = 2,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Spacer(Modifier.height(Spacing.xs))
+                                    Text(
+                                        stringResource(feat.featId.descriptionRes()),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        minLines = 3,
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    if (feat.chosenStat != null) {
+                                        Spacer(Modifier.height(Spacing.sm))
+                                        DataValue(
+                                            text = stringResource(feat.chosenStat.nameRes()),
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
                             }
+                            repeat(2 - pair.size) { Spacer(Modifier.weight(1f)) }
                         }
-                        Spacer(Modifier.height(Spacing.sm))
+                        Spacer(Modifier.height(Spacing.md))
                     }
                 }
+
+                Spacer(Modifier.height(Spacing.section))
+
+                WeeklySummaryCard(streak = state.streak, weekly = state.weekly)
 
                 Spacer(Modifier.height(Spacing.xxl))
             }

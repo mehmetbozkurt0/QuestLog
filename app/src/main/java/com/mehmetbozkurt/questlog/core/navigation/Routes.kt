@@ -22,3 +22,6 @@ data class PathwayDetailRouteKey(val pathwayId: String)
 
 @Serializable
 data object CatalogRouteKey
+
+@Serializable
+data class CrewMemberRouteKey(val userId: String)

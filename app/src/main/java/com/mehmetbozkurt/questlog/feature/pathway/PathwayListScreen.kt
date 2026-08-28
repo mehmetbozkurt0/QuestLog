@@ -1,35 +1,47 @@
 package com.mehmetbozkurt.questlog.feature.pathway
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.component.SectionEyebrow
-import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
-import com.mehmetbozkurt.questlog.core.common.nameRes
-import com.mehmetbozkurt.questlog.core.designsystem.theme.color
-import com.mehmetbozkurt.questlog.domain.progression.PathwayRules
+import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.ScreenTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.gridItems
+import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
+import com.mehmetbozkurt.questlog.feature.pathway.component.PathwayGridCard
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 @Composable
 fun PathwayListRoute(
@@ -54,7 +66,6 @@ fun PathwayListRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PathwayListScreen(
     state: PathwayListState,
@@ -62,32 +73,14 @@ fun PathwayListScreen(
     onNavigateBack: (() -> Unit)?,
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.pathway_list_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                navigationIcon = {
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         if (state.isLoading) {
             Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -98,155 +91,125 @@ fun PathwayListScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
-                start = Spacing.lg,
-                end = Spacing.lg,
-                top = padding.calculateTopPadding() + Spacing.sm,
+                start = Spacing.screen,
+                end = Spacing.screen,
+                top = padding.calculateTopPadding() + Spacing.lg,
                 bottom = padding.calculateBottomPadding() + Spacing.xxl,
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
-            if (state.activeItems.isNotEmpty()) {
-                item {
-                    SectionEyebrow(
-                        stringResource(R.string.pathway_list_active),
-                        trailing = "${state.activeCount} / ${PathwayRules.MAX_ACTIVE_PATHWAYS}",
+            item(key = "hero") {
+                Row(verticalAlignment = Alignment.Top) {
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(Modifier.width(Spacing.sm))
+                    }
+                    ScreenTitle(
+                        title = stringResource(R.string.pathway_list_title),
+                        subtitle = stringResource(R.string.pathway_list_subtitle),
                     )
-                }
-                items(state.activeItems, key = { it.pathway.id }) { item ->
-                    PathwayCard(item) { onEvent(PathwayListEvent.PathwayClicked(item.pathway.id)) }
-                }
-            }
-
-            if (state.availableItems.isNotEmpty()) {
-                item {
-                    SectionEyebrow(
-                        stringResource(R.string.pathway_list_open),
-                        trailing = if (!state.canStartMore)
-                            stringResource(R.string.pathway_list_limit_reached)
-                        else null,
-                    )
-                }
-                items(state.availableItems, key = { it.pathway.id }) { item ->
-                    PathwayCard(item) { onEvent(PathwayListEvent.PathwayClicked(item.pathway.id)) }
-                }
-            }
-
-            if (state.completedItems.isNotEmpty()) {
-                item { SectionEyebrow(stringResource(R.string.pathway_list_completed)) }
-                items(state.completedItems, key = { it.pathway.id }) { item ->
-                    PathwayCard(item) { onEvent(PathwayListEvent.PathwayClicked(item.pathway.id)) }
                 }
             }
 
             if (state.items.isEmpty()) {
-                item {
+                item(key = "empty") {
                     EmptyState(
                         icon = Icons.Default.CloudOff,
                         title = stringResource(R.string.pathway_list_empty_title),
                         body = stringResource(R.string.pathway_list_empty_body),
                     )
                 }
+                return@LazyColumn
             }
-        }
-    }
-}
 
-@Composable
-private fun PathwayCard(item: PathwayListItem, onClick: () -> Unit) {
-    val pathway = item.pathway
-    val statColor = pathway.primaryStat.color()
-
-    QuestCard(
-        onClick = onClick,
-        accent = statColor,
-        seed = pathway.id.hashCode(),
-        containerColor = if (item.isActive)
-            MaterialTheme.colorScheme.surfaceVariant
-        else
-            MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(statColor, CircleShape))
-                Spacer(Modifier.width(Spacing.sm))
-                val primaryStatName = stringResource(pathway.primaryStat.nameRes())
-                val secondaryStatName = pathway.secondaryStat
-                    ?.let { stringResource(it.nameRes()) }
-
-                Text(
-                    if (secondaryStatName != null) stringResource(
-                        R.string.pathway_stats_tier_secondary,
-                        primaryStatName,
-                        secondaryStatName,
-                        pathway.tier,
-                    ) else stringResource(
-                        R.string.pathway_stats_tier,
-                        primaryStatName,
-                        pathway.tier,
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = statColor,
-                )
-                Spacer(Modifier.weight(1f))
-
-                when {
-                    item.isCompleted -> Icon(
-                        Icons.Default.Check,
-                        contentDescription = stringResource(R.string.common_completed),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
+            if (state.activeItems.isNotEmpty()) {
+                item(key = "active_header") {
+                    SectionTitle(
+                        text = stringResource(R.string.pathway_list_active),
+                        icon = Icons.Default.Explore,
+                        modifier = Modifier.padding(top = Spacing.md),
                     )
-                    item.isLocked -> Icon(
-                        Icons.Default.Lock,
-                        contentDescription = stringResource(R.string.common_locked),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
+                }
+                gridItems(state.activeItems, key = { it.pathway.id }) { item ->
+                    PathwayGridCard(
+                        title = item.pathway.title,
+                        stat = item.pathway.primaryStat,
+                        caption = "${(item.fraction * 100).roundToInt()}%",
+                        progress = item.fraction,
+                        accented = true,
+                        onClick = {
+                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                        },
                     )
                 }
             }
 
-            Spacer(Modifier.height(Spacing.sm))
-
-            Text(
-                pathway.title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-
-            Spacer(Modifier.height(Spacing.xs))
-
-            Text(
-                pathway.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            if (item.isLocked && item.requiredPathwayTitle != null) {
-                Spacer(Modifier.height(Spacing.sm))
-                Text(
-                    stringResource(R.string.pathway_prerequisite, item.requiredPathwayTitle.orEmpty()),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if (state.availableItems.isNotEmpty()) {
+                item(key = "open_header") {
+                    SectionTitle(
+                        text = stringResource(R.string.pathway_list_open),
+                        icon = Icons.Default.Map,
+                        modifier = Modifier.padding(top = Spacing.md),
+                        trailing = if (!state.canStartMore) {
+                            {
+                                DataValue(
+                                    text = stringResource(R.string.pathway_list_limit_reached),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else null,
+                    )
+                }
+                gridItems(state.availableItems, key = { it.pathway.id }) { item ->
+                    val locked = item.isLocked || !state.canStartMore
+                    PathwayGridCard(
+                        title = item.pathway.title,
+                        stat = item.pathway.primaryStat,
+                        caption = stringResource(
+                            R.string.pathway_stage_count,
+                            item.pathway.tier,
+                            item.totalQuests,
+                        ),
+                        dimmed = locked,
+                        badge = if (locked) Icons.Default.Lock else Icons.Default.Add,
+                        onClick = {
+                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                        },
+                    )
+                }
             }
 
-            if (item.isActive) {
-                Spacer(Modifier.height(Spacing.md))
-                LinearProgressIndicator(
-                    progress = { item.fraction },
-                    modifier = Modifier.fillMaxWidth().height(6.dp),
-                    color = statColor,
-                    trackColor = MaterialTheme.colorScheme.surface,
-                    strokeCap = StrokeCap.Round,
-                )
-                Spacer(Modifier.height(Spacing.xs))
-                Text(
-                    stringResource(R.string.pathway_in_progress, item.progress?.escrowedXp ?: 0),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if (state.completedItems.isNotEmpty()) {
+                item(key = "done_header") {
+                    SectionTitle(
+                        text = stringResource(R.string.pathway_list_completed),
+                        icon = Icons.Default.WorkspacePremium,
+                        modifier = Modifier.padding(top = Spacing.md),
+                    )
+                }
+                gridItems(state.completedItems, key = { it.pathway.id }) { item ->
+                    PathwayGridCard(
+                        title = item.pathway.title,
+                        stat = item.pathway.primaryStat,
+                        caption = stringResource(
+                            R.string.pathway_quest_count,
+                            item.completedQuests,
+                            item.totalQuests,
+                        ),
+                        progress = 1f,
+                        struck = true,
+                        badge = Icons.Default.CheckCircle,
+                        onClick = {
+                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                        },
+                    )
+                }
             }
         }
     }

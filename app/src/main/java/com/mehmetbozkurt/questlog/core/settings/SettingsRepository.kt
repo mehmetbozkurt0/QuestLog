@@ -11,7 +11,13 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-enum class ThemePreference { SYSTEM, LIGHT, DARK }
+enum class ThemePreference {
+    SYSTEM, LIGHT, DARK;
+
+    companion object {
+        val Default = DARK
+    }
+}
 
 @Singleton
 class SettingsRepository @Inject constructor(
@@ -49,7 +55,7 @@ class SettingsRepository @Inject constructor(
         dataStore.data.map { prefs ->
             prefs[themeKey]?.let { value ->
                 runCatching { ThemePreference.valueOf(value) }.getOrNull()
-            } ?: ThemePreference.SYSTEM
+            } ?: ThemePreference.Default
         }
 
     suspend fun setTheme(theme: ThemePreference) {

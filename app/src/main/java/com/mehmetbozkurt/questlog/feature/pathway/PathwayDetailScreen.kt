@@ -1,7 +1,18 @@
 package com.mehmetbozkurt.questlog.feature.pathway
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -9,7 +20,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,29 +46,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mehmetbozkurt.questlog.core.common.Celebration
-import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
-import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
-import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
-import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.common.shortLabelRes
+import com.mehmetbozkurt.questlog.core.designsystem.accentWidth
+import com.mehmetbozkurt.questlog.core.designsystem.component.AuraBar
+import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
+import com.mehmetbozkurt.questlog.core.designsystem.component.Rule
+import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
+import com.mehmetbozkurt.questlog.core.designsystem.component.ShellBackBar
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
+import com.mehmetbozkurt.questlog.core.designsystem.component.StatChip
+import com.mehmetbozkurt.questlog.core.designsystem.theme.ContentHero
+import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.color
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
+import com.mehmetbozkurt.questlog.domain.model.PathwayQuestProgress
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 @Composable
 fun PathwayDetailRoute(
@@ -89,43 +128,83 @@ fun PathwayDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                actions = {
-                    if (state.isActive) {
-                        TextButton(
-                            onClick = { onEvent(PathwayDetailEvent.AbandonDialogToggled(true)) }
-                        ) {
-                            Text(
-                                stringResource(R.string.pathway_detail_abandon),
-                                color = MaterialTheme.colorScheme.error,
-                            )
+            ShellBackBar(
+                title = stringResource(R.string.pathway_detail_header),
+                onBack = onNavigateBack,
+            )
+        },
+        bottomBar = {
+            if (detail != null && !state.isCompleted) {
+                Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                    Rule()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.screen),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (state.isActive) {
+                            OutlinedButton(
+                                shape = MaterialTheme.shapes.large,
+                                onClick = {
+                                    onEvent(PathwayDetailEvent.AbandonDialogToggled(true))
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error,
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.dp),
+                            ) {
+                                Text(
+                                    stringResource(R.string.pathway_detail_abandon),
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
+                            }
+                        } else {
+                            Button(
+                                shape = MaterialTheme.shapes.large,
+                                onClick = { onEvent(PathwayDetailEvent.StartClicked) },
+                                enabled = !state.isWorking && state.canStartMore,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.dp),
+                            ) {
+                                if (state.isWorking) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(22.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                    )
+                                } else {
+                                    Text(
+                                        stringResource(R.string.pathway_detail_start),
+                                        style = MaterialTheme.typography.labelLarge,
+                                    )
+                                }
+                            }
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         when {
             state.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
 
             detail == null -> Box(
-                Modifier.fillMaxSize().padding(padding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -142,30 +221,31 @@ fun PathwayDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .padding(horizontal = Spacing.lg)
+                        .padding(horizontal = Spacing.screen)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(10.dp).background(statColor, CircleShape))
-                        Spacer(Modifier.width(Spacing.sm))
-                        val primaryStatName =
-                            stringResource(detail.pathway.primaryStat.nameRes())
-                        val secondaryStatName = detail.pathway.secondaryStat
-                            ?.let { stringResource(it.nameRes()) }
+                    Spacer(Modifier.height(Spacing.lg))
 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StatChip(
+                            label = stringResource(detail.pathway.primaryStat.shortLabelRes()),
+                            color = statColor,
+                        )
+                        detail.pathway.secondaryStat?.let { secondary ->
+                            Spacer(Modifier.width(Spacing.sm))
+                            StatChip(
+                                label = stringResource(secondary.shortLabelRes()),
+                                color = secondary.color(),
+                            )
+                        }
+                        Spacer(Modifier.width(Spacing.sm))
                         Text(
-                            if (secondaryStatName != null) stringResource(
-                                R.string.pathway_stats_tier_secondary,
-                                primaryStatName,
-                                secondaryStatName,
-                                detail.pathway.tier,
-                            ) else stringResource(
-                                R.string.pathway_stats_tier,
-                                primaryStatName,
+                            text = stringResource(
+                                R.string.pathway_detail_stage,
                                 detail.pathway.tier,
                             ),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = statColor,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
@@ -173,7 +253,7 @@ fun PathwayDetailScreen(
 
                     Text(
                         detail.pathway.title,
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = ContentHero,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
 
@@ -181,90 +261,113 @@ fun PathwayDetailScreen(
 
                     Text(
                         detail.pathway.description,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    Spacer(Modifier.height(Spacing.lg))
-
                     if (state.isActive || state.isCompleted) {
-                        LinearProgressIndicator(
-                            progress = { detail.progressFraction },
-                            modifier = Modifier.fillMaxWidth().height(10.dp),
-                            color = statColor,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            strokeCap = StrokeCap.Round,
-                        )
-                        Spacer(Modifier.height(Spacing.sm))
-                        Text(
-                            stringResource(
-                                R.string.pathway_detail_progress,
-                                detail.completedQuests,
-                                detail.totalQuests,
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-
-                        if (state.isActive) {
-                            Text(
-                                stringResource(
-                                    R.string.pathway_detail_escrow,
-                                    detail.progress?.escrowedXp ?: 0,
-                                    detail.pathway.completionBonusXp,
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
+                        Spacer(Modifier.height(Spacing.lg))
+                        GlassPanel(modifier = Modifier.fillMaxWidth()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    stringResource(R.string.pathway_detail_overall),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.weight(1f))
+                                DataValue(
+                                    text = "${(detail.progressFraction * 100).roundToInt()}%",
+                                    color = statColor,
+                                )
+                            }
+                            Spacer(Modifier.height(Spacing.md))
+                            AuraBar(
+                                progress = detail.progressFraction,
+                                color = statColor,
+                                height = Spacing.barHeight,
                             )
+                            Spacer(Modifier.height(Spacing.sm))
+                            DataValue(
+                                text = stringResource(
+                                    R.string.pathway_detail_progress,
+                                    detail.completedQuests,
+                                    detail.totalQuests,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(Spacing.md))
+
+                    GlassPanel(
+                        accent = if (state.isActive) MaterialTheme.colorScheme.primary
+                        else null,
+                        containerColor = wellColor(),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(
+                                icon = Icons.Default.WorkspacePremium,
+                                color = MaterialTheme.colorScheme.primary,
+                                size = 40.dp,
+                            )
+                            Spacer(Modifier.width(Spacing.md))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.pathway_reward_label)
+                                        .uppercaseLocalized(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.height(Spacing.xs))
+                                Text(
+                                    stringResource(
+                                        R.string.pathway_reward_value,
+                                        detail.pathway.completionBonusXp,
+                                    ),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                if (state.isActive) {
+                                    DataValue(
+                                        text = stringResource(
+                                            R.string.pathway_escrow_short,
+                                            detail.progress?.escrowedXp ?: 0,
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
                         }
                     }
 
                     if (state.isCompleted) {
                         Spacer(Modifier.height(Spacing.md))
-                        QuestCard(
-                            seed = 23,
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                stringResource(R.string.pathway_detail_done),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        Text(
+                            stringResource(R.string.pathway_detail_done),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
                     }
 
-                    if (!state.isActive && !state.isCompleted) {
-                        Spacer(Modifier.height(Spacing.md))
-                        Button(
-                            onClick = { onEvent(PathwayDetailEvent.StartClicked) },
-                            enabled = !state.isWorking && state.canStartMore,
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                        ) {
-                            if (state.isWorking) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(22.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                )
-                            } else {
-                                Text(
-                                    stringResource(R.string.pathway_detail_start),
-                                    style = MaterialTheme.typography.labelLarge,
-                                )
-                            }
-                        }
-                        if (!state.canStartMore) {
-                            Spacer(Modifier.height(Spacing.xs))
-                            Text(
-                                stringResource(R.string.pathway_detail_limit),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
+                    if (!state.isActive && !state.isCompleted && !state.canStartMore) {
+                        Spacer(Modifier.height(Spacing.sm))
+                        Text(
+                            stringResource(R.string.pathway_detail_limit),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
 
                     Spacer(Modifier.height(Spacing.xl))
+
+                    SectionTitle(
+                        text = stringResource(R.string.pathway_detail_stages),
+                        icon = Icons.Default.Timeline,
+                    )
+
+                    Spacer(Modifier.height(Spacing.lg))
 
                     val stageEntries = detail.stages.entries.toList()
                     stageEntries.forEachIndexed { index, entry ->
@@ -309,17 +412,13 @@ fun PathwayDetailScreen(
         AlertDialog(
             onDismissRequest = { onEvent(PathwayDetailEvent.AbandonDialogToggled(false)) },
             title = { Text(stringResource(R.string.pathway_detail_abandon_title)) },
-            text = {
-                Text(
-                    stringResource(R.string.pathway_detail_abandon_body, escrow)
-                )
-            },
+            text = { Text(stringResource(R.string.pathway_detail_abandon_body, escrow)) },
             confirmButton = {
                 TextButton(onClick = { onEvent(PathwayDetailEvent.AbandonConfirmed) }) {
                     Text(
-                                stringResource(R.string.pathway_detail_abandon),
-                                color = MaterialTheme.colorScheme.error,
-                            )
+                        stringResource(R.string.pathway_detail_abandon),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
@@ -327,6 +426,7 @@ fun PathwayDetailScreen(
                     Text(stringResource(R.string.common_cancel))
                 }
             },
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 }
@@ -337,50 +437,45 @@ private fun QuestRow(
     statColor: Color,
     unlocked: Boolean,
     enabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val quest = questProgress.quest
     val alpha = if (unlocked) 1f else 0.4f
     val clickable = unlocked && enabled && !questProgress.isComplete
 
-    QuestCard(
+    GlassPanel(
         onClick = if (clickable) onClick else null,
-        accent = statColor.copy(alpha = alpha),
-        accentWidth = quest.difficulty.accentWidth(),
-        seed = quest.id.hashCode(),
+        edge = statColor.copy(alpha = alpha),
+        edgeWidth = quest.difficulty.accentWidth(),
+        containerColor = wellColor(),
+        shape = MaterialTheme.shapes.small,
+        contentPadding = PaddingValues(Spacing.lg),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(8.dp)
-                            .background(statColor.copy(alpha = alpha), CircleShape)
-                    )
-                    Spacer(Modifier.width(Spacing.sm))
-                    Text(
-                        stringResource(
-                            R.string.pathway_quest_meta,
-                            stringResource(quest.statType.nameRes()),
-                            stringResource(quest.difficulty.nameRes()),
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = statColor.copy(alpha = alpha),
-                    )
-                }
-
-                Spacer(Modifier.height(Spacing.xs))
-
                 Text(
                     quest.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                    textDecoration = if (questProgress.isComplete)
+                        TextDecoration.LineThrough else null,
+                )
+
+                Spacer(Modifier.height(Spacing.xs))
+
+                Text(
+                    stringResource(
+                        R.string.pathway_quest_meta,
+                        stringResource(quest.statType.shortLabelRes()),
+                        stringResource(quest.difficulty.nameRes()),
+                    ).uppercaseLocalized(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = statColor.copy(alpha = alpha),
                 )
 
                 if (quest.description.isNotBlank()) {
+                    Spacer(Modifier.height(Spacing.xs))
                     Text(
                         quest.description,
                         style = MaterialTheme.typography.bodySmall,
@@ -390,12 +485,10 @@ private fun QuestRow(
 
                 Spacer(Modifier.height(Spacing.sm))
 
-                LinearProgressIndicator(
-                    progress = { questProgress.fraction },
-                    modifier = Modifier.fillMaxWidth().height(4.dp),
+                AuraBar(
+                    progress = questProgress.fraction,
                     color = statColor.copy(alpha = alpha),
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    strokeCap = StrokeCap.Round,
+                    height = 6.dp,
                 )
             }
 
@@ -408,13 +501,12 @@ private fun QuestRow(
                     tint = MaterialTheme.colorScheme.primary,
                 )
             } else {
-                Text(
-                    stringResource(
+                DataValue(
+                    text = stringResource(
                         R.string.pathway_quest_completions,
                         questProgress.completions,
                         quest.requiredCompletions,
                     ),
-                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
                 )
             }
@@ -434,7 +526,7 @@ private fun StageNode(
 ) {
     val gutter = 30.dp
     val nodeCenterX = 11.dp
-    val nodeCenterY = 13.dp
+    val nodeCenterY = 10.dp
     val nodeRadius = 7.dp
 
     val dim = MaterialTheme.colorScheme.outline
@@ -484,25 +576,28 @@ private fun StageNode(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                stringResource(R.string.pathway_detail_stage, stage).uppercaseLocalized(),
-                style = MaterialTheme.typography.labelLarge,
-                color = if (unlocked)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
+                stringResource(R.string.pathway_detail_stage, stage),
+                style = MaterialTheme.typography.titleMedium,
+                color = if (unlocked) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (!unlocked) {
-                Spacer(Modifier.width(Spacing.sm))
-                Icon(
+            Spacer(Modifier.width(Spacing.sm))
+            when {
+                !unlocked -> Icon(
                     Icons.Default.Lock,
                     contentDescription = stringResource(R.string.common_locked),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp),
                 )
+
+                !complete -> StatChip(
+                    label = stringResource(R.string.pathway_stage_active),
+                    color = accent,
+                )
             }
         }
 
-        Spacer(Modifier.height(Spacing.sm))
+        Spacer(Modifier.height(Spacing.md))
 
         Column(
             modifier = Modifier.padding(start = gutter),

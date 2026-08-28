@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.shortLabelRes
 import com.mehmetbozkurt.questlog.core.designsystem.theme.CinzelFamily
-import com.mehmetbozkurt.questlog.core.designsystem.theme.GaramondFamily
 import com.mehmetbozkurt.questlog.core.designsystem.theme.color
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
 import com.mehmetbozkurt.questlog.domain.model.StatProgress
@@ -132,7 +131,7 @@ fun CharacterCrest(
 
             drawCentered(
                 measurer, cell.label, cell.center.x, cell.center.y - 27f, s,
-                CinzelFamily.style(10f * s, FontWeight.SemiBold, cell.color, 1.4f * s),
+                CinzelFamily.style(11f * s, FontWeight.SemiBold, cell.color, 1.0f * s),
             )
             drawCentered(
                 measurer, cell.value, cell.center.x, cell.center.y - 1f, s,
@@ -140,7 +139,7 @@ fun CharacterCrest(
             )
             drawCentered(
                 measurer, cell.detail, cell.center.x, cell.center.y + 27f, s,
-                GaramondFamily.style(10f * s, FontWeight.Normal, onSurfaceVariant, 0f),
+                CinzelFamily.style(10f * s, FontWeight.Medium, onSurfaceVariant, 0f),
                 maxWidthPx = hexWidthAt(27f) * s,
             )
         }
@@ -239,46 +238,6 @@ fun ProgressRing(
 }
 
 @Composable
-fun SealFrame(
-    modifier: Modifier = Modifier,
-    diameter: Dp = 96.dp,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    val primary = MaterialTheme.colorScheme.primary
-    val outline = MaterialTheme.colorScheme.outline
-
-    Box(
-        modifier = modifier
-            .size(diameter)
-            .drawBehind {
-                val r = size.minDimension / 2f
-                val center = Offset(size.width / 2f, size.height / 2f)
-
-                drawCircle(primary.copy(alpha = 0.06f), radius = r, center = center)
-                drawCircle(
-                    color = outline,
-                    radius = r - 1.dp.toPx(),
-                    center = center,
-                    style = Stroke(width = 1.dp.toPx()),
-                )
-                drawCircle(
-                    color = primary.copy(alpha = 0.7f),
-                    radius = r - 7.dp.toPx(),
-                    center = center,
-                    style = Stroke(
-                        width = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(
-                            floatArrayOf(2.dp.toPx(), 6.dp.toPx())
-                        ),
-                    ),
-                )
-            },
-        contentAlignment = Alignment.Center,
-        content = content,
-    )
-}
-
-@Composable
 fun LevelMedallion(
     level: Int,
     progress: Float,
@@ -294,19 +253,24 @@ fun LevelMedallion(
         drawProgressRing(progress, primary, track, bead)
 
         val r = size.minDimension / 2f
+        val fontPx = r * 0.72f
         val layout = measurer.measure(
             level.toString(),
             TextStyle(
                 fontFamily = CinzelFamily,
                 fontWeight = FontWeight.Bold,
-                fontSize = (r * 0.78f).toSp(),
+                fontSize = fontPx.toSp(),
                 color = primary,
                 textAlign = TextAlign.Center,
             ),
         )
+        val capHeight = fontPx * 0.72f
         drawText(
             textLayoutResult = layout,
-            topLeft = Offset(r - layout.size.width / 2f, r - layout.size.height / 2f),
+            topLeft = Offset(
+                size.width / 2f - layout.size.width / 2f,
+                size.height / 2f + capHeight / 2f - layout.firstBaseline,
+            ),
         )
     }
 }

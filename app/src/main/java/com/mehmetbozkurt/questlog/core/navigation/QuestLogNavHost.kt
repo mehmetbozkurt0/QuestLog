@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.mehmetbozkurt.questlog.feature.auth.AuthRoute
 import com.mehmetbozkurt.questlog.feature.logdetail.LogDetailRoute
 import com.mehmetbozkurt.questlog.feature.catalog.CatalogRoute
+import com.mehmetbozkurt.questlog.feature.crew.member.CrewMemberRoute
 import com.mehmetbozkurt.questlog.feature.logedit.LogEditRoute
 import com.mehmetbozkurt.questlog.feature.onboarding.OnboardingRoute
 import com.mehmetbozkurt.questlog.feature.pathway.PathwayDetailRoute
@@ -95,6 +96,9 @@ fun QuestLogNavHost(
                 onNavigateToPathwayDetail = { id ->
                     navController.navigate(PathwayDetailRouteKey(id))
                 },
+                onNavigateToCrewMember = { userId ->
+                    navController.navigate(CrewMemberRouteKey(userId))
+                },
                 onNavigateToAuth = {
                     navController.navigate(AuthRouteKey) {
                         popUpTo(0) { inclusive = true }
@@ -120,6 +124,10 @@ fun QuestLogNavHost(
 
         composable<PathwayDetailRouteKey> {
             PathwayDetailRoute(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable<CrewMemberRouteKey> {
+            CrewMemberRoute(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

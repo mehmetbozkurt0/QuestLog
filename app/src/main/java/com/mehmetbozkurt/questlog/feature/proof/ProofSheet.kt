@@ -40,8 +40,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
+import com.mehmetbozkurt.questlog.core.designsystem.component.rimColor
+import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.R
-import com.mehmetbozkurt.questlog.core.designsystem.component.QuestCard
+import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
+import com.mehmetbozkurt.questlog.core.designsystem.component.wellColor
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -114,9 +123,9 @@ fun ProofSheet(
                 .padding(bottom = Spacing.xxl),
         ) {
             Text(
-                stringResource(R.string.proof_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
+                stringResource(R.string.proof_title).uppercaseLocalized(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.height(Spacing.xs))
             Text(
@@ -127,30 +136,54 @@ fun ProofSheet(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            QuestCard(
-                seed = 19,
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxWidth(),
+            val dashColor = MaterialTheme.colorScheme.outline
+            val dashShape = MaterialTheme.shapes.large
+
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .drawBehind {
+                        drawRoundRect(
+                            color = dashColor,
+                            cornerRadius = CornerRadius(8.dp.toPx()),
+                            style = Stroke(
+                                width = 1.dp.toPx(),
+                                pathEffect = PathEffect.dashPathEffect(
+                                    floatArrayOf(6.dp.toPx(), 5.dp.toPx())
+                                ),
+                            ),
+                        )
+                    }
+                    .padding(Spacing.lg),
             ) {
+                Eyebrow(stringResource(R.string.proof_section_evidence))
+
+                Spacer(Modifier.height(Spacing.sm))
+
                 Text(
                     stringResource(R.string.proof_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
 
-            Spacer(Modifier.height(Spacing.md))
+                Spacer(Modifier.height(Spacing.lg))
 
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text(stringResource(R.string.proof_note_label)) },
-                placeholder = { Text(stringResource(R.string.proof_note_placeholder)) },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
-            )
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    placeholder = { Text(stringResource(R.string.proof_note_placeholder)) },
+                    minLines = 2,
+                    shape = dashShape,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = wellColor(),
+                        focusedContainerColor = wellColor(),
+                        unfocusedBorderColor = rimColor(),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
-            Spacer(Modifier.height(Spacing.md))
+                Spacer(Modifier.height(Spacing.md))
 
             val path = photoPath
             if (path != null) {
@@ -182,6 +215,7 @@ fun ProofSheet(
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     OutlinedButton(
+                        shape = MaterialTheme.shapes.large,
                         onClick = {
                             galleryLauncher.launch(
                                 PickVisualMediaRequest(
@@ -204,6 +238,7 @@ fun ProofSheet(
                         )
                     }
                     OutlinedButton(
+                        shape = MaterialTheme.shapes.large,
                         onClick = {
                             val (file, uri) = store.newCaptureTarget(logId)
                             captureFile = file
@@ -226,9 +261,10 @@ fun ProofSheet(
                 }
             }
 
-            if (processing) {
-                Spacer(Modifier.height(Spacing.sm))
-                LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (processing) {
+                    Spacer(Modifier.height(Spacing.sm))
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
             }
 
             Spacer(Modifier.height(Spacing.lg))
@@ -240,6 +276,7 @@ fun ProofSheet(
             }
 
             Button(
+                shape = MaterialTheme.shapes.large,
                 onClick = {
                     onConfirm(
                         ProofDraft(
