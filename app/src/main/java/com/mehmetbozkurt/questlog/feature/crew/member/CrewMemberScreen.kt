@@ -43,6 +43,7 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
 import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import com.mehmetbozkurt.questlog.core.designsystem.component.Avatar
 import com.mehmetbozkurt.questlog.core.designsystem.component.LevelMedallion
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
 import com.mehmetbozkurt.questlog.core.designsystem.component.ShellBackBar
@@ -114,10 +115,18 @@ fun CrewMemberScreen(
                         Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        Avatar(
+                            name = member.displayName,
+                            photoUrl = member.photoUrl,
+                            size = 88.dp,
+                        )
+
+                        Spacer(Modifier.height(Spacing.md))
+
                         LevelMedallion(
                             level = member.level,
                             progress = state.levelProgress,
-                            diameter = 96.dp,
+                            diameter = 72.dp,
                         )
 
                         Spacer(Modifier.height(Spacing.md))

@@ -35,6 +35,7 @@ fun CrewMemberEntity.toFireStoreMap(): Map<String, Any?> = mapOf(
     "level" to level,
     "totalXp" to totalXp,
     "currentStreak" to currentStreak,
+    "photoUrl" to photoUrl,
     "updatedAtMillis" to updatedAtMillis,
 )
 
@@ -47,6 +48,7 @@ fun DocumentSnapshot.toCrewMemberEntityOrNull(crewId: String): CrewMemberEntity?
         level = (getLong("level") ?: 1L).toInt(),
         totalXp = (getLong("totalXp") ?: 0L).toInt(),
         currentStreak = (getLong("currentStreak") ?: 0L).toInt(),
+        photoUrl = getString("photoUrl"),
         updatedAtMillis = getLong("updatedAtMillis") ?: 0L,
         syncState = SyncState.SYNCED.name,
     )

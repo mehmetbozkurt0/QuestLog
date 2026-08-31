@@ -47,6 +47,31 @@ import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import com.mehmetbozkurt.questlog.core.designsystem.component.AuraBar
 import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.ui.platform.LocalUriHandler
+import com.mehmetbozkurt.questlog.core.common.LegalLinks
+import android.net.Uri
+import java.io.File
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.mehmetbozkurt.questlog.core.common.resolve
+import com.mehmetbozkurt.questlog.core.designsystem.component.Avatar
+import com.mehmetbozkurt.questlog.core.designsystem.component.Rule
+import com.mehmetbozkurt.questlog.core.media.AvatarStore
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.auth.GoogleCredentialProvider
 import com.mehmetbozkurt.questlog.core.common.asString
@@ -81,10 +106,14 @@ fun ProfileRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
+                is ProfileEffect.ShowMessage ->
+                    snackbarHostState.showSnackbar(effect.text.resolve(context))
+
                 ProfileEffect.NavigateToAuth -> onNavigateToAuth()
                 ProfileEffect.OpenNotificationSettings -> context.openNotificationSettings()
 
@@ -107,6 +136,7 @@ fun ProfileRoute(
     ProfileScreen(
         state = state,
         onEvent = viewModel::onEvent,
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -115,8 +145,20 @@ fun ProfileRoute(
 fun ProfileScreen(
     state: ProfileState,
     onEvent: (ProfileEvent) -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    val uriHandler = LocalUriHandler.current
+
+    if (state.showEditSheet) {
+        ProfileEditSheet(
+            state = state,
+            onEvent = onEvent,
+            onDismiss = { onEvent(ProfileEvent.EditSheetToggled(false)) },
+        )
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
@@ -133,7 +175,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(Spacing.lg))
 
-            IdentityCard(state)
+            IdentityCard(state, onEdit = { onEvent(ProfileEvent.EditSheetToggled(true)) })
 
             Spacer(Modifier.height(Spacing.lg))
 
@@ -277,39 +319,36 @@ fun ProfileScreen(
             SectionTitle(text = stringResource(R.string.profile_section_notifications))
             Spacer(Modifier.height(Spacing.md))
 
-            GlassPanel(
+            LinkRow(
+                icon = Icons.Default.Notifications,
+                title = stringResource(R.string.profile_notification_settings),
+                subtitle = stringResource(
+                    R.string.profile_notification_settings_desc,
+                    ReminderScheduler.STREAK_HOUR,
+                ),
                 onClick = { onEvent(ProfileEvent.NotificationSettingsClicked) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(Spacing.md))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.profile_notification_settings),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            stringResource(
-                                R.string.profile_notification_settings_desc,
-                                ReminderScheduler.STREAK_HOUR,
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            )
+
+            Spacer(Modifier.height(Spacing.xl))
+
+            SectionTitle(text = stringResource(R.string.profile_section_legal))
+            Spacer(Modifier.height(Spacing.md))
+
+            LinkRow(
+                icon = Icons.Default.Shield,
+                title = stringResource(R.string.profile_privacy_policy),
+                subtitle = stringResource(R.string.profile_privacy_policy_desc),
+                onClick = { uriHandler.openUri(LegalLinks.PRIVACY_POLICY) },
+            )
+
+            Spacer(Modifier.height(Spacing.md))
+
+            LinkRow(
+                icon = Icons.Default.MailOutline,
+                title = stringResource(R.string.profile_support),
+                subtitle = LegalLinks.SUPPORT_EMAIL,
+                onClick = { uriHandler.openUri("mailto:" + LegalLinks.SUPPORT_EMAIL) },
+            )
 
             Spacer(Modifier.height(Spacing.xl))
 
@@ -458,7 +497,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun IdentityCard(state: ProfileState) {
+private fun IdentityCard(state: ProfileState, onEdit: () -> Unit) {
     GlassPanel(
         contentPadding = PaddingValues(Spacing.lg),
         modifier = Modifier.fillMaxWidth(),
@@ -468,12 +507,21 @@ private fun IdentityCard(state: ProfileState) {
                 progress = state.levelProgress,
                 diameter = 76.dp,
             ) {
-                Text(
-                    text = state.user?.displayName?.take(1)?.uppercaseLocalized() ?: "?",
-                    style = ContentHero.copy(fontSize = 30.sp),
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                )
+                if (state.photoUrl != null) {
+                    AsyncImage(
+                        model = state.photoUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(60.dp).clip(CircleShape),
+                    )
+                } else {
+                    Text(
+                        text = state.user?.displayName?.take(1)?.uppercaseLocalized() ?: "?",
+                        style = ContentHero.copy(fontSize = 30.sp),
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                    )
+                }
             }
 
             Spacer(Modifier.width(Spacing.md))
@@ -497,6 +545,14 @@ private fun IdentityCard(state: ProfileState) {
                     text = state.user?.email.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            IconButton(onClick = onEdit) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.profile_edit_action),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -543,6 +599,185 @@ private fun IdentityCard(state: ProfileState) {
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileEditSheet(
+    state: ProfileState,
+    onEvent: (ProfileEvent) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val store = remember { AvatarStore(context.applicationContext) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var captureFile by remember { mutableStateOf<File?>(null) }
+    var captureUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri -> if (uri != null) onEvent(ProfileEvent.AvatarPicked(uri)) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { saved ->
+        val file = captureFile
+        captureUri = null
+        captureFile = null
+        if (saved && file != null) onEvent(ProfileEvent.AvatarCaptured(file))
+        else file?.delete()
+    }
+
+    LaunchedEffect(captureUri) {
+        captureUri?.let { cameraLauncher.launch(it) }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg)
+                .padding(bottom = Spacing.xxl),
+        ) {
+            Eyebrow(stringResource(R.string.profile_edit_title))
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Avatar(
+                    name = state.displayName,
+                    photoUrl = state.photoUrl,
+                    size = 72.dp,
+                )
+                Spacer(Modifier.width(Spacing.lg))
+                Column(Modifier.weight(1f)) {
+                    OutlinedButton(
+                        shape = MaterialTheme.shapes.large,
+                        enabled = !state.isSavingProfile,
+                        onClick = {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Image, contentDescription = null)
+                        Spacer(Modifier.width(Spacing.sm))
+                        Text(
+                            stringResource(R.string.profile_edit_photo_gallery),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                    Spacer(Modifier.height(Spacing.sm))
+                    OutlinedButton(
+                        shape = MaterialTheme.shapes.large,
+                        enabled = !state.isSavingProfile,
+                        onClick = {
+                            val (file, uri) = store.newCaptureTarget()
+                            captureFile = file
+                            captureUri = uri
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                        Spacer(Modifier.width(Spacing.sm))
+                        Text(
+                            stringResource(R.string.profile_edit_photo_camera),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
+            }
+
+            if (state.photoUrl != null) {
+                Spacer(Modifier.height(Spacing.sm))
+                TextButton(
+                    enabled = !state.isSavingProfile,
+                    onClick = { onEvent(ProfileEvent.AvatarRemoveClicked) },
+                ) {
+                    Text(
+                        stringResource(R.string.profile_edit_photo_remove),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.lg))
+            Rule()
+            Spacer(Modifier.height(Spacing.lg))
+
+            OutlinedTextField(
+                value = state.nameInput,
+                onValueChange = { onEvent(ProfileEvent.NameInputChanged(it)) },
+                label = { Text(stringResource(R.string.profile_edit_name_label)) },
+                singleLine = true,
+                enabled = !state.isSavingProfile,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(Spacing.md))
+
+            Button(
+                shape = MaterialTheme.shapes.large,
+                onClick = { onEvent(ProfileEvent.NameSaveClicked) },
+                enabled = state.canSaveName,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) {
+                Text(
+                    stringResource(R.string.profile_edit_name_save),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+
+            if (state.isSavingProfile) {
+                Spacer(Modifier.height(Spacing.md))
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
+
+@Composable
+private fun LinkRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    GlassPanel(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(Spacing.md))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

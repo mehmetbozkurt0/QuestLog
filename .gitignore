@@ -22,3 +22,7 @@ firebase-debug.log
 .firebase/
 scripts/serviceAccountKey.json
 scripts/node_modules/
+keystore.properties
+*.jks
+/app/release/
+app/*.jks

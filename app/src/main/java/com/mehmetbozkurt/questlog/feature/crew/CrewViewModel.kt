@@ -96,6 +96,65 @@ class CrewViewModel @Inject constructor(
             CrewEvent.LeaveConfirmed -> leaveCrew()
             is CrewEvent.ApproveClicked -> approve(event.entryId)
 
+            is CrewEvent.MemberMenuRequested -> setState { copy(memberMenuFor = event.member) }
+
+            is CrewEvent.KickRequested -> setState {
+                copy(kickTarget = event.member, memberMenuFor = null)
+            }
+
+            CrewEvent.KickConfirmed -> {
+                val target = currentState.kickTarget ?: return
+                runCrewAction(
+                    successRes = R.string.crew_kick_done,
+                    clearState = { copy(kickTarget = null) },
+                ) { crewRepository.kickMember(target.userId) }
+            }
+
+            is CrewEvent.TransferRequested -> setState {
+                copy(transferTarget = event.member, memberMenuFor = null)
+            }
+
+            CrewEvent.TransferConfirmed -> {
+                val target = currentState.transferTarget ?: return
+                runCrewAction(
+                    successRes = R.string.crew_transfer_done,
+                    clearState = { copy(transferTarget = null) },
+                ) { crewRepository.transferOwnership(target.userId) }
+            }
+
+            is CrewEvent.RenameDialogToggled -> setState {
+                copy(
+                    showRenameDialog = event.show,
+                    renameInput = if (event.show) crew?.name.orEmpty() else "",
+                )
+            }
+
+            is CrewEvent.RenameInputChanged -> setState { copy(renameInput = event.value) }
+
+            CrewEvent.RenameConfirmed -> {
+                if (!currentState.canRename) return
+                val name = currentState.renameInput
+                runCrewAction(
+                    successRes = R.string.crew_rename_done,
+                    clearState = { copy(showRenameDialog = false, renameInput = "") },
+                ) { crewRepository.renameCrew(name) }
+            }
+
+            is CrewEvent.RegenerateDialogToggled -> setState {
+                copy(showRegenerateDialog = event.show)
+            }
+
+            CrewEvent.RegenerateConfirmed -> runCrewAction(
+                successRes = R.string.crew_regenerate_done,
+                clearState = { copy(showRegenerateDialog = false) },
+            ) { crewRepository.regenerateInviteCode() }
+
+            CrewEvent.InviteCodeShared -> {
+                val code = currentState.crew?.inviteCode ?: return
+                val name = currentState.crew?.name.orEmpty()
+                sendEffect(CrewEffect.ShareInvite(crewName = name, code = code))
+            }
+
             is CrewEvent.TabSelected -> setState { copy(tab = event.tab) }
 
             is CrewEvent.MessageInputChanged -> setState {
@@ -188,8 +247,27 @@ class CrewViewModel @Inject constructor(
         CrewActionResult.AlreadyInCrew -> uiText(R.string.crew_error_already_in_crew)
         CrewActionResult.CodeNotFound -> uiText(R.string.crew_error_code_not_found)
         CrewActionResult.NotInCrew -> uiText(R.string.crew_error_not_in_crew)
+        CrewActionResult.NotOwner -> uiText(R.string.crew_error_not_owner)
+        CrewActionResult.MemberNotFound -> uiText(R.string.crew_error_member_not_found)
+        CrewActionResult.InvalidName -> uiText(
+            R.string.crew_error_invalid_name,
+            CrewRules.NAME_MIN_LENGTH,
+        )
         CrewActionResult.Offline -> uiText(R.string.crew_error_offline)
         is CrewActionResult.Failed -> reason.toUiText()
+    }
+
+    private fun runCrewAction(
+        successRes: Int,
+        clearState: CrewState.() -> CrewState,
+        block: suspend () -> CrewActionResult,
+    ) {
+        setState { copy(isWorking = true) }
+        viewModelScope.launch {
+            val result = block()
+            setState { copy(isWorking = false).let(clearState) }
+            sendEffect(CrewEffect.ShowMessage(result.message(successRes)))
+        }
     }
 
     private fun ApproveResult.message(): UiText = when (this) {

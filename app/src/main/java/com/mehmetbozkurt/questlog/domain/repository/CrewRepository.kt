@@ -16,6 +16,11 @@ interface CrewRepository {
     suspend fun createCrew(name: String): CrewActionResult
     suspend fun joinByCode(code: String): CrewActionResult
     suspend fun leaveCrew(): CrewActionResult
+    suspend fun kickMember(userId: String): CrewActionResult
+    suspend fun transferOwnership(userId: String): CrewActionResult
+    suspend fun renameCrew(name: String): CrewActionResult
+    suspend fun regenerateInviteCode(): CrewActionResult
+    suspend fun handleEviction()
     suspend fun approve(entryId: String): ApproveResult
     suspend fun refreshMemberCard()
 }
@@ -25,6 +30,9 @@ sealed interface CrewActionResult {
     data object AlreadyInCrew : CrewActionResult
     data object CodeNotFound : CrewActionResult
     data object NotInCrew : CrewActionResult
+    data object NotOwner : CrewActionResult
+    data object InvalidName : CrewActionResult
+    data object MemberNotFound : CrewActionResult
     data object Offline : CrewActionResult
     data class Failed(val reason: CrewFailure) : CrewActionResult
 }

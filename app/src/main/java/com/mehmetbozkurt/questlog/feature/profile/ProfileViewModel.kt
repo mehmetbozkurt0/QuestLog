@@ -14,7 +14,10 @@ import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.DeleteAccountResult
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
+import com.mehmetbozkurt.questlog.domain.repository.ProfileUpdateResult
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
+import com.mehmetbozkurt.questlog.domain.repository.UserProfileRepository
+import com.mehmetbozkurt.questlog.core.common.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -31,6 +34,7 @@ class ProfileViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val accountRepository: AccountRepository,
     private val deviceTokenManager: DeviceTokenManager,
+    private val userProfileRepository: UserProfileRepository,
 ) : MviViewModel<ProfileState, ProfileEvent, ProfileEffect>(ProfileState()) {
     init {
         authRepository.currentUser
@@ -87,6 +91,36 @@ class ProfileViewModel @Inject constructor(
 
     override fun onEvent(event: ProfileEvent) {
         when (event) {
+            is ProfileEvent.EditSheetToggled -> setState {
+                copy(
+                    showEditSheet = event.show,
+                    nameInput = if (event.show) user?.displayName.orEmpty() else "",
+                )
+            }
+
+            is ProfileEvent.NameInputChanged -> setState { copy(nameInput = event.value) }
+
+            ProfileEvent.NameSaveClicked -> {
+                if (!currentState.canSaveName) return
+                val name = currentState.nameInput
+                runProfileUpdate(R.string.profile_edit_name_saved) {
+                    userProfileRepository.updateDisplayName(name)
+                }
+            }
+
+            is ProfileEvent.AvatarPicked -> runProfileUpdate(R.string.profile_edit_photo_saved) {
+                userProfileRepository.updateAvatarFromUri(event.uri)
+            }
+
+            is ProfileEvent.AvatarCaptured -> runProfileUpdate(R.string.profile_edit_photo_saved) {
+                userProfileRepository.updateAvatarFromFile(event.file)
+            }
+
+            ProfileEvent.AvatarRemoveClicked ->
+                runProfileUpdate(R.string.profile_edit_photo_removed) {
+                    userProfileRepository.removeAvatar()
+                }
+
             is ProfileEvent.SignOutDialogToggled ->
                 setState { copy(showSignOutDialog = event.show) }
 
@@ -147,6 +181,30 @@ class ProfileViewModel @Inject constructor(
                 copy(isDeleting = false, deleteError = event.message)
             }
         }
+    }
+
+    private fun runProfileUpdate(
+        successRes: Int,
+        block: suspend () -> ProfileUpdateResult,
+    ) {
+        setState { copy(isSavingProfile = true) }
+        viewModelScope.launch {
+            val result = block()
+            setState { copy(isSavingProfile = false) }
+            if (result == ProfileUpdateResult.Success) {
+                setState { copy(showEditSheet = false) }
+            }
+            sendEffect(ProfileEffect.ShowMessage(result.message(successRes)))
+        }
+    }
+
+    private fun ProfileUpdateResult.message(successRes: Int): UiText = when (this) {
+        ProfileUpdateResult.Success -> uiText(successRes)
+        ProfileUpdateResult.NoSession -> uiText(R.string.account_error_no_session)
+        ProfileUpdateResult.NameTooShort -> uiText(R.string.profile_edit_name_too_short)
+        ProfileUpdateResult.ImageUnreadable -> uiText(R.string.profile_edit_photo_unreadable)
+        ProfileUpdateResult.Offline -> uiText(R.string.profile_edit_offline)
+        ProfileUpdateResult.Failed -> uiText(R.string.profile_edit_failed)
     }
 
     private companion object {

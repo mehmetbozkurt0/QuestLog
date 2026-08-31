@@ -22,6 +22,7 @@ enum class ThemePreference {
 @Singleton
 class SettingsRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>,
+    private val nightModeCache: NightModeCache,
 ) {
     private val themeKey = stringPreferencesKey("theme_preference")
     private val paletteKey = stringPreferencesKey("palette_preference")
@@ -60,5 +61,6 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setTheme(theme: ThemePreference) {
         dataStore.edit { prefs -> prefs[themeKey] = theme.name }
+        nightModeCache.store(theme)
     }
 }

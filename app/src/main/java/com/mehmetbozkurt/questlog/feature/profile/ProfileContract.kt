@@ -1,5 +1,6 @@
 package com.mehmetbozkurt.questlog.feature.profile
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.levelRankRes
@@ -12,6 +13,8 @@ import com.mehmetbozkurt.questlog.core.settings.ThemePreference
 import com.mehmetbozkurt.questlog.domain.model.AppUser
 import com.mehmetbozkurt.questlog.domain.model.CharacterSheet
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
+import com.mehmetbozkurt.questlog.domain.repository.ProfileRules
+import java.io.File
 import com.mehmetbozkurt.questlog.domain.progression.XpCurve
 
 data class ProfileState(
@@ -23,6 +26,9 @@ data class ProfileState(
     val totalLogs: Int = 0,
     val completedQuests: Int = 0,
     val activeQuests: Int = 0,
+    val showEditSheet: Boolean = false,
+    val nameInput: String = "",
+    val isSavingProfile: Boolean = false,
     val showSignOutDialog: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deletePassword: String = "",
@@ -35,6 +41,15 @@ data class ProfileState(
 ) : UiState {
     val canDelete: Boolean
         get() = !isDeleting && (!isPasswordAccount || deletePassword.length >= 6)
+
+    val canSaveName: Boolean
+        get() = !isSavingProfile &&
+                nameInput.trim().length >= ProfileRules.NAME_MIN_LENGTH &&
+                nameInput.trim() != user?.displayName
+
+    val photoUrl: String? get() = user?.photoUrl
+
+    val displayName: String get() = user?.displayName.orEmpty()
 
     val level: Int get() = character?.level ?: 1
 
@@ -55,6 +70,12 @@ data class ProfileState(
 }
 
 sealed interface ProfileEvent : UiEvent {
+    data class EditSheetToggled(val show: Boolean) : ProfileEvent
+    data class NameInputChanged(val value: String) : ProfileEvent
+    data object NameSaveClicked : ProfileEvent
+    data class AvatarPicked(val uri: Uri) : ProfileEvent
+    data class AvatarCaptured(val file: File) : ProfileEvent
+    data object AvatarRemoveClicked : ProfileEvent
     data class SignOutDialogToggled(val show: Boolean) : ProfileEvent
     data object SignOutConfirmed : ProfileEvent
     data class ThemeChanged(val value: ThemePreference) : ProfileEvent
@@ -69,6 +90,7 @@ sealed interface ProfileEvent : UiEvent {
 }
 
 sealed interface ProfileEffect : UiEffect {
+    data class ShowMessage(val text: UiText) : ProfileEffect
     data object NavigateToAuth : ProfileEffect
     data object OpenNotificationSettings : ProfileEffect
     data object LaunchGoogleReauth : ProfileEffect

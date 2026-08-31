@@ -1,6 +1,7 @@
 package com.mehmetbozkurt.questlog.core.sync
 
 import android.util.Log
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
 import com.mehmetbozkurt.questlog.core.database.dao.CatalogDao
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
@@ -18,10 +19,12 @@ import com.mehmetbozkurt.questlog.domain.progression.CrewRules
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CatalogRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
+import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -46,6 +49,7 @@ class RemoteSyncManager @Inject constructor(
     private val characterRepository: CharacterRepository,
     private val crewRemote: CrewRemoteDataSource,
     private val crewDao: CrewDao,
+    private val crewRepository: CrewRepository,
     private val catalogDao: CatalogDao,
     private val catalogRepository: CatalogRepository,
     private val settingsRepository: SettingsRepository,
@@ -194,7 +198,14 @@ class RemoteSyncManager @Inject constructor(
 
         observeCrewId()
             .flatMapLatest { crewId ->
-                if (crewId == null) emptyFlow() else crewRemote.observeCrew(crewId)
+                if (crewId == null) {
+                    emptyFlow()
+                } else {
+                    crewRemote.observeCrew(crewId).catch { cause ->
+                        if (cause.isPermissionDenied()) crewRepository.handleEviction()
+                        else throw cause
+                    }
+                }
             }
             .retrying("Crew")
             .onEach { remoteCrew -> if (remoteCrew != null) crewDao.upsertCrew(remoteCrew) }
@@ -258,6 +269,10 @@ class RemoteSyncManager @Inject constructor(
             }
             .launchIn(scope)
     }
+
+    private fun Throwable.isPermissionDenied(): Boolean =
+        (this as? FirebaseFirestoreException)?.code ==
+                FirebaseFirestoreException.Code.PERMISSION_DENIED
 
     private fun <T> Flow<T>.retrying(label: String): Flow<T> = retryWhen { cause, attempt ->
         Log.e(TAG, "$label sync failed (attempt $attempt), retrying", cause)

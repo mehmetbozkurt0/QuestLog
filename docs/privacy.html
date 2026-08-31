@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Renown — Gizlilik Politikası</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 5rem;
+         font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { font-size: 1.7rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.25rem; }
+  .meta { opacity: .65; font-size: .9rem; margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid rgba(128,128,128,.35); vertical-align: top; }
+  th { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid rgba(128,128,128,.3); margin: 3.5rem 0; }
+  code { font-size: .92em; }
+</style>
+</head>
+<body>
+
+<h1>Renown — Gizlilik Politikası</h1>
+<p class="meta">Son güncelleme: 31 Ağustos 2026</p>
+
+<p>Renown, kişisel gelişim alışkanlıklarını takip etmek için kullanılan bir mobil uygulamadır.
+Bu politika, uygulamanın hangi verileri topladığını, neden topladığını ve nasıl sakladığını açıklar.
+Uygulamayı geliştiren ve işleten kişi Mehmet Bozkurt'tur
+(<a href="mailto:mehmet.64.b@gmail.com">mehmet.64.b@gmail.com</a>).</p>
+
+<h2>Toplanan veriler</h2>
+
+<table>
+  <tr><th>Veri</th><th>Neden</th><th>Nerede saklanır</th></tr>
+  <tr>
+    <td>E-posta adresi ve görünen ad</td>
+    <td>Hesap oluşturma, oturum açma, ekip arkadaşlarının seni tanıması</td>
+    <td>Firebase Authentication ve Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>İlerleme verisi: görevler, alışkanlıklar, yollar, XP, seviye, seri, yetenek puanları</td>
+    <td>Uygulamanın temel işlevi; cihazlar arası eşitleme</td>
+    <td>Cihazında (yerel veritabanı) ve Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Kanıt fotoğrafları</td>
+    <td>Yalnızca sen bir göreve fotoğraf eklersen. Ekip akışında paylaşılabilir.</td>
+    <td>Cihazında ve Firebase Storage</td>
+  </tr>
+  <tr>
+    <td>Ekip verisi: ekip adı, davet kodu, üyelik, akış girdileri, sohbet mesajları</td>
+    <td>Ekip özelliğinin çalışması</td>
+    <td>Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Cihaz bildirim jetonu (FCM)</td>
+    <td>Ekip sohbeti bildirimlerini gönderebilmek</td>
+    <td>Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Çökme raporları: cihaz modeli, işletim sistemi sürümü, yığın izi, çökme zamanı</td>
+    <td>Hataları bulup düzeltmek</td>
+    <td>Firebase Crashlytics</td>
+  </tr>
+</table>
+
+<p>Uygulama <strong>reklam göstermez</strong>, reklam kimliği toplamaz, konum bilgisi toplamaz,
+rehberine erişmez ve verilerini üçüncü taraflara satmaz.</p>
+
+<h2>Verilerin paylaşımı</h2>
+<p>Verilerin yalnızca uygulamanın çalışması için kullandığımız altyapı sağlayıcısıyla, Google
+(Firebase Authentication, Cloud Firestore, Firebase Storage, Firebase Cloud Messaging,
+Firebase Crashlytics), işlenir. Bu servislerin kendi gizlilik politikası
+<a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a>
+adresindedir.</p>
+
+<p>Bir ekibe katıldığında; görünen adın, seviyen, toplam XP'in, serinin, tamamladığın görevlerin
+başlıkları ve varsa eklediğin kanıt fotoğrafları <strong>o ekibin diğer üyeleri tarafından
+görülebilir</strong>. Ekipten ayrılırsan gelecekteki etkinliklerin artık paylaşılmaz.</p>
+
+<h2>Verilerin saklanma süresi</h2>
+<p>Verilerin, sen hesabını silene kadar saklanır. Hesabını sildiğinde karakter verilerin,
+görevlerin, kanıt fotoğrafların, ekip akışı girdilerin ve sohbet mesajların silinir.</p>
+
+<h2>Haklarını kullanma</h2>
+<p>Hesabını ve tüm verilerini uygulama içinden silebilirsin:
+<strong>Profil → Hesabı sil</strong>. Uygulamayı yüklemeden silme talebinde bulunmak istersen
+<a href="delete-account.html">hesap silme sayfasını</a> kullanabilirsin.</p>
+<p>Verilerinin bir kopyasını istemek, düzeltilmesini istemek veya başka bir sorunu bildirmek için
+<a href="mailto:mehmet.64.b@gmail.com">mehmet.64.b@gmail.com</a> adresine yazabilirsin.</p>
+
+<h2>Çocuklar</h2>
+<p>Renown 13 yaşın altındaki çocuklara yönelik değildir ve bilerek onlardan veri toplamaz.</p>
+
+<h2>Değişiklikler</h2>
+<p>Bu politika değişirse bu sayfadaki "son güncelleme" tarihi değişir. Önemli değişikliklerde
+uygulama içinde bilgilendirme yapılır.</p>
+
+<hr>
+
+<h1 id="en">Renown — Privacy Policy</h1>
+<p class="meta">Last updated: 31 August 2026</p>
+
+<p>Renown is a mobile app for tracking personal-development habits. This policy explains what data
+the app collects, why, and where it is stored. The app is developed and operated by Mehmet Bozkurt
+(<a href="mailto:mehmet.64.b@gmail.com">mehmet.64.b@gmail.com</a>).</p>
+
+<h2>Data we collect</h2>
+
+<table>
+  <tr><th>Data</th><th>Why</th><th>Where it is stored</th></tr>
+  <tr>
+    <td>Email address and display name</td>
+    <td>Account creation, sign-in, letting crew members recognise you</td>
+    <td>Firebase Authentication and Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Progress data: quests, habits, pathways, XP, level, streak, ability scores</td>
+    <td>The core function of the app; syncing across devices</td>
+    <td>On your device (local database) and Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Proof photos</td>
+    <td>Only if you attach a photo to a quest. May be shared in the crew feed.</td>
+    <td>On your device and Firebase Storage</td>
+  </tr>
+  <tr>
+    <td>Crew data: crew name, invite code, membership, feed entries, chat messages</td>
+    <td>To make the crew feature work</td>
+    <td>Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Device notification token (FCM)</td>
+    <td>To deliver crew chat notifications</td>
+    <td>Cloud Firestore</td>
+  </tr>
+  <tr>
+    <td>Crash reports: device model, OS version, stack trace, crash time</td>
+    <td>To find and fix bugs</td>
+    <td>Firebase Crashlytics</td>
+  </tr>
+</table>
+
+<p>The app shows <strong>no ads</strong>, collects no advertising identifier, collects no location
+data, does not access your contacts, and does not sell your data to third parties.</p>
+
+<h2>Sharing</h2>
+<p>Your data is processed only by the infrastructure provider the app runs on, Google (Firebase
+Authentication, Cloud Firestore, Firebase Storage, Firebase Cloud Messaging, Firebase Crashlytics).
+Their privacy policy is at
+<a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a>.</p>
+
+<p>When you join a crew, your display name, level, total XP, streak, the titles of quests you
+complete and any proof photos you attach become <strong>visible to the other members of that
+crew</strong>. If you leave a crew, your future activity is no longer shared.</p>
+
+<h2>Retention</h2>
+<p>Your data is kept until you delete your account. Deleting your account removes your character
+data, quests, proof photos, crew feed entries and chat messages.</p>
+
+<h2>Your rights</h2>
+<p>You can delete your account and all of your data from inside the app:
+<strong>Profile → Delete account</strong>. If you want to request deletion without installing the
+app, use the <a href="delete-account.html">account deletion page</a>.</p>
+<p>To request a copy of your data, ask for a correction, or report any other issue, write to
+<a href="mailto:mehmet.64.b@gmail.com">mehmet.64.b@gmail.com</a>.</p>
+
+<h2>Children</h2>
+<p>Renown is not directed at children under 13 and does not knowingly collect data from them.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the "last updated" date on this page changes. Significant changes will
+be announced inside the app.</p>
+
+</body>
+</html>

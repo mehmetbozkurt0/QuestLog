@@ -38,6 +38,27 @@ class CrewRemoteDataSource @Inject constructor(
         crewDoc(crewId).update("memberIds", FieldValue.arrayUnion(uid)).await()
     }
 
+    suspend fun removeMember(crewId: String, uid: String) {
+        crewDoc(crewId).update("memberIds", FieldValue.arrayRemove(uid)).await()
+        runCatching { members(crewId).document(uid).delete().await() }
+    }
+
+    suspend fun updateCrewFields(crewId: String, fields: Map<String, Any>) {
+        crewDoc(crewId).update(fields).await()
+    }
+
+    suspend fun createInviteCode(code: String, crewId: String) {
+        codeDoc(code).set(mapOf("crewId" to crewId)).await()
+    }
+
+    suspend fun deleteInviteCode(code: String) {
+        runCatching { codeDoc(code).delete().await() }
+    }
+
+    suspend fun deleteCrew(crewId: String) {
+        runCatching { crewDoc(crewId).delete().await() }
+    }
+
     suspend fun leaveCrew(crewId: String, uid: String) {
         crewDoc(crewId).update("memberIds", FieldValue.arrayRemove(uid)).await()
         members(crewId).document(uid).delete().await()

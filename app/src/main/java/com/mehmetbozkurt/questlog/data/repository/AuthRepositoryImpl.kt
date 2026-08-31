@@ -119,6 +119,7 @@ class AuthRepositoryImpl @Inject constructor(
     private fun FirebaseUser.toAppUser() = AppUser(
         uid = uid,
         email = email.orEmpty(),
-        displayName = displayName.orEmpty().ifBlank { email?.substringBefore("@").orEmpty() }
+        displayName = displayName.orEmpty().ifBlank { email?.substringBefore("@").orEmpty() },
+        photoUrl = photoUrl?.toString(),
     )
 }

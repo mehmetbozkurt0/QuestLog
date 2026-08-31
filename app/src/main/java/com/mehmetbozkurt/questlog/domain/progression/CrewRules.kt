@@ -11,6 +11,12 @@ object CrewRules {
 
     const val INVITE_CODE_LENGTH = 6
 
+    const val MAX_MEMBERS = 12
+
+    const val NAME_MIN_LENGTH = 3
+
+    const val NAME_MAX_LENGTH = 40
+
     const val MESSAGE_MAX_LENGTH = 500
 
     private const val CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"

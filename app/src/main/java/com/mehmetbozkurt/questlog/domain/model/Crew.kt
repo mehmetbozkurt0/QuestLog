@@ -16,6 +16,7 @@ data class CrewMember(
     val level: Int,
     val totalXp: Int,
     val currentStreak: Int,
+    val photoUrl: String? = null,
 )
 
 data class CrewFeedItem(

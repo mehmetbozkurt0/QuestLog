@@ -4,10 +4,12 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.mehmetbozkurt.questlog.core.common.ApplicationScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mehmetbozkurt.questlog.core.firebase.FirebaseInitializer
 import com.mehmetbozkurt.questlog.core.notification.DeviceTokenManager
 import com.mehmetbozkurt.questlog.core.notification.NotificationChannels
 import com.mehmetbozkurt.questlog.core.notification.ReminderScheduler
+import com.mehmetbozkurt.questlog.core.settings.NightModeCache
 import com.mehmetbozkurt.questlog.core.sync.RemoteSyncManager
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
@@ -26,6 +28,7 @@ class QuestLogApp: Application(), Configuration.Provider {
     @Inject lateinit var authRepository: AuthRepository
     @Inject lateinit var reminderScheduler: ReminderScheduler
     @Inject lateinit var deviceTokenManager: DeviceTokenManager
+    @Inject lateinit var nightModeCache: NightModeCache
     @ApplicationScope @Inject lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration get() = Configuration.Builder()
@@ -34,6 +37,9 @@ class QuestLogApp: Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        nightModeCache.apply()
+        FirebaseCrashlytics.getInstance()
+            .isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
         FirebaseInitializer.configureFirestore()
         NotificationChannels.ensureCreated(this)
         reminderScheduler.scheduleStreakCheck()

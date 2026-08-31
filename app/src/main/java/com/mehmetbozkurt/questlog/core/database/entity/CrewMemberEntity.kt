@@ -15,6 +15,7 @@ data class CrewMemberEntity(
     val level: Int,
     val totalXp: Int,
     val currentStreak: Int,
+    val photoUrl: String? = null,
     val updatedAtMillis: Long,
     val syncState: String = SyncState.PENDING.name,
 )

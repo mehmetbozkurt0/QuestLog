@@ -24,6 +24,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Notifications
+import android.content.Context
+import android.content.Intent
+import androidx.compose.material.icons.filled.Share
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.resolve
 import androidx.compose.ui.text.AnnotatedString
@@ -71,6 +74,15 @@ fun CrewRoute(
                     snackbarHostState.showSnackbar(effect.text.resolve(context))
                 is CrewEffect.CopyToClipboard ->
                     clipboard.setText(AnnotatedString(effect.text))
+
+                is CrewEffect.ShareInvite -> context.shareInvite(
+                    context.getString(
+                        R.string.crew_share_text,
+                        effect.crewName,
+                        effect.code,
+                    ),
+                    context.getString(R.string.crew_share_chooser),
+                )
             }
         }
     }
@@ -253,11 +265,47 @@ fun CrewScreen(
                                         Spacer(Modifier.height(Spacing.xs))
                                         InviteCodeStamp(state.crew?.inviteCode.orEmpty())
                                     }
+                                    IconButton(onClick = { onEvent(CrewEvent.InviteCodeShared) }) {
+                                        Icon(
+                                            Icons.Default.Share,
+                                            contentDescription = stringResource(R.string.crew_share),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
                                     Icon(
                                         Icons.Default.ContentCopy,
                                         contentDescription = stringResource(R.string.crew_copy_code),
                                         tint = MaterialTheme.colorScheme.primary,
                                     )
+                                }
+
+                                if (state.isOwner) {
+                                    Spacer(Modifier.height(Spacing.md))
+                                    Rule()
+                                    Spacer(Modifier.height(Spacing.sm))
+                                    Row {
+                                        TextButton(
+                                            onClick = {
+                                                onEvent(CrewEvent.RenameDialogToggled(true))
+                                            },
+                                        ) {
+                                            Text(
+                                                stringResource(R.string.crew_rename),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
+                                        Spacer(Modifier.width(Spacing.sm))
+                                        TextButton(
+                                            onClick = {
+                                                onEvent(CrewEvent.RegenerateDialogToggled(true))
+                                            },
+                                        ) {
+                                            Text(
+                                                stringResource(R.string.crew_regenerate),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -268,7 +316,11 @@ fun CrewScreen(
                                 modifier = Modifier.padding(top = Spacing.sm),
                                 trailing = {
                                     DataValue(
-                                        text = "${state.members.size}",
+                                        text = stringResource(
+                                            R.string.crew_members_count,
+                                            state.members.size,
+                                            CrewRules.MAX_MEMBERS,
+                                        ),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 },
@@ -283,7 +335,13 @@ fun CrewScreen(
                                 member = member,
                                 rank = index + 1,
                                 isSelf = member.userId == state.ownUserId,
+                                isOwner = member.userId == state.crew?.ownerId,
+                                showMenuButton = state.isOwner &&
+                                        member.userId != state.ownUserId,
                                 onClick = { onNavigateToMember(member.userId) },
+                                onMenuClick = {
+                                    onEvent(CrewEvent.MemberMenuRequested(member))
+                                },
                                 modifier = Modifier.animateItem(),
                             )
                         }
@@ -333,6 +391,116 @@ fun CrewScreen(
                 }
             }
         }
+    }
+
+    state.memberMenuFor?.let { member ->
+        AlertDialog(
+            onDismissRequest = { onEvent(CrewEvent.MemberMenuRequested(null)) },
+            title = {
+                Text(member.displayName, style = MaterialTheme.typography.titleLarge)
+            },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = { onEvent(CrewEvent.TransferRequested(member)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            stringResource(R.string.crew_transfer),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    TextButton(
+                        onClick = { onEvent(CrewEvent.KickRequested(member)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            stringResource(R.string.crew_kick),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { onEvent(CrewEvent.MemberMenuRequested(null)) }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
+    state.kickTarget?.let { member ->
+        ConfirmDialog(
+            title = stringResource(R.string.crew_kick_title, member.displayName),
+            body = stringResource(R.string.crew_kick_body),
+            confirmLabel = stringResource(R.string.crew_kick),
+            destructive = true,
+            working = state.isWorking,
+            onConfirm = { onEvent(CrewEvent.KickConfirmed) },
+            onDismiss = { onEvent(CrewEvent.KickRequested(null)) },
+        )
+    }
+
+    state.transferTarget?.let { member ->
+        ConfirmDialog(
+            title = stringResource(R.string.crew_transfer_title, member.displayName),
+            body = stringResource(R.string.crew_transfer_body),
+            confirmLabel = stringResource(R.string.crew_transfer),
+            destructive = false,
+            working = state.isWorking,
+            onConfirm = { onEvent(CrewEvent.TransferConfirmed) },
+            onDismiss = { onEvent(CrewEvent.TransferRequested(null)) },
+        )
+    }
+
+    if (state.showRegenerateDialog) {
+        ConfirmDialog(
+            title = stringResource(R.string.crew_regenerate_title),
+            body = stringResource(R.string.crew_regenerate_body),
+            confirmLabel = stringResource(R.string.crew_regenerate),
+            destructive = true,
+            working = state.isWorking,
+            onConfirm = { onEvent(CrewEvent.RegenerateConfirmed) },
+            onDismiss = { onEvent(CrewEvent.RegenerateDialogToggled(false)) },
+        )
+    }
+
+    if (state.showRenameDialog) {
+        AlertDialog(
+            onDismissRequest = { onEvent(CrewEvent.RenameDialogToggled(false)) },
+            title = {
+                Text(
+                    stringResource(R.string.crew_rename),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    value = state.renameInput,
+                    onValueChange = { onEvent(CrewEvent.RenameInputChanged(it)) },
+                    label = { Text(stringResource(R.string.crew_name_label)) },
+                    singleLine = true,
+                    enabled = !state.isWorking,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onEvent(CrewEvent.RenameConfirmed) },
+                    enabled = state.canRename,
+                ) {
+                    Text(stringResource(R.string.crew_rename))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onEvent(CrewEvent.RenameDialogToggled(false)) }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
     }
 
     if (state.showCreateDialog) {
@@ -462,6 +630,51 @@ internal fun Int.badgeLabel(): String = if (this > 99) "99+" else "$this"
 private fun CrewTab.labelRes(): Int = when (this) {
     CrewTab.FEED -> R.string.crew_tab_feed
     CrewTab.CHAT -> R.string.crew_tab_chat
+}
+
+@Composable
+private fun ConfirmDialog(
+    title: String,
+    body: String,
+    confirmLabel: String,
+    destructive: Boolean,
+    working: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Text(
+                body,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !working) {
+                Text(
+                    confirmLabel,
+                    color = if (destructive) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.primary,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel))
+            }
+        },
+    )
+}
+
+private fun Context.shareInvite(text: String, chooserTitle: String) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    startActivity(Intent.createChooser(intent, chooserTitle))
 }
 
 @Composable

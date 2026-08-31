@@ -14,6 +14,9 @@ interface CrewDao {
     @Query("SELECT * FROM crews WHERE crewId = :crewId")
     fun observeCrew(crewId: String): Flow<CrewEntity?>
 
+    @Query("SELECT * FROM crews WHERE crewId = :crewId")
+    suspend fun getCrew(crewId: String): CrewEntity?
+
     @Upsert
     suspend fun upsertCrew(entity: CrewEntity)
 
@@ -34,6 +37,9 @@ interface CrewDao {
 
     @Query("DELETE FROM crew_members WHERE crewId = :crewId")
     suspend fun deleteMembersForCrew(crewId: String)
+
+    @Query("DELETE FROM crew_members WHERE userId = :userId")
+    suspend fun deleteMember(userId: String)
 
     @Query("SELECT * FROM crew_feed WHERE crewId = :crewId ORDER BY completedAtMillis DESC LIMIT :limit")
     fun observeFeed(crewId: String, limit: Int): Flow<List<CrewFeedEntity>>

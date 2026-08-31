@@ -1,23 +1,21 @@
 package com.mehmetbozkurt.questlog
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
+import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.core.designsystem.theme.QuestLogTheme
@@ -40,18 +38,13 @@ class MainActivity : AppCompatActivity() {
     private val pendingLogId = mutableStateOf<String?>(null)
     private val openCrewChat = mutableStateOf(false)
 
-    private val notificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         pendingLogId.value = intent?.getStringExtra(ReminderReceiver.EXTRA_LOG_ID)
         openCrewChat.value =
             intent?.getBooleanExtra(CrewMessageNotifier.EXTRA_OPEN_CREW_CHAT, false) == true
-        requestNotificationPermissionIfNeeded()
 
         splashScreen.setKeepOnScreenCondition {
             splashViewModel.startDestination.value == StartDestination.Loading
@@ -64,12 +57,27 @@ class MainActivity : AppCompatActivity() {
             val palette by settingsRepository.observePalette()
                 .collectAsStateWithLifecycle(initialValue = AppPalette.Default)
 
+            val darkTheme = when (theme) {
+                ThemePreference.SYSTEM -> isSystemInDarkTheme()
+                ThemePreference.LIGHT -> false
+                ThemePreference.DARK -> true
+            }
+
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        LIGHT_NAV_SCRIM,
+                        DARK_NAV_SCRIM,
+                    ) { darkTheme },
+                )
+            }
+
             QuestLogTheme(
-                darkTheme = when (theme) {
-                    ThemePreference.SYSTEM -> isSystemInDarkTheme()
-                    ThemePreference.LIGHT -> false
-                    ThemePreference.DARK -> true
-                },
+                darkTheme = darkTheme,
                 palette = palette,
             ) {
                 Surface(
@@ -105,14 +113,8 @@ class MainActivity : AppCompatActivity() {
             intent.getBooleanExtra(CrewMessageNotifier.EXTRA_OPEN_CREW_CHAT, false)
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val granted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED
-        if (!granted) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
+    private companion object {
+        const val LIGHT_NAV_SCRIM = 0xE6FFFFFF.toInt()
+        const val DARK_NAV_SCRIM = 0x801B1B1B.toInt()
     }
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +25,6 @@ class SplashViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            delay(400)
             _startDestination.value = if (authRepository.currentUserSync() != null) StartDestination.Home else StartDestination.Auth
         }
     }

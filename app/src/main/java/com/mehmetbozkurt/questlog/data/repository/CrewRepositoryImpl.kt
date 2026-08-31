@@ -6,6 +6,7 @@ import com.mehmetbozkurt.questlog.core.common.IoDispatcher
 import com.mehmetbozkurt.questlog.core.common.startOfTodayMillis
 import com.mehmetbozkurt.questlog.core.database.dao.CharacterDao
 import com.mehmetbozkurt.questlog.core.database.dao.CrewDao
+import com.mehmetbozkurt.questlog.core.database.entity.CharacterEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewFeedEntity
 import com.mehmetbozkurt.questlog.core.database.entity.CrewMemberEntity
@@ -14,6 +15,7 @@ import com.mehmetbozkurt.questlog.core.database.entity.SyncState
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
 import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.data.remote.CrewRemoteDataSource
+import com.mehmetbozkurt.questlog.domain.model.AppUser
 import com.mehmetbozkurt.questlog.domain.model.Crew
 import com.mehmetbozkurt.questlog.domain.model.CrewFeedItem
 import com.mehmetbozkurt.questlog.domain.model.CrewMember
@@ -212,10 +214,106 @@ class CrewRepositoryImpl @Inject constructor(
         val character = characterDao.getCharacter(user.uid)
             ?: return@withContext CrewActionResult.Failed(CrewFailure.NO_CHARACTER)
         val crewId = character.crewId ?: return@withContext CrewActionResult.NotInCrew
+        val crew = crewDao.getCrew(crewId)
+
+        if (crew != null && crew.ownerId == user.uid) {
+            val successor = crew.memberIds.firstOrNull { it != user.uid }
+            val handover = if (successor != null) {
+                runCatching {
+                    crewRemote.updateCrewFields(crewId, mapOf("ownerId" to successor))
+                }
+            } else {
+                runCatching {
+                    crewRemote.deleteInviteCode(crew.inviteCode)
+                }
+            }
+            handover.onFailure { return@withContext it.toCrewFailure("owner handover") }
+        }
 
         runCatching { crewRemote.leaveCrew(crewId, user.uid) }
             .onFailure { return@withContext it.toCrewFailure("leave") }
 
+        if (crew != null && crew.ownerId == user.uid && crew.memberIds.size <= 1) {
+            crewRemote.deleteCrew(crewId)
+        }
+
+        clearLocalCrew(crewId, character)
+        CrewActionResult.Success
+    }
+
+    override suspend fun kickMember(userId: String): CrewActionResult = withContext(io) {
+        val (user, crew) = ownedCrew() ?: return@withContext ownershipFailure()
+        if (userId == user.uid) return@withContext CrewActionResult.NotOwner
+        if (userId !in crew.memberIds) return@withContext CrewActionResult.MemberNotFound
+
+        runCatching { crewRemote.removeMember(crew.crewId, userId) }
+            .onFailure { return@withContext it.toCrewFailure("kick") }
+
+        crewDao.deleteMember(userId)
+        syncScheduler.requestSync()
+        CrewActionResult.Success
+    }
+
+    override suspend fun transferOwnership(userId: String): CrewActionResult = withContext(io) {
+        val (user, crew) = ownedCrew() ?: return@withContext ownershipFailure()
+        if (userId == user.uid) return@withContext CrewActionResult.Success
+        if (userId !in crew.memberIds) return@withContext CrewActionResult.MemberNotFound
+
+        runCatching { crewRemote.updateCrewFields(crew.crewId, mapOf("ownerId" to userId)) }
+            .onFailure { return@withContext it.toCrewFailure("transfer") }
+
+        crewDao.upsertCrew(crew.copy(ownerId = userId))
+        CrewActionResult.Success
+    }
+
+    override suspend fun renameCrew(name: String): CrewActionResult = withContext(io) {
+        val (_, crew) = ownedCrew() ?: return@withContext ownershipFailure()
+        val trimmed = name.trim()
+        if (trimmed.length !in CrewRules.NAME_MIN_LENGTH..CrewRules.NAME_MAX_LENGTH) {
+            return@withContext CrewActionResult.InvalidName
+        }
+
+        runCatching { crewRemote.updateCrewFields(crew.crewId, mapOf("name" to trimmed)) }
+            .onFailure { return@withContext it.toCrewFailure("rename") }
+
+        crewDao.upsertCrew(crew.copy(name = trimmed))
+        CrewActionResult.Success
+    }
+
+    override suspend fun regenerateInviteCode(): CrewActionResult = withContext(io) {
+        val (_, crew) = ownedCrew() ?: return@withContext ownershipFailure()
+        val fresh = CrewRules.generateInviteCode()
+
+        runCatching {
+            crewRemote.createInviteCode(fresh, crew.crewId)
+            crewRemote.updateCrewFields(crew.crewId, mapOf("inviteCode" to fresh))
+            crewRemote.deleteInviteCode(crew.inviteCode)
+        }.onFailure { return@withContext it.toCrewFailure("regenerate code") }
+
+        crewDao.upsertCrew(crew.copy(inviteCode = fresh))
+        CrewActionResult.Success
+    }
+
+    override suspend fun handleEviction() = withContext(io) {
+        val user = authRepository.currentUserSync() ?: return@withContext
+        val character = characterDao.getCharacter(user.uid) ?: return@withContext
+        val crewId = character.crewId ?: return@withContext
+        Log.w(TAG, "Crew access lost, clearing local crew state")
+        clearLocalCrew(crewId, character)
+    }
+
+    private suspend fun ownedCrew(): Pair<AppUser, CrewEntity>? {
+        val user = authRepository.currentUserSync() ?: return null
+        val character = characterDao.getCharacter(user.uid) ?: return null
+        val crewId = character.crewId ?: return null
+        val crew = crewDao.getCrew(crewId) ?: return null
+        if (crew.ownerId != user.uid) return null
+        return user to crew
+    }
+
+    private fun ownershipFailure(): CrewActionResult = CrewActionResult.NotOwner
+
+    private suspend fun clearLocalCrew(crewId: String, character: CharacterEntity) {
         crewDao.deleteFeedForCrew(crewId)
         crewDao.deleteMessagesForCrew(crewId)
         crewDao.deleteMembersForCrew(crewId)
@@ -228,7 +326,6 @@ class CrewRepositoryImpl @Inject constructor(
             )
         )
         syncScheduler.requestSync()
-        CrewActionResult.Success
     }
 
     override suspend fun approve(entryId: String): ApproveResult = withContext(io) {
@@ -294,6 +391,7 @@ class CrewRepositoryImpl @Inject constructor(
                 level = XpCurve.levelFromTotalXp(character.totalXp).level,
                 totalXp = character.totalXp,
                 currentStreak = streak.currentStreak,
+                photoUrl = user.photoUrl,
                 updatedAtMillis = System.currentTimeMillis(),
                 syncState = SyncState.PENDING.name,
             )
@@ -315,6 +413,7 @@ class CrewRepositoryImpl @Inject constructor(
         level = level,
         totalXp = totalXp,
         currentStreak = currentStreak,
+        photoUrl = photoUrl,
     )
 
     private fun CrewFeedEntity.toDomain() = CrewFeedItem(

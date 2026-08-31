@@ -20,8 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.IconButton
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.levelRankRes
+import com.mehmetbozkurt.questlog.core.designsystem.component.Avatar
 import com.mehmetbozkurt.questlog.core.designsystem.component.LevelMedallion
 import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
 import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
@@ -36,7 +39,10 @@ fun CrewMemberRow(
     member: CrewMember,
     rank: Int,
     isSelf: Boolean,
+    isOwner: Boolean,
+    showMenuButton: Boolean,
     onClick: () -> Unit,
+    onMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val rankColor = when (rank) {
@@ -75,6 +81,14 @@ fun CrewMemberRow(
 
             Spacer(Modifier.width(Spacing.sm))
 
+            Avatar(
+                name = member.displayName,
+                photoUrl = member.photoUrl,
+                size = 36.dp,
+            )
+
+            Spacer(Modifier.width(Spacing.sm))
+
             LevelMedallion(
                 level = member.level,
                 progress = fraction,
@@ -94,17 +108,36 @@ fun CrewMemberRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = stringResource(
-                        R.string.character_level_rank,
-                        member.level,
-                        stringResource(levelRankRes(member.level)),
-                    ),
+                    text = if (isOwner) {
+                        stringResource(R.string.crew_owner_badge) + " · " + stringResource(
+                            R.string.character_level_rank,
+                            member.level,
+                            stringResource(levelRankRes(member.level)),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.character_level_rank,
+                            member.level,
+                            stringResource(levelRankRes(member.level)),
+                        )
+                    },
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isOwner) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             Spacer(Modifier.width(Spacing.sm))
+
+            if (showMenuButton) {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.crew_member_actions),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
 
             Column(horizontalAlignment = Alignment.End) {
                 DataValue(

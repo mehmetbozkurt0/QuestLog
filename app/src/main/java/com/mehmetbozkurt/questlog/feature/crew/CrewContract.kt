@@ -30,8 +30,21 @@ data class CrewState(
     val showLeaveDialog: Boolean = false,
     val crewNameInput: String = "",
     val joinCodeInput: String = "",
+    val memberMenuFor: CrewMember? = null,
+    val kickTarget: CrewMember? = null,
+    val transferTarget: CrewMember? = null,
+    val showRenameDialog: Boolean = false,
+    val showRegenerateDialog: Boolean = false,
+    val renameInput: String = "",
 ) : UiState {
     val inCrew: Boolean get() = crew != null
+
+    val isOwner: Boolean get() = crew != null && crew.ownerId == ownUserId
+
+    val canRename: Boolean
+        get() = !isWorking &&
+                renameInput.trim().length >= CrewRules.NAME_MIN_LENGTH &&
+                renameInput.trim() != crew?.name
 
     val canCreate: Boolean
         get() = !isWorking && crewNameInput.trim().length >= 3
@@ -63,6 +76,17 @@ sealed interface CrewEvent : UiEvent {
     data object LeaveConfirmed : CrewEvent
     data class ApproveClicked(val entryId: String) : CrewEvent
     data object InviteCodeCopied : CrewEvent
+    data class MemberMenuRequested(val member: CrewMember?) : CrewEvent
+    data class KickRequested(val member: CrewMember?) : CrewEvent
+    data object KickConfirmed : CrewEvent
+    data class TransferRequested(val member: CrewMember?) : CrewEvent
+    data object TransferConfirmed : CrewEvent
+    data class RenameDialogToggled(val show: Boolean) : CrewEvent
+    data class RenameInputChanged(val value: String) : CrewEvent
+    data object RenameConfirmed : CrewEvent
+    data class RegenerateDialogToggled(val show: Boolean) : CrewEvent
+    data object RegenerateConfirmed : CrewEvent
+    data object InviteCodeShared : CrewEvent
     data class TabSelected(val tab: CrewTab) : CrewEvent
     data class MessageInputChanged(val value: String) : CrewEvent
     data object MessageSent : CrewEvent
@@ -72,4 +96,5 @@ sealed interface CrewEvent : UiEvent {
 sealed interface CrewEffect : UiEffect {
     data class ShowMessage(val text: UiText) : CrewEffect
     data class CopyToClipboard(val text: String) : CrewEffect
+    data class ShareInvite(val crewName: String, val code: String) : CrewEffect
 }
