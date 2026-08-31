@@ -20,6 +20,9 @@ interface PathwayDao {
     @Query("SELECT * FROM pathways WHERE id = :id")
     suspend fun getPathway(id: String): PathwayEntity?
 
+    @Query("SELECT pathwayId, COUNT(*) AS total FROM pathway_quests GROUP BY pathwayId")
+    fun observeQuestCounts(): Flow<List<PathwayQuestCount>>
+
     @Query("SELECT * FROM pathway_quests WHERE pathwayId = :pathwayId ORDER BY stage ASC, sortOrder ASC")
     fun observeQuestsFor(pathwayId: String): Flow<List<PathwayQuestEntity>>
 
@@ -96,3 +99,8 @@ interface PathwayDao {
     @Query("SELECT * FROM pathway_quest_completions WHERE userId = :userId")
     suspend fun getCompletionsSnapshot(userId: String): List<PathwayQuestCompletionEntity>
 }
+
+data class PathwayQuestCount(
+    val pathwayId: String,
+    val total: Int,
+)

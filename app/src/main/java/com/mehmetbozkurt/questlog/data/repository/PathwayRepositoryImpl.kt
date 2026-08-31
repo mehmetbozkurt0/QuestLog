@@ -88,6 +88,11 @@ class PathwayRepositoryImpl @Inject constructor(
             }
         }
 
+    override fun observeQuestCounts(): Flow<Map<String, Int>> =
+        dao.observeQuestCounts().map { rows ->
+            rows.associate { it.pathwayId to it.total }
+        }
+
     override suspend fun detailSnapshot(pathwayId: String): PathwayDetail? =
         withContext(io) {
             val user = authRepository.currentUserSync() ?: return@withContext null

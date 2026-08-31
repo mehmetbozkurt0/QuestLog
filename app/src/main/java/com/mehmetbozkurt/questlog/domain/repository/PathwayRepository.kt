@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface PathwayRepository {
     fun observePathways(): Flow<List<Pathway>>
     fun observeProgress(): Flow<List<PathwayProgress>>
+    fun observeQuestCounts(): Flow<Map<String, Int>>
     fun observeDetail(pathwayId: String): Flow<PathwayDetail?>
 
     suspend fun detailSnapshot(pathwayId: String): PathwayDetail?

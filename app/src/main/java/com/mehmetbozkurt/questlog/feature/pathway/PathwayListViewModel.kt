@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,7 +18,8 @@ class PathwayListViewModel @Inject constructor(
         combine(
             repository.observePathways(),
             repository.observeProgress(),
-        ) { pathways, progressList ->
+            repository.observeQuestCounts(),
+        ) { pathways, progressList, questCounts ->
             val progressMap = progressList.associateBy { it.pathwayId }
             val titleMap = pathways.associate { it.id to it.title }
 
@@ -27,35 +27,22 @@ class PathwayListViewModel @Inject constructor(
                 val required = pathway.requiredPathwayId
                 val locked = required != null &&
                         progressMap[required]?.isCompleted != true
+                val progress = progressMap[pathway.id]
+                val started = progress != null
+                val detail = if (started) repository.detailSnapshot(pathway.id) else null
 
                 PathwayListItem(
                     pathway = pathway,
-                    progress = progressMap[pathway.id],
+                    progress = progress,
                     isLocked = locked,
                     requiredPathwayTitle = required?.let { titleMap[it] },
-                )
-            }
-        }
-            .onEach { items -> publish(items) }
-            .launchIn(viewModelScope)
-    }
-
-    private fun publish(items: List<PathwayListItem>) {
-        setState { copy(items = items, isLoading = false) }
-
-        if (items.none { it.isActive }) return
-
-        viewModelScope.launch {
-            val enriched = items.map { item ->
-                if (!item.isActive) return@map item
-                val detail = repository.detailSnapshot(item.pathway.id)
-                item.copy(
                     completedQuests = detail?.completedQuests ?: 0,
-                    totalQuests = detail?.totalQuests ?: 0,
+                    totalQuests = detail?.totalQuests ?: questCounts[pathway.id] ?: 0,
                 )
             }
-            setState { copy(items = enriched) }
         }
+            .onEach { items -> setState { copy(items = items, isLoading = false) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: PathwayListEvent) {
