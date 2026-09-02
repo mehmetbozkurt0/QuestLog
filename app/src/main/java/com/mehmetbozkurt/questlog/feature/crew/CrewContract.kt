@@ -24,6 +24,7 @@ data class CrewState(
     val hasMentorFeat: Boolean = false,
     val approvalsToday: Int = 0,
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val isWorking: Boolean = false,
     val showCreateDialog: Boolean = false,
     val showJoinDialog: Boolean = false,
@@ -66,6 +67,7 @@ data class CrewState(
 }
 
 sealed interface CrewEvent : UiEvent {
+    data object Refresh : CrewEvent
     data class CreateDialogToggled(val show: Boolean) : CrewEvent
     data class JoinDialogToggled(val show: Boolean) : CrewEvent
     data class LeaveDialogToggled(val show: Boolean) : CrewEvent

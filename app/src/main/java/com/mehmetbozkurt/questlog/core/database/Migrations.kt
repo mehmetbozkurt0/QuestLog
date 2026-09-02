@@ -3,6 +3,21 @@ package com.mehmetbozkurt.questlog.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean =
+    query("PRAGMA table_info(`$table`)").use { cursor ->
+        val nameIndex = cursor.getColumnIndexOrThrow("name")
+        while (cursor.moveToNext()) {
+            if (cursor.getString(nameIndex) == column) return true
+        }
+        false
+    }
+
+private fun SupportSQLiteDatabase.addColumnIfMissing(table: String, column: String, type: String) {
+    if (!hasColumn(table, column)) {
+        execSQL("ALTER TABLE `$table` ADD COLUMN `$column` $type")
+    }
+}
+
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
 
@@ -144,12 +159,14 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         """)
         db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_quest_completions_userId ON pathway_quest_completions(userId)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_pathway_quest_completions_questId ON pathway_quest_completions(questId)")
+
+        db.addColumnIfMissing("quest_logs", "pathwayQuestId", "TEXT")
     }
 }
 
 val MIGRATION_4_5 = object : Migration(4, 5) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE quest_logs ADD COLUMN pathwayQuestId TEXT")
+        db.addColumnIfMissing("quest_logs", "pathwayQuestId", "TEXT")
     }
 }
 

@@ -4,6 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.common.toCelebration
 import com.mehmetbozkurt.questlog.core.common.toUserMessage
+import com.mehmetbozkurt.questlog.core.common.withMinimumDuration
+import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
+import com.mehmetbozkurt.questlog.domain.repository.CatalogRepository
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import com.mehmetbozkurt.questlog.domain.repository.QuestLogRepository
@@ -19,7 +22,9 @@ import javax.inject.Inject
 class QuestLogListViewModel @Inject constructor(
     private val repository: QuestLogRepository,
     characterRepository: CharacterRepository,
-    private val pathwayRepository: PathwayRepository
+    private val pathwayRepository: PathwayRepository,
+    private val catalogRepository: CatalogRepository,
+    private val syncScheduler: SyncScheduler,
 ): MviViewModel<QuestLogListState, QuestLogListEvent, QuestLogListEffect> (
     QuestLogListState()
 ) {
@@ -56,6 +61,19 @@ class QuestLogListViewModel @Inject constructor(
     }
 
 
+    private fun refresh() {
+        if (currentState.isRefreshing) return
+        setState { copy(isRefreshing = true) }
+        viewModelScope.launch {
+            withMinimumDuration {
+                pathwayRepository.refreshCatalog()
+                catalogRepository.refreshCatalog()
+                syncScheduler.requestSync()
+            }
+            setState { copy(isRefreshing = false) }
+        }
+    }
+
     private fun loadPathwayCounts(summaries: List<ActivePathwaySummary>) {
         if (summaries.isEmpty()) {
             setState { copy(activePathways = emptyList()) }
@@ -78,6 +96,8 @@ class QuestLogListViewModel @Inject constructor(
         when (event) {
             is QuestLogListEvent.LogClicked ->
                 sendEffect(QuestLogListEffect.NavigateToDetail(event.id))
+
+            QuestLogListEvent.Refresh -> refresh()
 
             QuestLogListEvent.CatalogClicked ->
                 sendEffect(QuestLogListEffect.NavigateToCatalog)

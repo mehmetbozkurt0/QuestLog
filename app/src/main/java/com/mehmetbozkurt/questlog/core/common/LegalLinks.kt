@@ -5,4 +5,6 @@ object LegalLinks {
     const val PRIVACY_POLICY = SITE + "privacy.html"
     const val DELETE_ACCOUNT = SITE + "delete-account.html"
     const val SUPPORT_EMAIL = "mehmet.64.b@gmail.com"
+    const val PLAY_STORE =
+        "https://play.google.com/store/apps/details?id=com.mehmetbozkurt.questlog"
 }

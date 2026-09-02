@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -57,6 +58,7 @@ import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
+import com.mehmetbozkurt.questlog.core.designsystem.rememberAppHaptics
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.Eyebrow
 import com.mehmetbozkurt.questlog.core.designsystem.component.GlassPanel
@@ -90,6 +92,7 @@ fun QuestLogListRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val haptics = rememberAppHaptics()
     var celebration by remember { mutableStateOf<Celebration?>(null) }
 
     LaunchedEffect(Unit) {
@@ -104,8 +107,10 @@ fun QuestLogListRoute(
                 QuestLogListEffect.NavigateToCharacter -> onNavigateToCharacter()
                 is QuestLogListEffect.ShowXpMessage ->
                     snackbarHostState.showSnackbar(effect.text.resolve(context))
-                is QuestLogListEffect.ShowCelebration ->
+                is QuestLogListEffect.ShowCelebration -> {
+                    haptics.confirm()
                     celebration = effect.celebration
+                }
             }
         }
     }
@@ -147,150 +152,158 @@ fun QuestLogListScreen(
             return@Scaffold
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = Spacing.screen,
-                end = Spacing.screen,
-                top = padding.calculateTopPadding() + Spacing.lg,
-                bottom = padding.calculateBottomPadding() + Spacing.xxl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { onEvent(QuestLogListEvent.Refresh) },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding()),
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = Spacing.screen,
+                    end = Spacing.screen,
+                    top = Spacing.lg,
+                    bottom = padding.calculateBottomPadding() + Spacing.xxl,
+                ),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md),
+            ) {
 
-            if (state.character != null) {
-                item(key = "character") {
-                    CharacterSummaryCard(
-                        character = state.character,
-                        progress = state.levelProgress,
-                        streak = state.streak,
-                        onClick = { onEvent(QuestLogListEvent.CharacterClicked) },
-                    )
-                }
-            }
-
-            item(key = "search") {
-                SearchRow(
-                    query = state.searchQuery,
-                    filterCount = state.activeFilterCount,
-                    onQueryChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
-                    onFilterClick = { onEvent(QuestLogListEvent.FilterSheetToggled(true)) },
-                )
-            }
-
-            if (state.showHeaderSections) {
-                item(key = "pathway_header") {
-                    Heading(stringResource(R.string.questlog_active_pathways))
-                }
-                if (state.activePathways.isNotEmpty()) {
-                    gridItems(state.activePathways, key = { it.pathway.id }) { summary ->
-                        PathwayGridCard(
-                            title = summary.pathway.title,
-                            stat = summary.pathway.primaryStat,
-                            caption = "${(summary.fraction * 100).roundToInt()}%",
-                            progress = summary.fraction,
-                            accented = true,
-                            onClick = {
-                                onEvent(QuestLogListEvent.PathwayClicked(summary.pathway.id))
-                            },
-                        )
-                    }
-                } else {
-                    item(key = "pathway_cta") {
-                        CtaCard(
-                            icon = Icons.Default.Explore,
-                            title = stringResource(R.string.questlog_pathway_cta_title),
-                            body = stringResource(R.string.questlog_pathway_cta_body),
-                            onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
+                if (state.character != null) {
+                    item(key = "character") {
+                        CharacterSummaryCard(
+                            character = state.character,
+                            progress = state.levelProgress,
+                            streak = state.streak,
+                            onClick = { onEvent(QuestLogListEvent.CharacterClicked) },
                         )
                     }
                 }
 
-                item(key = "daily_header") {
-                    Heading(stringResource(R.string.questlog_daily_header))
-                }
-
-                item(key = "habits_header") {
-                    LabelRow(
-                        label = stringResource(R.string.questlog_habits_header),
-                        value = "${state.habitSlots.count { !it.isEmpty }}/${HabitRules.MAX_SLOTS}",
-                    )
-                }
-                items(state.habitSlots, key = { "habit_${it.index}" }) { slot ->
-                    HabitSlotCard(
-                        slot = slot,
-                        onClick = { onEvent(QuestLogListEvent.HabitSlotClicked(slot.index)) },
-                        onToggleCompleted = { checked ->
-                            slot.quest?.let {
-                                onEvent(QuestLogListEvent.CompletionToggled(it.id, checked))
-                            }
-                        },
-                        onClear = { onEvent(QuestLogListEvent.HabitClearRequested(slot.index)) },
-                        modifier = Modifier.animateItem(),
+                item(key = "search") {
+                    SearchRow(
+                        query = state.searchQuery,
+                        filterCount = state.activeFilterCount,
+                        onQueryChange = { onEvent(QuestLogListEvent.SearchChanged(it)) },
+                        onFilterClick = { onEvent(QuestLogListEvent.FilterSheetToggled(true)) },
                     )
                 }
 
-                item(key = "catalog_cta") {
-                    CtaCard(
-                        icon = Icons.AutoMirrored.Filled.MenuBook,
-                        title = stringResource(R.string.catalog_entry_title),
-                        body = stringResource(R.string.catalog_entry_body),
-                        onClick = { onEvent(QuestLogListEvent.CatalogClicked) },
-                    )
-                }
-            }
+                if (state.showHeaderSections) {
+                    item(key = "pathway_header") {
+                        Heading(stringResource(R.string.questlog_active_pathways))
+                    }
+                    if (state.activePathways.isNotEmpty()) {
+                        gridItems(state.activePathways, key = { it.pathway.id }) { summary ->
+                            PathwayGridCard(
+                                title = summary.pathway.title,
+                                stat = summary.pathway.primaryStat,
+                                caption = "${(summary.fraction * 100).roundToInt()}%",
+                                progress = summary.fraction,
+                                accented = true,
+                                onClick = {
+                                    onEvent(QuestLogListEvent.PathwayClicked(summary.pathway.id))
+                                },
+                            )
+                        }
+                    } else {
+                        item(key = "pathway_cta") {
+                            CtaCard(
+                                icon = Icons.Default.Explore,
+                                title = stringResource(R.string.questlog_pathway_cta_title),
+                                body = stringResource(R.string.questlog_pathway_cta_body),
+                                onClick = { onEvent(QuestLogListEvent.PathwaysClicked) },
+                            )
+                        }
+                    }
 
-            if (state.isEmptyBecauseOfFilters) {
-                item(key = "empty") {
-                    EmptyState(
-                        icon = Icons.Default.SearchOff,
-                        title = stringResource(R.string.questlog_empty_filtered_title),
-                        body = stringResource(R.string.questlog_empty_filtered_body),
-                        actionLabel = stringResource(R.string.questlog_empty_filtered_action),
-                        onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
-                    )
-                }
-            } else if (!state.isEmpty) {
-                if (state.activeLogs.isNotEmpty()) {
-                    item(key = "active_header") {
+                    item(key = "daily_header") {
+                        Heading(stringResource(R.string.questlog_daily_header))
+                    }
+
+                    item(key = "habits_header") {
                         LabelRow(
-                            label = stringResource(
-                                if (state.isSearching) R.string.questlog_results_header
-                                else R.string.questlog_active_header
-                            ),
-                            value = "${state.activeLogs.size}",
+                            label = stringResource(R.string.questlog_habits_header),
+                            value = "${state.habitSlots.count { !it.isEmpty }}/${HabitRules.MAX_SLOTS}",
                         )
                     }
-                    items(state.activeLogs, key = { it.id }) { log ->
-                        QuestLogCard(
-                            log = log,
-                            onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
+                    items(state.habitSlots, key = { "habit_${it.index}" }) { slot ->
+                        HabitSlotCard(
+                            slot = slot,
+                            onClick = { onEvent(QuestLogListEvent.HabitSlotClicked(slot.index)) },
                             onToggleCompleted = { checked ->
-                                onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+                                slot.quest?.let {
+                                    onEvent(QuestLogListEvent.CompletionToggled(it.id, checked))
+                                }
                             },
+                            onClear = { onEvent(QuestLogListEvent.HabitClearRequested(slot.index)) },
                             modifier = Modifier.animateItem(),
                         )
                     }
-                }
 
-                if (state.completedLogs.isNotEmpty()) {
-                    item(key = "completed_header") {
-                        LabelRow(
-                            label = stringResource(R.string.questlog_completed_header),
-                            value = "${state.completedLogs.size}",
+                    item(key = "catalog_cta") {
+                        CtaCard(
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            title = stringResource(R.string.catalog_entry_title),
+                            body = stringResource(R.string.catalog_entry_body),
+                            onClick = { onEvent(QuestLogListEvent.CatalogClicked) },
                         )
                     }
-                    items(state.completedLogs, key = { it.id }) { log ->
-                        QuestLogCard(
-                            log = log,
-                            onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
-                            onToggleCompleted = { checked ->
-                                onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
-                            },
-                            modifier = Modifier
-                                .animateItem()
-                                .alpha(0.6f),
+                }
+
+                if (state.isEmptyBecauseOfFilters) {
+                    item(key = "empty") {
+                        EmptyState(
+                            icon = Icons.Default.SearchOff,
+                            title = stringResource(R.string.questlog_empty_filtered_title),
+                            body = stringResource(R.string.questlog_empty_filtered_body),
+                            actionLabel = stringResource(R.string.questlog_empty_filtered_action),
+                            onAction = { onEvent(QuestLogListEvent.FiltersCleared) },
                         )
+                    }
+                } else if (!state.isEmpty) {
+                    if (state.activeLogs.isNotEmpty()) {
+                        item(key = "active_header") {
+                            LabelRow(
+                                label = stringResource(
+                                    if (state.isSearching) R.string.questlog_results_header
+                                    else R.string.questlog_active_header
+                                ),
+                                value = "${state.activeLogs.size}",
+                            )
+                        }
+                        items(state.activeLogs, key = { it.id }) { log ->
+                            QuestLogCard(
+                                log = log,
+                                onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
+                                onToggleCompleted = { checked ->
+                                    onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+                                },
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
+                    }
+
+                    if (state.completedLogs.isNotEmpty()) {
+                        item(key = "completed_header") {
+                            LabelRow(
+                                label = stringResource(R.string.questlog_completed_header),
+                                value = "${state.completedLogs.size}",
+                            )
+                        }
+                        items(state.completedLogs, key = { it.id }) { log ->
+                            QuestLogCard(
+                                log = log,
+                                onClick = { onEvent(QuestLogListEvent.LogClicked(log.id)) },
+                                onToggleCompleted = { checked ->
+                                    onEvent(QuestLogListEvent.CompletionToggled(log.id, checked))
+                                },
+                                modifier = Modifier
+                                    .animateItem()
+                                    .alpha(0.6f),
+                            )
+                        }
                     }
                 }
             }

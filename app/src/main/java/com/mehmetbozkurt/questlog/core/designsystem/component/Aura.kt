@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.mehmetbozkurt.questlog.core.designsystem.rememberAppHaptics
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.theme.extendedColors
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
@@ -309,6 +310,7 @@ fun AuraCheckbox(
         label = "checkScale",
     )
     val interaction = remember { MutableInteractionSource() }
+    val haptics = rememberAppHaptics()
     Box(
         modifier
             .size(24.dp)
@@ -323,7 +325,10 @@ fun AuraCheckbox(
                 enabled = enabled,
                 interactionSource = interaction,
                 indication = null,
-                onClick = onCheckedChange,
+                onClick = {
+                    if (checked) haptics.toggleOff() else haptics.toggleOn()
+                    onCheckedChange()
+                },
             )
             .drawBehind {
                 if (scale <= 0.01f) return@drawBehind

@@ -13,7 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
@@ -36,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mehmetbozkurt.questlog.BuildConfig
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.mehmetbozkurt.questlog.core.designsystem.component.SectionTitle
@@ -50,7 +51,10 @@ import com.mehmetbozkurt.questlog.core.designsystem.component.IconTile
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.ui.platform.LocalUriHandler
+import com.mehmetbozkurt.questlog.BuildConfig
 import com.mehmetbozkurt.questlog.core.common.LegalLinks
+import com.mehmetbozkurt.questlog.core.common.LicenseEntry
+import com.mehmetbozkurt.questlog.core.common.OpenSourceLicenses
 import android.net.Uri
 import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -148,6 +152,14 @@ fun ProfileScreen(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val uriHandler = LocalUriHandler.current
+    var showLicenses by remember { mutableStateOf(false) }
+
+    if (showLicenses) {
+        LicensesSheet(
+            onOpen = { uriHandler.openUri(it) },
+            onDismiss = { showLicenses = false },
+        )
+    }
 
     if (state.showEditSheet) {
         ProfileEditSheet(
@@ -348,6 +360,27 @@ fun ProfileScreen(
                 title = stringResource(R.string.profile_support),
                 subtitle = LegalLinks.SUPPORT_EMAIL,
                 onClick = { uriHandler.openUri("mailto:" + LegalLinks.SUPPORT_EMAIL) },
+            )
+
+            Spacer(Modifier.height(Spacing.xl))
+
+            SectionTitle(text = stringResource(R.string.profile_section_about))
+            Spacer(Modifier.height(Spacing.md))
+
+            LinkRow(
+                icon = Icons.Default.StarRate,
+                title = stringResource(R.string.profile_rate_app),
+                subtitle = stringResource(R.string.profile_rate_app_desc),
+                onClick = { uriHandler.openUri(LegalLinks.PLAY_STORE) },
+            )
+
+            Spacer(Modifier.height(Spacing.md))
+
+            LinkRow(
+                icon = Icons.Default.Code,
+                title = stringResource(R.string.profile_licenses),
+                subtitle = stringResource(R.string.profile_licenses_desc),
+                onClick = { showLicenses = true },
             )
 
             Spacer(Modifier.height(Spacing.xl))
@@ -597,6 +630,76 @@ private fun IdentityCard(state: ProfileState, onEdit: () -> Unit) {
                     R.string.profile_member_since,
                     memberFormatter.format(created.atZone(ZoneId.systemDefault())),
                 ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LicensesSheet(
+    onOpen: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.screen)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Text(
+                text = stringResource(R.string.profile_licenses).uppercaseLocalized(),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Spacer(Modifier.height(Spacing.sm))
+
+            Text(
+                text = stringResource(R.string.profile_licenses_intro),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            OpenSourceLicenses.entries.forEach { entry ->
+                LicenseRow(entry = entry, onClick = { onOpen(entry.url) })
+                Spacer(Modifier.height(Spacing.sm))
+            }
+
+            Spacer(Modifier.height(Spacing.xxl))
+        }
+    }
+}
+
+@Composable
+private fun LicenseRow(
+    entry: LicenseEntry,
+    onClick: () -> Unit,
+) {
+    GlassPanel(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.md),
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(
+                text = entry.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = entry.license,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

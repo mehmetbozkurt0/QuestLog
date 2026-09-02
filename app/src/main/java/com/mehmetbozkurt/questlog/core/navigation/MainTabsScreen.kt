@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mehmetbozkurt.questlog.core.designsystem.component.ConnectionBanner
 import com.mehmetbozkurt.questlog.core.designsystem.component.ShellBottomBar
 import com.mehmetbozkurt.questlog.core.designsystem.component.ShellTab
 import com.mehmetbozkurt.questlog.core.designsystem.component.ShellTopBar
@@ -51,6 +53,7 @@ fun MainTabsScreen(
 ) {
     val unreadMessages by shellViewModel.unreadMessages.collectAsStateWithLifecycle()
     val header by shellViewModel.header.collectAsStateWithLifecycle()
+    val isOnline by shellViewModel.isOnline.collectAsStateWithLifecycle()
     val items = BottomNavItem.entries
     val pagerState = rememberPagerState(pageCount = { items.size })
     val scope = rememberCoroutineScope()
@@ -83,12 +86,15 @@ fun MainTabsScreen(
 
     Scaffold(
         topBar = {
-            ShellTopBar(
-                level = header.level,
-                levelProgress = header.levelProgress,
-                streak = header.streak,
-                onCrestClick = { goTo(BottomNavItem.CHARACTER) },
-            )
+            Column {
+                ShellTopBar(
+                    level = header.level,
+                    levelProgress = header.levelProgress,
+                    streak = header.streak,
+                    onCrestClick = { goTo(BottomNavItem.CHARACTER) },
+                )
+                ConnectionBanner(isOnline = isOnline)
+            }
         },
         bottomBar = {
             ShellBottomBar(

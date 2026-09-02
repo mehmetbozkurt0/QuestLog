@@ -236,6 +236,7 @@
     <string name="logedit_error_no_session">Oturum bulunamadı</string>
 
     <string name="common_back">Geri</string>
+    <string name="connection_offline">Çevrimdışı — değişiklikler sonra eşitlenecek</string>
     <string name="common_next">İleri</string>
     <string name="common_dismiss">İptal</string>
     <string name="common_ok">Tamam</string>
@@ -476,6 +477,12 @@
     <string name="profile_stat_longest_streak">En uzun seri</string>
     <string name="profile_stat_crew">Ekip</string>
     <string name="profile_section_legal">Yasal</string>
+    <string name="profile_section_about">Hakkında</string>
+    <string name="profile_rate_app">Uygulamayı değerlendir</string>
+    <string name="profile_rate_app_desc">Google Play sayfasında puan ver</string>
+    <string name="profile_licenses">Açık kaynak lisansları</string>
+    <string name="profile_licenses_desc">Kullanılan kütüphaneler ve yazı tipleri</string>
+    <string name="profile_licenses_intro">Renown aşağıdaki çalışmaların üzerine kuruldu. Proje sayfasını açmak için bir satıra dokun.</string>
     <string name="profile_privacy_policy">Gizlilik politikası</string>
     <string name="profile_privacy_policy_desc">Renown hangi verileri neden topluyor</string>
     <string name="profile_support">Destek</string>

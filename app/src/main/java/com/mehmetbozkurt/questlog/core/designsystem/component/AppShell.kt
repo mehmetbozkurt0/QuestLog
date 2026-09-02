@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.designsystem.rememberAppHaptics
 import com.mehmetbozkurt.questlog.core.designsystem.theme.Spacing
 import com.mehmetbozkurt.questlog.core.designsystem.uppercaseLocalized
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
@@ -221,6 +222,7 @@ private fun ShellTabItem(
     onClick: () -> Unit,
 ) {
     val lift by animateDpAsState(if (selected) (-2).dp else 0.dp, label = "tabLift")
+    val haptics = rememberAppHaptics()
     val tint = if (selected) MaterialTheme.colorScheme.primary
     else MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -235,7 +237,10 @@ private fun ShellTabItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick,
+                onClick = {
+                    if (!selected) haptics.tick()
+                    onClick()
+                },
             )
             .padding(vertical = 6.dp)
             .alpha(if (selected) 1f else 0.65f),

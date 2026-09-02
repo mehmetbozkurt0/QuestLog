@@ -26,6 +26,7 @@ data class PathwayListItem(
 data class PathwayListState(
     val items: List<PathwayListItem> = emptyList(),
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
 ) : UiState {
     val activeItems: List<PathwayListItem> get() = items.filter { it.isActive }
     val availableItems: List<PathwayListItem>
@@ -38,6 +39,7 @@ data class PathwayListState(
 
 sealed interface PathwayListEvent : UiEvent {
     data class PathwayClicked(val pathwayId: String) : PathwayListEvent
+    data object Refresh : PathwayListEvent
 }
 
 sealed interface PathwayListEffect : UiEffect {

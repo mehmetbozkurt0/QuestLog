@@ -53,6 +53,7 @@ data class QuestLogListState(
     val character: CharacterSheet? = null,
     val activePathways: List<ActivePathwaySummary> = emptyList(),
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val searchQuery: String = "",
     val completionFilter: CompletionFilter = CompletionFilter.ALL,
     val statFilter: StatType? = null,
@@ -150,6 +151,7 @@ sealed interface QuestLogListEvent : UiEvent {
     data object CatalogClicked : QuestLogListEvent
     data class PathwayClicked(val pathwayId: String) : QuestLogListEvent
     data object CharacterClicked : QuestLogListEvent
+    data object Refresh : QuestLogListEvent
 }
 
 sealed interface QuestLogListEffect : UiEffect {

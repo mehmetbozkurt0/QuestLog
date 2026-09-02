@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -233,158 +234,164 @@ fun CrewScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
 
-                    CrewTab.FEED -> LazyColumn(
+                    CrewTab.FEED -> PullToRefreshBox(
+                        isRefreshing = state.isRefreshing,
+                        onRefresh = { onEvent(CrewEvent.Refresh) },
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            start = Spacing.screen,
-                            end = Spacing.screen,
-                            top = Spacing.md,
-                            bottom = padding.calculateBottomPadding() + Spacing.xxl,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.md),
                     ) {
-                        item(key = "invite") {
-                            GlassPanel(
-                                onClick = { onEvent(CrewEvent.InviteCodeCopied) },
-                                containerColor = wellColor(),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(
-                                            state.crew?.name.orEmpty(),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                        )
-                                        Spacer(Modifier.height(Spacing.sm))
-                                        Text(
-                                            stringResource(R.string.crew_invite_code_field).uppercaseLocalized(),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Spacer(Modifier.height(Spacing.xs))
-                                        InviteCodeStamp(state.crew?.inviteCode.orEmpty())
-                                    }
-                                    IconButton(onClick = { onEvent(CrewEvent.InviteCodeShared) }) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                start = Spacing.screen,
+                                end = Spacing.screen,
+                                top = Spacing.md,
+                                bottom = padding.calculateBottomPadding() + Spacing.xxl,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+                        ) {
+                            item(key = "invite") {
+                                GlassPanel(
+                                    onClick = { onEvent(CrewEvent.InviteCodeCopied) },
+                                    containerColor = wellColor(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(
+                                                state.crew?.name.orEmpty(),
+                                                style = MaterialTheme.typography.titleLarge,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                            )
+                                            Spacer(Modifier.height(Spacing.sm))
+                                            Text(
+                                                stringResource(R.string.crew_invite_code_field).uppercaseLocalized(),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                            Spacer(Modifier.height(Spacing.xs))
+                                            InviteCodeStamp(state.crew?.inviteCode.orEmpty())
+                                        }
+                                        IconButton(onClick = { onEvent(CrewEvent.InviteCodeShared) }) {
+                                            Icon(
+                                                Icons.Default.Share,
+                                                contentDescription = stringResource(R.string.crew_share),
+                                                tint = MaterialTheme.colorScheme.primary,
+                                            )
+                                        }
                                         Icon(
-                                            Icons.Default.Share,
-                                            contentDescription = stringResource(R.string.crew_share),
+                                            Icons.Default.ContentCopy,
+                                            contentDescription = stringResource(R.string.crew_copy_code),
                                             tint = MaterialTheme.colorScheme.primary,
                                         )
                                     }
-                                    Icon(
-                                        Icons.Default.ContentCopy,
-                                        contentDescription = stringResource(R.string.crew_copy_code),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                    )
-                                }
 
-                                if (state.isOwner) {
-                                    Spacer(Modifier.height(Spacing.md))
-                                    Rule()
-                                    Spacer(Modifier.height(Spacing.sm))
-                                    Row {
-                                        TextButton(
-                                            onClick = {
-                                                onEvent(CrewEvent.RenameDialogToggled(true))
-                                            },
-                                        ) {
-                                            Text(
-                                                stringResource(R.string.crew_rename),
-                                                style = MaterialTheme.typography.bodySmall,
-                                            )
-                                        }
-                                        Spacer(Modifier.width(Spacing.sm))
-                                        TextButton(
-                                            onClick = {
-                                                onEvent(CrewEvent.RegenerateDialogToggled(true))
-                                            },
-                                        ) {
-                                            Text(
-                                                stringResource(R.string.crew_regenerate),
-                                                style = MaterialTheme.typography.bodySmall,
-                                            )
+                                    if (state.isOwner) {
+                                        Spacer(Modifier.height(Spacing.md))
+                                        Rule()
+                                        Spacer(Modifier.height(Spacing.sm))
+                                        Row {
+                                            TextButton(
+                                                onClick = {
+                                                    onEvent(CrewEvent.RenameDialogToggled(true))
+                                                },
+                                            ) {
+                                                Text(
+                                                    stringResource(R.string.crew_rename),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                )
+                                            }
+                                            Spacer(Modifier.width(Spacing.sm))
+                                            TextButton(
+                                                onClick = {
+                                                    onEvent(CrewEvent.RegenerateDialogToggled(true))
+                                                },
+                                            ) {
+                                                Text(
+                                                    stringResource(R.string.crew_regenerate),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        item(key = "members_header") {
-                            SectionTitle(
-                                text = stringResource(R.string.crew_members_header),
-                                modifier = Modifier.padding(top = Spacing.sm),
-                                trailing = {
-                                    DataValue(
-                                        text = stringResource(
-                                            R.string.crew_members_count,
-                                            state.members.size,
-                                            CrewRules.MAX_MEMBERS,
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                },
-                            )
-                        }
-
-                        itemsIndexed(
-                            state.members,
-                            key = { _, m -> "m_${m.userId}" },
-                        ) { index, member ->
-                            CrewMemberRow(
-                                member = member,
-                                rank = index + 1,
-                                isSelf = member.userId == state.ownUserId,
-                                isOwner = member.userId == state.crew?.ownerId,
-                                showMenuButton = state.isOwner &&
-                                        member.userId != state.ownUserId,
-                                onClick = { onNavigateToMember(member.userId) },
-                                onMenuClick = {
-                                    onEvent(CrewEvent.MemberMenuRequested(member))
-                                },
-                                modifier = Modifier.animateItem(),
-                            )
-                        }
-
-                        item(key = "feed_header") {
-                            SectionTitle(
-                                text = stringResource(R.string.crew_feed_header),
-                                icon = Icons.Default.Notifications,
-                                modifier = Modifier.padding(top = Spacing.lg),
-                                trailing = if (state.hasMentorFeat) {
-                                    {
+                            item(key = "members_header") {
+                                SectionTitle(
+                                    text = stringResource(R.string.crew_members_header),
+                                    modifier = Modifier.padding(top = Spacing.sm),
+                                    trailing = {
                                         DataValue(
                                             text = stringResource(
-                                                R.string.crew_approvals_left,
-                                                state.approvalsLeft,
+                                                R.string.crew_members_count,
+                                                state.members.size,
+                                                CrewRules.MAX_MEMBERS,
                                             ),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
-                                    }
-                                } else null,
-                            )
-                        }
-
-                        if (state.feed.isEmpty()) {
-                            item(key = "feed_empty") {
-                                Text(
-                                    stringResource(R.string.crew_feed_empty),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.lg),
+                                    },
                                 )
                             }
-                        } else {
-                            items(state.feed, key = { "f_${it.id}" }) { item ->
-                                FeedEntryCard(
-                                    item = item,
-                                    isMine = item.authorId == state.ownUserId,
-                                    canApprove = state.canApprove(item) && !state.isWorking,
-                                    approvedByMe = state.ownUserId in item.approvedBy,
-                                    onApprove = { onEvent(CrewEvent.ApproveClicked(item.id)) },
+
+                            itemsIndexed(
+                                state.members,
+                                key = { _, m -> "m_${m.userId}" },
+                            ) { index, member ->
+                                CrewMemberRow(
+                                    member = member,
+                                    rank = index + 1,
+                                    isSelf = member.userId == state.ownUserId,
+                                    isOwner = member.userId == state.crew?.ownerId,
+                                    showMenuButton = state.isOwner &&
+                                            member.userId != state.ownUserId,
+                                    onClick = { onNavigateToMember(member.userId) },
+                                    onMenuClick = {
+                                        onEvent(CrewEvent.MemberMenuRequested(member))
+                                    },
                                     modifier = Modifier.animateItem(),
                                 )
+                            }
+
+                            item(key = "feed_header") {
+                                SectionTitle(
+                                    text = stringResource(R.string.crew_feed_header),
+                                    icon = Icons.Default.Notifications,
+                                    modifier = Modifier.padding(top = Spacing.lg),
+                                    trailing = if (state.hasMentorFeat) {
+                                        {
+                                            DataValue(
+                                                text = stringResource(
+                                                    R.string.crew_approvals_left,
+                                                    state.approvalsLeft,
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    } else null,
+                                )
+                            }
+
+                            if (state.feed.isEmpty()) {
+                                item(key = "feed_empty") {
+                                    Text(
+                                        stringResource(R.string.crew_feed_empty),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.lg),
+                                    )
+                                }
+                            } else {
+                                items(state.feed, key = { "f_${it.id}" }) { item ->
+                                    FeedEntryCard(
+                                        item = item,
+                                        isMine = item.authorId == state.ownUserId,
+                                        canApprove = state.canApprove(item) && !state.isWorking,
+                                        approvedByMe = state.ownUserId in item.approvedBy,
+                                        onApprove = { onEvent(CrewEvent.ApproveClicked(item.id)) },
+                                        modifier = Modifier.animateItem(),
+                                    )
+                                }
                             }
                         }
                     }

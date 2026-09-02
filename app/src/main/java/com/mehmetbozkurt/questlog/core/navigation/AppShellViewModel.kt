@@ -2,6 +2,7 @@ package com.mehmetbozkurt.questlog.core.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mehmetbozkurt.questlog.core.network.ConnectivityObserver
 import com.mehmetbozkurt.questlog.domain.progression.StreakInfo
 import com.mehmetbozkurt.questlog.domain.repository.CharacterRepository
 import com.mehmetbozkurt.questlog.domain.repository.CrewRepository
@@ -22,10 +23,18 @@ data class AppHeaderState(
 class AppShellViewModel @Inject constructor(
     crewRepository: CrewRepository,
     characterRepository: CharacterRepository,
+    connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
 
     val unreadMessages: StateFlow<Int> = crewRepository.observeUnreadMessageCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    val isOnline: StateFlow<Boolean> = connectivityObserver.isOnline
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            connectivityObserver.isOnlineNow(),
+        )
 
     val header: StateFlow<AppHeaderState> = combine(
         characterRepository.observeCharacter(),

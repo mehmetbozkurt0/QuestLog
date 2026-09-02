@@ -2,16 +2,20 @@ package com.mehmetbozkurt.questlog.feature.pathway
 
 import androidx.lifecycle.viewModelScope
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
+import com.mehmetbozkurt.questlog.core.common.withMinimumDuration
+import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.domain.repository.PathwayRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PathwayListViewModel @Inject constructor(
     private val repository: PathwayRepository,
+    private val syncScheduler: SyncScheduler,
 ) : MviViewModel<PathwayListState, PathwayListEvent, PathwayListEffect>(PathwayListState()) {
 
     init {
@@ -49,6 +53,20 @@ class PathwayListViewModel @Inject constructor(
         when (event) {
             is PathwayListEvent.PathwayClicked ->
                 sendEffect(PathwayListEffect.NavigateToDetail(event.pathwayId))
+
+            PathwayListEvent.Refresh -> refresh()
+        }
+    }
+
+    private fun refresh() {
+        if (currentState.isRefreshing) return
+        setState { copy(isRefreshing = true) }
+        viewModelScope.launch {
+            withMinimumDuration {
+                repository.refreshCatalog()
+                syncScheduler.requestSync()
+            }
+            setState { copy(isRefreshing = false) }
         }
     }
 }

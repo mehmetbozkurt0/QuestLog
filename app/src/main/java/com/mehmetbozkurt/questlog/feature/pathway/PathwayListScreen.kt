@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,127 +89,135 @@ fun PathwayListScreen(
             return@Scaffold
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = Spacing.screen,
-                end = Spacing.screen,
-                top = padding.calculateTopPadding() + Spacing.lg,
-                bottom = padding.calculateBottomPadding() + Spacing.xxl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { onEvent(PathwayListEvent.Refresh) },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding()),
         ) {
-            item(key = "hero") {
-                Row(verticalAlignment = Alignment.Top) {
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(Modifier.width(Spacing.sm))
-                    }
-                    ScreenTitle(
-                        title = stringResource(R.string.pathway_list_title),
-                        subtitle = stringResource(R.string.pathway_list_subtitle),
-                    )
-                }
-            }
-
-            if (state.items.isEmpty()) {
-                item(key = "empty") {
-                    EmptyState(
-                        icon = Icons.Default.CloudOff,
-                        title = stringResource(R.string.pathway_list_empty_title),
-                        body = stringResource(R.string.pathway_list_empty_body),
-                    )
-                }
-                return@LazyColumn
-            }
-
-            if (state.activeItems.isNotEmpty()) {
-                item(key = "active_header") {
-                    SectionTitle(
-                        text = stringResource(R.string.pathway_list_active),
-                        icon = Icons.Default.Explore,
-                        modifier = Modifier.padding(top = Spacing.md),
-                    )
-                }
-                gridItems(state.activeItems, key = { it.pathway.id }) { item ->
-                    PathwayGridCard(
-                        title = item.pathway.title,
-                        stat = item.pathway.primaryStat,
-                        caption = "${(item.fraction * 100).roundToInt()}%",
-                        progress = item.fraction,
-                        accented = true,
-                        onClick = {
-                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
-                        },
-                    )
-                }
-            }
-
-            if (state.availableItems.isNotEmpty()) {
-                item(key = "open_header") {
-                    SectionTitle(
-                        text = stringResource(R.string.pathway_list_open),
-                        icon = Icons.Default.Map,
-                        modifier = Modifier.padding(top = Spacing.md),
-                        trailing = if (!state.canStartMore) {
-                            {
-                                DataValue(
-                                    text = stringResource(R.string.pathway_list_limit_reached),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = Spacing.screen,
+                    end = Spacing.screen,
+                    top = Spacing.lg,
+                    bottom = padding.calculateBottomPadding() + Spacing.xxl,
+                ),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md),
+            ) {
+                item(key = "hero") {
+                    Row(verticalAlignment = Alignment.Top) {
+                        if (onNavigateBack != null) {
+                            IconButton(onClick = onNavigateBack) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.common_back),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                        } else null,
-                    )
+                            Spacer(Modifier.width(Spacing.sm))
+                        }
+                        ScreenTitle(
+                            title = stringResource(R.string.pathway_list_title),
+                            subtitle = stringResource(R.string.pathway_list_subtitle),
+                        )
+                    }
                 }
-                gridItems(state.availableItems, key = { it.pathway.id }) { item ->
-                    val locked = item.isLocked || !state.canStartMore
-                    PathwayGridCard(
-                        title = item.pathway.title,
-                        stat = item.pathway.primaryStat,
-                        caption = stringResource(
-                            R.string.pathway_stage_count,
-                            item.pathway.tier,
-                            item.totalQuests,
-                        ),
-                        dimmed = locked,
-                        badge = if (locked) Icons.Default.Lock else Icons.Default.Add,
-                        onClick = {
-                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
-                        },
-                    )
-                }
-            }
 
-            if (state.completedItems.isNotEmpty()) {
-                item(key = "done_header") {
-                    SectionTitle(
-                        text = stringResource(R.string.pathway_list_completed),
-                        icon = Icons.Default.WorkspacePremium,
-                        modifier = Modifier.padding(top = Spacing.md),
-                    )
+                if (state.items.isEmpty()) {
+                    item(key = "empty") {
+                        EmptyState(
+                            icon = Icons.Default.CloudOff,
+                            title = stringResource(R.string.pathway_list_empty_title),
+                            body = stringResource(R.string.pathway_list_empty_body),
+                        )
+                    }
+                    return@LazyColumn
                 }
-                gridItems(state.completedItems, key = { it.pathway.id }) { item ->
-                    PathwayGridCard(
-                        title = item.pathway.title,
-                        stat = item.pathway.primaryStat,
-                        caption = stringResource(
-                            R.string.pathway_quest_count,
-                            item.completedQuests,
-                            item.totalQuests,
-                        ),
-                        progress = 1f,
-                        struck = true,
-                        badge = Icons.Default.CheckCircle,
-                        onClick = {
-                            onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
-                        },
-                    )
+
+                if (state.activeItems.isNotEmpty()) {
+                    item(key = "active_header") {
+                        SectionTitle(
+                            text = stringResource(R.string.pathway_list_active),
+                            icon = Icons.Default.Explore,
+                            modifier = Modifier.padding(top = Spacing.md),
+                        )
+                    }
+                    gridItems(state.activeItems, key = { it.pathway.id }) { item ->
+                        PathwayGridCard(
+                            title = item.pathway.title,
+                            stat = item.pathway.primaryStat,
+                            caption = "${(item.fraction * 100).roundToInt()}%",
+                            progress = item.fraction,
+                            accented = true,
+                            onClick = {
+                                onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                            },
+                        )
+                    }
+                }
+
+                if (state.availableItems.isNotEmpty()) {
+                    item(key = "open_header") {
+                        SectionTitle(
+                            text = stringResource(R.string.pathway_list_open),
+                            icon = Icons.Default.Map,
+                            modifier = Modifier.padding(top = Spacing.md),
+                            trailing = if (!state.canStartMore) {
+                                {
+                                    DataValue(
+                                        text = stringResource(R.string.pathway_list_limit_reached),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            } else null,
+                        )
+                    }
+                    gridItems(state.availableItems, key = { it.pathway.id }) { item ->
+                        val locked = item.isLocked || !state.canStartMore
+                        PathwayGridCard(
+                            title = item.pathway.title,
+                            stat = item.pathway.primaryStat,
+                            caption = stringResource(
+                                R.string.pathway_stage_count,
+                                item.pathway.tier,
+                                item.totalQuests,
+                            ),
+                            dimmed = locked,
+                            badge = if (locked) Icons.Default.Lock else Icons.Default.Add,
+                            onClick = {
+                                onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                            },
+                        )
+                    }
+                }
+
+                if (state.completedItems.isNotEmpty()) {
+                    item(key = "done_header") {
+                        SectionTitle(
+                            text = stringResource(R.string.pathway_list_completed),
+                            icon = Icons.Default.WorkspacePremium,
+                            modifier = Modifier.padding(top = Spacing.md),
+                        )
+                    }
+                    gridItems(state.completedItems, key = { it.pathway.id }) { item ->
+                        PathwayGridCard(
+                            title = item.pathway.title,
+                            stat = item.pathway.primaryStat,
+                            caption = stringResource(
+                                R.string.pathway_quest_count,
+                                item.completedQuests,
+                                item.totalQuests,
+                            ),
+                            progress = 1f,
+                            struck = true,
+                            badge = Icons.Default.CheckCircle,
+                            onClick = {
+                                onEvent(PathwayListEvent.PathwayClicked(item.pathway.id))
+                            },
+                        )
+                    }
                 }
             }
         }

@@ -6,6 +6,8 @@ import com.mehmetbozkurt.questlog.core.common.UiText
 import com.mehmetbozkurt.questlog.core.common.mvi.MviViewModel
 import com.mehmetbozkurt.questlog.core.common.toUiText
 import com.mehmetbozkurt.questlog.core.common.uiText
+import com.mehmetbozkurt.questlog.core.common.withMinimumDuration
+import com.mehmetbozkurt.questlog.core.sync.SyncScheduler
 import com.mehmetbozkurt.questlog.core.notification.ChatPresence
 import com.mehmetbozkurt.questlog.core.notification.CrewMessageNotifier
 import com.mehmetbozkurt.questlog.core.settings.SettingsRepository
@@ -31,6 +33,7 @@ class CrewViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val chatPresence: ChatPresence,
     private val crewMessageNotifier: CrewMessageNotifier,
+    private val syncScheduler: SyncScheduler,
 ) : MviViewModel<CrewState, CrewEvent, CrewEffect>(CrewState()) {
 
     init {
@@ -69,8 +72,22 @@ class CrewViewModel @Inject constructor(
         viewModelScope.launch { crewRepository.refreshMemberCard() }
     }
 
+    private fun refresh() {
+        if (currentState.isRefreshing) return
+        setState { copy(isRefreshing = true) }
+        viewModelScope.launch {
+            withMinimumDuration {
+                crewRepository.refreshMemberCard()
+                syncScheduler.requestSync()
+            }
+            setState { copy(isRefreshing = false) }
+        }
+    }
+
     override fun onEvent(event: CrewEvent) {
         when (event) {
+            CrewEvent.Refresh -> refresh()
+
             is CrewEvent.CreateDialogToggled -> setState {
                 copy(showCreateDialog = event.show, crewNameInput = "")
             }
