@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.localizedTitle
 import com.mehmetbozkurt.questlog.core.common.Celebration
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.designsystem.component.CelebrationHost
@@ -197,7 +198,7 @@ fun QuestLogListScreen(
                     if (state.activePathways.isNotEmpty()) {
                         gridItems(state.activePathways, key = { it.pathway.id }) { summary ->
                             PathwayGridCard(
-                                title = summary.pathway.title,
+                                title = summary.pathway.localizedTitle(),
                                 stat = summary.pathway.primaryStat,
                                 caption = "${(summary.fraction * 100).roundToInt()}%",
                                 progress = summary.fraction,

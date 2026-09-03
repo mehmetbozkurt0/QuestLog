@@ -17,6 +17,8 @@ fun PathwayEntity.toDomain(): Pathway? {
         title = title,
         description = description,
         primaryStat = primary,
+        titleEn = titleEn,
+        descriptionEn = descriptionEn,
         secondaryStat = secondaryStat?.let {
             runCatching { StatType.valueOf(it) }.getOrNull()
         },
@@ -35,6 +37,8 @@ fun PathwayQuestEntity.toDomain(): PathwayQuest? {
         pathwayId = pathwayId,
         title = title,
         description = description,
+        titleEn = titleEn,
+        descriptionEn = descriptionEn,
         statType = stat,
         difficulty = diff,
         stage = stage,

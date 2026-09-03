@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface CatalogRepository {
     fun observeCatalog(): Flow<List<CatalogEntry>>
-    suspend fun refreshCatalog()
+    suspend fun refreshCatalog(): Boolean
     suspend fun completeTask(taskId: String): CatalogCompletionResult
 }
 

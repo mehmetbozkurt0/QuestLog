@@ -72,12 +72,12 @@ class CatalogRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun refreshCatalog() = withContext(io) {
+    override suspend fun refreshCatalog(): Boolean = withContext(io) {
+        if (authRepository.currentUserSync() == null) return@withContext false
         runCatching {
             val tasks = remote.fetchCatalog()
             if (tasks.isNotEmpty()) dao.replaceTasks(tasks)
-        }
-        Unit
+        }.isSuccess
     }
 
     override suspend fun completeTask(taskId: String): CatalogCompletionResult =

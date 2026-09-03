@@ -12,6 +12,8 @@ data class PathwayEntity(
     @PrimaryKey val id: String,
     val title: String,
     val description: String,
+    val titleEn: String? = null,
+    val descriptionEn: String? = null,
     val primaryStat: String,
     val secondaryStat: String?,
     val tier: Int,

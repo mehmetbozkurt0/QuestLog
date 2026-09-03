@@ -13,7 +13,7 @@ interface PathwayRepository {
     fun observeDetail(pathwayId: String): Flow<PathwayDetail?>
 
     suspend fun detailSnapshot(pathwayId: String): PathwayDetail?
-    suspend fun refreshCatalog()
+    suspend fun refreshCatalog(): Boolean
     suspend fun startPathway(pathwayId: String): StartResult
     suspend fun abandonPathway(pathwayId: String)
     suspend fun checkInactivePathways()

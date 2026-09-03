@@ -59,6 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.R
 import com.mehmetbozkurt.questlog.core.common.Celebration
+import com.mehmetbozkurt.questlog.core.common.localizedDescription
+import com.mehmetbozkurt.questlog.core.common.localizedTitle
 import com.mehmetbozkurt.questlog.core.common.nameRes
 import com.mehmetbozkurt.questlog.core.common.resolve
 import com.mehmetbozkurt.questlog.core.common.shortLabelRes
@@ -252,7 +254,7 @@ fun PathwayDetailScreen(
                     Spacer(Modifier.height(Spacing.md))
 
                     Text(
-                        detail.pathway.title,
+                        detail.pathway.localizedTitle(),
                         style = ContentHero,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -260,7 +262,7 @@ fun PathwayDetailScreen(
                     Spacer(Modifier.height(Spacing.sm))
 
                     Text(
-                        detail.pathway.description,
+                        detail.pathway.localizedDescription(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -455,7 +457,7 @@ private fun QuestRow(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    quest.title,
+                    quest.localizedTitle(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
                     textDecoration = if (questProgress.isComplete)
@@ -474,10 +476,11 @@ private fun QuestRow(
                     color = statColor.copy(alpha = alpha),
                 )
 
-                if (quest.description.isNotBlank()) {
+                val questDescription = quest.localizedDescription()
+                if (questDescription.isNotBlank()) {
                     Spacer(Modifier.height(Spacing.xs))
                     Text(
-                        quest.description,
+                        questDescription,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
                     )

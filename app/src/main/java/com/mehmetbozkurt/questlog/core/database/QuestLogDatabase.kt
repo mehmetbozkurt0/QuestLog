@@ -45,7 +45,7 @@ import com.mehmetbozkurt.questlog.core.database.entity.XpLedgerEntity
         CatalogTaskEntity::class,
         CatalogCompletionEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = true,
 )
 abstract class QuestLogDatabase : RoomDatabase() {

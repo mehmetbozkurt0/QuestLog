@@ -116,14 +116,14 @@ class PathwayRepositoryImpl @Inject constructor(
             )
         }
 
-    override suspend fun refreshCatalog() = withContext(io) {
+    override suspend fun refreshCatalog(): Boolean = withContext(io) {
+        if (authRepository.currentUserSync() == null) return@withContext false
         runCatching {
             val snapshot = remote.fetchCatalog()
             if (snapshot.pathways.isNotEmpty()) {
                 dao.replaceCatalog(snapshot.pathways, snapshot.quests)
             }
-        }
-        Unit
+        }.isSuccess
     }
 
     override suspend fun startPathway(pathwayId: String): StartResult = withContext(io) {

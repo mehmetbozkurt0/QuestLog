@@ -319,3 +319,12 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
         db.execSQL("ALTER TABLE crew_members ADD COLUMN photoUrl TEXT")
     }
 }
+
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("pathways", "titleEn", "TEXT")
+        db.addColumnIfMissing("pathways", "descriptionEn", "TEXT")
+        db.addColumnIfMissing("pathway_quests", "titleEn", "TEXT")
+        db.addColumnIfMissing("pathway_quests", "descriptionEn", "TEXT")
+    }
+}

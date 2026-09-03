@@ -9,13 +9,13 @@ object XpCurve {
     const val MAX_LEVEL = 20
     const val DAILY_STAT_CAP = 150
 
-    const val XP_PER_EPIC_BOON = 100_000
+    const val XP_PER_EPIC_BOON = 25_000
 
     private const val STAT_BASE = 100
     private const val STAT_GROWTH = 1.5
 
     private const val LEVEL_BASE = 400
-    private const val LEVEL_GROWTH = 1.50
+    private const val LEVEL_GROWTH = 1.30
 
     val FEAT_LEVELS = setOf(4, 8, 12, 16, 19)
 

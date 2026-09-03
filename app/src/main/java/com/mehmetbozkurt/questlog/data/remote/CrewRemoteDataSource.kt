@@ -24,8 +24,8 @@ class CrewRemoteDataSource @Inject constructor(
     private fun codeDoc(code: String) = firestore.collection("inviteCodes").document(code)
 
     suspend fun createCrew(entity: CrewEntity) {
-        codeDoc(entity.inviteCode).set(mapOf("crewId" to entity.crewId)).await()
         crewDoc(entity.crewId).set(entity.toFireStoreMap()).await()
+        codeDoc(entity.inviteCode).set(mapOf("crewId" to entity.crewId)).await()
     }
 
     suspend fun findCrewIdByCode(code: String): String? =

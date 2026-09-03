@@ -28,11 +28,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,8 +64,13 @@ class RemoteSyncManager @Inject constructor(
             .onEach { entities -> dao.mergeFromRemote(entities) }
             .launchIn(scope)
 
-        scope.launch { pathwayRepository.refreshCatalog() }
-        scope.launch { catalogRepository.refreshCatalog() }
+        authRepository.currentUser
+            .map { it?.uid }
+            .distinctUntilChanged()
+            .flatMapLatest { uid ->
+                if (uid == null) emptyFlow() else flow { emit(refreshRemoteCatalogs()) }
+            }
+            .launchIn(scope)
 
         authRepository.currentUser
             .flatMapLatest { user ->
@@ -270,6 +275,30 @@ class RemoteSyncManager @Inject constructor(
             .launchIn(scope)
     }
 
+    private suspend fun refreshRemoteCatalogs() {
+        var pathwaysDone = false
+        var catalogDone = false
+        var attempt = 0
+
+        while (true) {
+            if (!pathwaysDone) pathwaysDone = pathwayRepository.refreshCatalog()
+            if (!catalogDone) catalogDone = catalogRepository.refreshCatalog()
+            if (pathwaysDone && catalogDone) return
+
+            if (attempt >= CATALOG_RETRY_LIMIT) {
+                Log.e(
+                    TAG,
+                    "Catalog refresh gave up after ${attempt + 1} attempts " +
+                            "(pathways=$pathwaysDone, tasks=$catalogDone)",
+                )
+                return
+            }
+
+            delay((RETRY_BASE_MS shl attempt.coerceAtMost(4)).coerceAtMost(RETRY_MAX_MS))
+            attempt++
+        }
+    }
+
     private fun Throwable.isPermissionDenied(): Boolean =
         (this as? FirebaseFirestoreException)?.code ==
                 FirebaseFirestoreException.Code.PERMISSION_DENIED
@@ -291,5 +320,6 @@ class RemoteSyncManager @Inject constructor(
         const val TAG = "QuestLog"
         const val RETRY_BASE_MS = 2000L
         const val RETRY_MAX_MS = 30_000L
+        const val CATALOG_RETRY_LIMIT = 5
     }
 }

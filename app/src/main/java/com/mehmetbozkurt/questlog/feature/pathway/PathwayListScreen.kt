@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mehmetbozkurt.questlog.R
+import com.mehmetbozkurt.questlog.core.common.localizedTitle
 import com.mehmetbozkurt.questlog.core.designsystem.component.EmptyState
 import com.mehmetbozkurt.questlog.core.designsystem.component.DataValue
 import com.mehmetbozkurt.questlog.core.designsystem.component.ScreenTitle
@@ -146,7 +147,7 @@ fun PathwayListScreen(
                     }
                     gridItems(state.activeItems, key = { it.pathway.id }) { item ->
                         PathwayGridCard(
-                            title = item.pathway.title,
+                            title = item.pathway.localizedTitle(),
                             stat = item.pathway.primaryStat,
                             caption = "${(item.fraction * 100).roundToInt()}%",
                             progress = item.fraction,
@@ -177,7 +178,7 @@ fun PathwayListScreen(
                     gridItems(state.availableItems, key = { it.pathway.id }) { item ->
                         val locked = item.isLocked || !state.canStartMore
                         PathwayGridCard(
-                            title = item.pathway.title,
+                            title = item.pathway.localizedTitle(),
                             stat = item.pathway.primaryStat,
                             caption = stringResource(
                                 R.string.pathway_stage_count,
@@ -203,7 +204,7 @@ fun PathwayListScreen(
                     }
                     gridItems(state.completedItems, key = { it.pathway.id }) { item ->
                         PathwayGridCard(
-                            title = item.pathway.title,
+                            title = item.pathway.localizedTitle(),
                             stat = item.pathway.primaryStat,
                             caption = stringResource(
                                 R.string.pathway_quest_count,

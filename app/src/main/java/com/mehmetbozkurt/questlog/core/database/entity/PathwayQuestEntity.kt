@@ -13,6 +13,8 @@ data class PathwayQuestEntity(
     val pathwayId: String,
     val title: String,
     val description: String,
+    val titleEn: String? = null,
+    val descriptionEn: String? = null,
     val statType: String,
     val difficulty: String,
     val stage: Int,

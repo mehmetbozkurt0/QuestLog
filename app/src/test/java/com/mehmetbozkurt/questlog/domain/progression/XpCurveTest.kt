@@ -22,12 +22,12 @@ class XpCurveTest {
     }
 
     @Test
-    fun `level cost follows the 1_5x growth curve`() {
+    fun `level cost follows the 1_3x growth curve`() {
         assertEquals(400, XpCurve.xpForLevelUp(1))
-        assertEquals(600, XpCurve.xpForLevelUp(2))
-        assertEquals(900, XpCurve.xpForLevelUp(3))
-        assertEquals(1350, XpCurve.xpForLevelUp(4))
-        assertEquals(591157, XpCurve.xpForLevelUp(19))
+        assertEquals(520, XpCurve.xpForLevelUp(2))
+        assertEquals(676, XpCurve.xpForLevelUp(3))
+        assertEquals(879, XpCurve.xpForLevelUp(4))
+        assertEquals(44982, XpCurve.xpForLevelUp(19))
     }
 
     @Test
@@ -37,7 +37,7 @@ class XpCurveTest {
 
     @Test
     fun `total xp needed to reach max level is stable`() {
-        assertEquals(1_772_672, XpCurve.xpToMaxLevel)
+        assertEquals(193_590, XpCurve.xpToMaxLevel)
     }
 
     @Test
@@ -61,15 +61,15 @@ class XpCurveTest {
         val info = XpCurve.levelFromTotalXp(400)
         assertEquals(2, info.level)
         assertEquals(0, info.xpIntoLevel)
-        assertEquals(600, info.xpToNextLevel)
+        assertEquals(520, info.xpToNextLevel)
     }
 
     @Test
     fun `leftover xp carries into the new level`() {
         val info = XpCurve.levelFromTotalXp(1200)
         assertEquals(3, info.level)
-        assertEquals(200, info.xpIntoLevel)
-        assertEquals(900, info.xpToNextLevel)
+        assertEquals(280, info.xpIntoLevel)
+        assertEquals(676, info.xpToNextLevel)
     }
 
     @Test

@@ -34,6 +34,7 @@ class MigrationTest {
         MIGRATION_10_11,
         MIGRATION_11_12,
         MIGRATION_12_13,
+        MIGRATION_13_14,
     )
 
     private val latestVersion = LATEST_VERSION
@@ -240,7 +241,7 @@ class MigrationTest {
     }
 
     private companion object {
-        const val LATEST_VERSION = 13
+        const val LATEST_VERSION = 14
         const val SCHEMA_DIR = "com.mehmetbozkurt.questlog.core.database.QuestLogDatabase"
     }
 }

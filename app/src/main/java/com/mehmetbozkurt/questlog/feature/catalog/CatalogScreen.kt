@@ -1,5 +1,7 @@
 package com.mehmetbozkurt.questlog.feature.catalog
 
+import com.mehmetbozkurt.questlog.core.common.localizedDescription
+import com.mehmetbozkurt.questlog.core.common.localizedTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -299,15 +301,3 @@ private fun RowScope.CatalogTaskCard(
         }
     }
 }
-
-@Composable
-private fun CatalogTask.localizedTitle(): String =
-    if (isEnglish()) titleEn ?: title else title
-
-@Composable
-private fun CatalogTask.localizedDescription(): String =
-    if (isEnglish()) descriptionEn ?: description else description
-
-@Composable
-private fun isEnglish(): Boolean =
-    androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language != "tr"
